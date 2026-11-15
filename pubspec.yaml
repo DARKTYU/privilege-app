@@ -1,0 +1,26 @@
+name: privilege
+description: Privilege - Eat well, stay well. Flutter port of the Privilege Interactive Fitness Ecosystem.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_timezone: ^5.1.1
+  http: ^1.2.0
+  image_picker: ^1.1.2
+  shared_preferences: ^2.2.3
+  supabase_flutter: ^2.18.3
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png

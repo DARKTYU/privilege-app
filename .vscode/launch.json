@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "dart",
+            "request": "launch",
+            "name": "Flutter (selected device)",
+            "program": "${workspaceFolder}/lib/main.dart"
+        },
+        {
+            "type": "dart",
+            "request": "launch",
+            "name": "Flutter Web (Chrome)",
+            "program": "${workspaceFolder}/lib/main.dart",
+            "deviceId": "chrome",
+            "args": [
+                "--web-port=8080"
+            ]
+        }
+    ]
+}
