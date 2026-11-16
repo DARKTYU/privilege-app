@@ -18,6 +18,7 @@ class _HomeShellState extends State<HomeShell> {
 
   // Shortcut strip from the React app's bottom navigation.
   static const _shortcuts = <(String, IconData, String)>[
+    ('Community', Icons.people_alt_outlined, '/community'),
     ('Recipes', Icons.menu_book, '/recipes'),
     ('Streak Arena', Icons.emoji_events, '/arena'),
     ('Cheat Meals', Icons.no_food, '/cheats'),

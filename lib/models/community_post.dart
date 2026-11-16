@@ -7,6 +7,7 @@ class CommunityPost {
     required this.avatarUrl,
     required this.body,
     required this.visibility,
+    required this.imagePath,
     required this.createdAt,
     required this.friendGroup,
     required this.likeCount,
@@ -22,6 +23,7 @@ class CommunityPost {
         avatarUrl: json['avatar_url'] as String?,
         body: json['body'] as String,
         visibility: json['visibility'] as String,
+        imagePath: json['image_path'] as String?,
         createdAt: DateTime.parse(json['created_at'] as String),
         friendGroup: (json['friend_group'] as num).toInt(),
         likeCount: (json['like_count'] as num).toInt(),
@@ -30,7 +32,7 @@ class CommunityPost {
       );
 
   final String id, authorId, username, body, visibility;
-  final String? fullName, avatarUrl;
+  final String? fullName, avatarUrl, imagePath;
   final DateTime createdAt;
   final int friendGroup, likeCount, commentCount;
   final bool likedByMe;

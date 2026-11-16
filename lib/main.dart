@@ -7,6 +7,7 @@ import 'screens/arena.dart';
 import 'screens/champion.dart';
 import 'screens/chat.dart';
 import 'screens/cheats.dart';
+import 'screens/community.dart';
 import 'screens/home_shell.dart';
 import 'screens/login.dart';
 import 'screens/onboarding.dart';
@@ -127,6 +128,10 @@ class PrivilegeApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 theme: buildTheme(themeSettings.selected),
                 routes: {
+                  '/community': (_) => _protected(AppPage(
+                        title: 'Community',
+                        builder: () => const CommunityScreen(),
+                      )),
                   '/chat': (_) => _protected(
                       ThemeAwareBuilder(builder: () => ChatScreen())),
                   '/recipes': (_) => _protected(AppPage(

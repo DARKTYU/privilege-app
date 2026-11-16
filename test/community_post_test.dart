@@ -11,6 +11,7 @@ void main() {
       'avatar_url': null,
       'body': 'Hello',
       'visibility': 'friends',
+      'image_path': null,
       'created_at': '2026-01-01T10:00:00Z',
       'friend_group': 0,
       'like_count': 3,
