@@ -27,12 +27,27 @@ void main() {
   var profileMissing = false;
   var signOutCount = 0;
   var signUpWithSession = false;
+  var userJwtExpired = false;
+  var refreshFails = false;
   final mock = MockClient((request) async {
     final path = request.url.path;
     if (path.endsWith('/signup')) {
       return http.Response(jsonEncode(signUpWithSession ? session : user), 200);
     }
     if (path.endsWith('/token')) {
+      final grantType = request.url.queryParameters['grant_type'];
+      if (grantType == 'refresh_token') {
+        if (refreshFails) {
+          return http.Response(
+            jsonEncode({
+              'code': 'refresh_token_not_found',
+              'msg': 'Invalid refresh token'
+            }),
+            401,
+          );
+        }
+        return http.Response(jsonEncode(session), 200);
+      }
       if (loginFails) {
         return http.Response(
           jsonEncode(
@@ -42,7 +57,15 @@ void main() {
       }
       return http.Response(jsonEncode(session), 200);
     }
-    if (path.endsWith('/user')) return http.Response(jsonEncode(user), 200);
+    if (path.endsWith('/user')) {
+      if (userJwtExpired) {
+        return http.Response(
+          jsonEncode({'code': 'PGRST301', 'msg': 'JWT expired'}),
+          401,
+        );
+      }
+      return http.Response(jsonEncode(user), 200);
+    }
     if (path.endsWith('/logout')) {
       signOutCount++;
       return http.Response('', 204);
@@ -121,5 +144,15 @@ void main() {
     );
     profileMissing = false;
     await SupabaseAuthService.logout();
+  });
+
+  test('restore clears expired session when refresh fails', () async {
+    await SupabaseAuthService.login('test@example.com', 'Password1');
+    userJwtExpired = true;
+    refreshFails = true;
+    expect(await SupabaseAuthService.restore(), isNull);
+    expect(SupabaseAuthService.client.auth.currentSession, isNull);
+    userJwtExpired = false;
+    refreshFails = false;
   });
 }

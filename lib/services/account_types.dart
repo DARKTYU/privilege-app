@@ -11,11 +11,10 @@ class AuthException implements Exception {
 
 class AccountData {
   AccountData(
-      {required this.username,
+      {required this.userId,
+      required this.username,
       required this.email,
-      required this.profile,
-      this.token});
-  final String username, email;
+      required this.profile});
+  final String userId, username, email;
   final Map<String, dynamic> profile;
-  final String? token;
 }

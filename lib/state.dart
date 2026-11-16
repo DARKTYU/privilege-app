@@ -10,6 +10,7 @@ import 'logic/user_profile.dart';
 import 'services/account_types.dart';
 import 'services/activity_repository.dart';
 import 'services/supabase_auth_service.dart';
+import 'services/session_recovery.dart';
 
 /// Port of FitnessContext.tsx plus profile, subscription and streak-arena state.
 class AppState extends ChangeNotifier {
@@ -26,13 +27,11 @@ class AppState extends ChangeNotifier {
       true; // true while the saved session is being checked at app start
   String?
       authNotice; // message shown on the login screen (e.g. "session expired")
-  String? _token;
   StreamSubscription<supabase.AuthState>? _authSubscription;
   String email = '';
   String? profilePhotoBase64;
   UserProfile profile = defaultUserProfile;
 
-  String? get token => _token;
   SubscriptionTier get tier => profile.subscriptionTier;
   bool can(Feature f) => canAccessFeature(tier, f);
 
@@ -40,12 +39,20 @@ class AppState extends ChangeNotifier {
     _authSubscription ??=
         SupabaseAuthService.client.auth.onAuthStateChange.listen(
       (event) {
-        if (event.event == supabase.AuthChangeEvent.signedOut && loggedIn) {
+        if (event.event == supabase.AuthChangeEvent.signedOut &&
+            SupabaseAuthService.client.auth.currentSession == null) {
           _clearAccount();
         }
       },
       onError: (Object error, StackTrace stack) {
         debugPrint('Supabase authentication event failed: $error');
+        final userId = SupabaseAuthService.client.auth.currentUser?.id;
+        if (userId != null) {
+          unawaited(SessionRecovery.forClient(SupabaseAuthService.client)
+              .signOutIfCurrent(userId));
+        } else {
+          _clearAccount();
+        }
       },
     );
     try {
@@ -53,8 +60,14 @@ class AppState extends ChangeNotifier {
       if (acc != null) {
         await signInWithAccount(acc);
       }
-    } on AuthException catch (error) {
-      authNotice = error.message;
+    } catch (error, stack) {
+      debugPrint('Could not restore the Supabase session: $error\n$stack');
+      final userId = SupabaseAuthService.client.auth.currentUser?.id;
+      if (userId != null) {
+        await SessionRecovery.forClient(SupabaseAuthService.client)
+            .signOutIfCurrent(userId);
+      }
+      _clearAccount();
     }
     restoring = false;
     notifyListeners();
@@ -64,12 +77,11 @@ class AppState extends ChangeNotifier {
       signInWithAccount(await SupabaseAuthService.login(identifier, password));
 
   Future<void> signInWithAccount(AccountData acc) async {
-    _token = acc.token;
     final preferences = await SharedPreferences.getInstance();
     final userId = SupabaseAuthService.client.auth.currentUser?.id;
-    profilePhotoBase64 = userId == null
-        ? null
-        : preferences.getString('privilege_profile_photo_$userId');
+    if (userId != acc.userId) throw const SessionExpiredException();
+    profilePhotoBase64 =
+        preferences.getString('privilege_profile_photo_$userId');
     _applyAccount(acc);
     authNotice = null;
     notifyListeners();
@@ -102,7 +114,7 @@ class AppState extends ChangeNotifier {
   void _clearAccount() {
     _activityGeneration++;
     _activityUserId = null;
-    _token = null;
+    authNotice = null;
     loggedIn = false;
     onboardingDone = false;
     email = '';
@@ -150,8 +162,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> completeOnboarding(UserProfile p) async {
-    final t = _token;
-    if (t == null) {
+    if (SupabaseAuthService.client.auth.currentSession == null) {
       throw AuthException(
           'invalid_session', 'Please log in again to finish setup.');
     }
@@ -172,7 +183,7 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> updateProfile(UserProfile p) async {
-    if (_token == null) {
+    if (SupabaseAuthService.client.auth.currentSession == null) {
       throw AuthException('invalid_session', 'Please log in again.');
     }
     await SupabaseAuthService.saveProfile({

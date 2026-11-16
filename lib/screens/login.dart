@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/validators.dart';
 import '../services/account_types.dart' show AuthException;
 import '../services/supabase_auth_service.dart';
+import '../services/session_recovery.dart';
 import '../state.dart';
 import '../ui.dart';
 
@@ -24,6 +25,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _success = false;
   String? _message;
   Map<String, String> _errors = {};
+
+  String _loginMessage(AuthException error) {
+    if (error.code == 'invalid_credentials' ||
+        error.code == 'email_not_confirmed' ||
+        error.code == 'network') {
+      return error.message;
+    }
+    return 'Could not sign in right now. Please try again.';
+  }
 
   @override
   void initState() {
@@ -87,11 +97,13 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         await appState.login(_email.text.trim(), _password.text);
       }
+    } on SessionExpiredException {
+      // Session loss returns to a clean login screen.
     } on AuthException catch (error) {
       if (mounted) {
         setState(() {
           _success = false;
-          _message = error.message;
+          _message = _register ? error.message : _loginMessage(error);
         });
       }
     } finally {

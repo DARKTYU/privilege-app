@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/community_models.dart';
 import '../models/community_post.dart';
+import 'session_recovery.dart';
 
 class CommunityException implements Exception {
   const CommunityException(this.message);
@@ -35,7 +36,7 @@ class CommunityRepository {
 
   Future<T> _request<T>(Future<T> Function() action) async {
     try {
-      return await action();
+      return await SessionRecovery.forClient(client).request(action);
     } on PostgrestException catch (error) {
       throw CommunityException(error.message);
     } on StorageException catch (error) {
@@ -111,7 +112,8 @@ class CommunityRepository {
     } catch (error) {
       if (imagePath != null) {
         try {
-          await client.storage.from(imageBucket).remove([imagePath]);
+          await _request(
+              () => client.storage.from(imageBucket).remove([imagePath]));
         } on StorageException catch (cleanupError) {
           throw CommunityException(
               '$error (The uploaded image could not be cleaned up: ${cleanupError.message})');

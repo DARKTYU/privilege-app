@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import 'account_types.dart';
+import 'session_recovery.dart';
 
 class SupabaseAuthService {
   static sb.SupabaseClient get client => sb.Supabase.instance.client;
@@ -18,7 +19,7 @@ class SupabaseAuthService {
       return AuthException(
           code, 'Please confirm your email before logging in.');
     }
-    return AuthException(code, error.message);
+    return AuthException(code, 'Could not sign in. Please try again.');
   }
 
   static AuthException _connectionError() => AuthException('network',
@@ -67,16 +68,23 @@ class SupabaseAuthService {
   }
 
   static Future<AccountData?> restore() async {
-    if (client.auth.currentSession == null) return null;
+    final session = client.auth.currentSession;
+    if (session == null) return null;
     try {
-      final response = await client.auth.getUser();
+      final recovery = SessionRecovery.forClient(client);
+      if (session.isExpired && !await recovery.refresh()) return null;
+      final response = await recovery.request(() => client.auth.getUser());
       final user = response.user;
       if (user == null) {
-        throw AuthException(
-            'invalid_session', 'Your session expired. Please log in again.');
+        await recovery.signOutIfCurrent(session.user.id);
+        return null;
       }
       return await _account(user);
+    } on SessionExpiredException {
+      return null;
     } on sb.AuthException catch (error) {
+      await SessionRecovery.forClient(client).signOutIfCurrent(session.user.id);
+      if (SessionRecovery.isJwtError(error)) return null;
       throw _authError(error);
     } on SocketException {
       throw _connectionError();
@@ -89,26 +97,29 @@ class SupabaseAuthService {
 
   static Future<AccountData> _account(sb.User user) async {
     try {
-      final row = await client
+      final row = await SessionRecovery.forClient(client).request(() => client
           .from('profiles')
           .select(
             'username, full_name, weight_kg, height_cm, training_goal, bio, daily_calorie_target, onboarding_completed',
           )
           .eq('id', user.id)
-          .maybeSingle();
+          .maybeSingle());
       if (row == null) {
         throw AuthException('missing_profile',
             'Your profile could not be found. Contact the app administrator.');
       }
       return AccountData(
+        userId: user.id,
         username: row['username'] as String,
         email: user.email ?? '',
         profile: row,
-        token: client.auth.currentSession?.accessToken,
       );
     } on sb.PostgrestException catch (error) {
-      throw AuthException('profile_error',
-          'Could not load your profile. Check that the Supabase auth migration has been applied. (${error.code ?? 'database error'})');
+      if (SessionRecovery.isJwtError(error)) {
+        throw const SessionExpiredException();
+      }
+      throw AuthException(
+          'profile_error', 'Could not complete sign-in. Please try again.');
     }
   }
 
@@ -118,12 +129,12 @@ class SupabaseAuthService {
       throw AuthException('invalid_session', 'Please log in again.');
     }
     try {
-      final row = await client
+      final row = await SessionRecovery.forClient(client).request(() => client
           .from('profiles')
           .update(profile)
           .eq('id', user.id)
           .select('id')
-          .maybeSingle();
+          .maybeSingle());
       if (row == null) {
         throw AuthException(
             'missing_profile', 'Your profile could not be saved.');
