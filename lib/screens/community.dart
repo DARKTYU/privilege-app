@@ -8,7 +8,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/community_models.dart';
 import '../models/community_post.dart';
 import '../services/community_repository.dart';
+import '../services/progression_repository.dart';
 import '../ui.dart';
+import 'progression.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -397,6 +399,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Future<void> _showPublicProfile(String userId) async {
     await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: kCard,
       builder: (context) => _PublicProfileSheet(
         repository: _repository,
@@ -1270,6 +1273,8 @@ class _PublicProfileSheet extends StatefulWidget {
 }
 
 class _PublicProfileSheetState extends State<_PublicProfileSheet> {
+  late final _progression =
+      ProgressionRepository(client: widget.repository.client);
   late Future<CommunityPublicProfile?> _profile =
       widget.repository.publicProfile(widget.userId);
 
@@ -1308,7 +1313,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                   TextButton(onPressed: _refresh, child: const Text('Retry')),
                 ]);
               }
-              if (!snapshot.hasData) {
+              if (snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 160,
                   child: Center(child: CircularProgressIndicator()),
@@ -1324,7 +1329,8 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                   ? profile.fullName!
                   : profile.username;
               final self = profile.relationship == 'self';
-              return Column(mainAxisSize: MainAxisSize.min, children: [
+              return SingleChildScrollView(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
                 CircleAvatar(
                   radius: 38,
                   backgroundColor: kCard2,
@@ -1359,6 +1365,25 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                     _stat('Followers', '${profile.followerCount}'),
                   ],
                 ),
+                const SizedBox(height: 12),
+                const Text('Badges',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                LiveProgress<List<BadgeProgress>>(
+                  repository: _progression,
+                  load: () => _progression.publicBadges(widget.userId),
+                  builder: (_, badges) => badges.isEmpty
+                      ? const Text('No badges earned yet.')
+                      : Wrap(
+                          spacing: 6,
+                          children: [
+                            for (final badge in badges)
+                              Chip(
+                                  label: Text(badge.name),
+                                  avatar: Icon(Icons.workspace_premium,
+                                      size: 18, color: kGold))
+                          ],
+                        ),
+                ),
                 if (!self) ...[
                   const SizedBox(height: 18),
                   Row(children: [
@@ -1384,7 +1409,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                     ],
                   ]),
                 ],
-              ]);
+              ]));
             },
           ),
         ),

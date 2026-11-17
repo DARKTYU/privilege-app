@@ -11,6 +11,7 @@ import 'screens/community.dart';
 import 'screens/home_shell.dart';
 import 'screens/login.dart';
 import 'screens/onboarding.dart';
+import 'screens/progression.dart';
 import 'screens/recipes.dart';
 import 'screens/subscription.dart';
 import 'state.dart';
@@ -141,6 +142,14 @@ class PrivilegeApp extends StatelessWidget {
                   '/arena': (_) => _protected(AppPage(
                         title: 'Streak Arena',
                         builder: () => ArenaScreen(),
+                      )),
+                  '/rewards': (_) => _protected(AppPage(
+                        title: 'Rewards Store',
+                        builder: () => const RewardsStoreScreen(),
+                      )),
+                  '/badges': (_) => _protected(AppPage(
+                        title: 'Badges & Achievements',
+                        builder: () => const BadgesAchievementsScreen(),
                       )),
                   '/cheats': (_) => _protected(AppPage(
                         title: 'Cravings & Treats',

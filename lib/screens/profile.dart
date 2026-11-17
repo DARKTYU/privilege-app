@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/user_profile.dart';
 import '../services/account_types.dart' show AuthException;
+import '../services/progression_repository.dart';
 import '../state.dart';
 import '../ui.dart';
+import 'progression.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final _progression = ProgressionRepository();
   bool _editing = false;
   bool _saved = false;
   bool _saving = false;
@@ -282,6 +285,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ]),
               ),
+              LevelProgressPanel(repository: _progression),
+              Wrap(spacing: 8, children: [
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/rewards'),
+                  icon: const Icon(Icons.card_giftcard),
+                  label: const Text('Rewards Store'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, '/badges'),
+                  icon: const Icon(Icons.workspace_premium),
+                  label: const Text('Badges & Achievements'),
+                ),
+              ]),
               Panel(
                 child: Row(children: [
                   Icon(Icons.flag_outlined, color: kGold),

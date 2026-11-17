@@ -6,6 +6,7 @@ import 'package:privilege/screens/arena.dart';
 import 'package:privilege/services/arena_repository.dart';
 import 'package:privilege/state.dart';
 import 'package:privilege/ui.dart';
+import 'progression_fake.dart';
 
 void main() {
   testWidgets('Streak Arena loads challenges and real-data leaderboard states',
@@ -20,7 +21,9 @@ void main() {
         theme: buildTheme(),
         home: AppPage(
           title: 'Streak Arena',
-          builder: () => ArenaScreen(repository: _ArenaDataSource()),
+          builder: () => ArenaScreen(
+              repository: _ArenaDataSource(),
+              progressionRepository: FakeProgression()),
         ),
       ),
     );
@@ -33,6 +36,7 @@ void main() {
     expect(find.text('ARENA'), findsOneWidget);
     expect(find.text('Morning movement'), findsOneWidget);
     expect(find.text('Join challenge'), findsOneWidget);
+    await tester.ensureVisible(find.text('Leaderboard'));
     await tester.tap(find.text('Leaderboard'));
     await tester.pumpAndSettle();
     expect(find.text('Active days'), findsOneWidget);
@@ -60,8 +64,9 @@ void main() {
         theme: buildTheme(),
         home: AppPage(
           title: 'Streak Arena',
-          builder: () =>
-              ArenaScreen(repository: _ArenaDataSource(score: count)),
+          builder: () => ArenaScreen(
+              repository: _ArenaDataSource(score: count),
+              progressionRepository: FakeProgression()),
         ),
       ));
       await tester.pumpAndSettle();
@@ -70,6 +75,7 @@ void main() {
       expect(find.text('Your streak: $label'), findsOneWidget);
       expect(find.text('Longest streak: $label'), findsOneWidget);
       expect(find.text('Your score: $label · #1'), findsOneWidget);
+      await tester.ensureVisible(find.text('Morning movement'));
       await tester.tap(find.text('Morning movement'));
       await tester.pumpAndSettle();
       expect(find.text(label), findsOneWidget);

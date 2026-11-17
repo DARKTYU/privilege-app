@@ -6,18 +6,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/arena_models.dart';
 import '../models/community_models.dart';
 import '../services/arena_repository.dart';
+import '../services/progression_repository.dart';
 import '../state.dart';
 import '../ui.dart';
+import 'progression.dart';
 
 class ArenaScreen extends StatefulWidget {
-  const ArenaScreen({super.key, this.repository});
+  const ArenaScreen({super.key, this.repository, this.progressionRepository});
   final ArenaDataSource? repository;
+  final ProgressionDataSource? progressionRepository;
 
   @override
   State<ArenaScreen> createState() => _ArenaScreenState();
 }
 
 class _ArenaScreenState extends State<ArenaScreen> {
+  late final ProgressionDataSource _progression =
+      widget.progressionRepository ?? ProgressionRepository();
   late final ArenaDataSource _repository =
       widget.repository ?? ArenaRepository();
   SupabaseClient? _realtimeClient;
@@ -374,6 +379,19 @@ class _ArenaScreenState extends State<ArenaScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _activityStreak(),
+          LevelProgressPanel(repository: _progression),
+          Wrap(spacing: 8, children: [
+            TextButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/rewards'),
+              icon: const Icon(Icons.card_giftcard),
+              label: const Text('Rewards Store'),
+            ),
+            TextButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/badges'),
+              icon: const Icon(Icons.workspace_premium),
+              label: const Text('Badges & Achievements'),
+            ),
+          ]),
           const SizedBox(height: 18),
           Row(children: [
             Expanded(child: sectionTitle('Arena')),
@@ -451,13 +469,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
             ),
           ]),
+          const SizedBox(height: 8),
+          FreezeTokenCount(repository: _progression),
           const SizedBox(height: 10),
           Row(children: [
             Icon(Icons.stars, color: kGold, size: 22),
             const SizedBox(width: 8),
-            Text('${fmt(state.storePoints)} store points',
-                style: TextStyle(
-                    color: kGold, fontSize: 13, fontWeight: FontWeight.w800)),
+            StorePointsCount(repository: _progression),
           ]),
           const SizedBox(height: 10),
           Text(
