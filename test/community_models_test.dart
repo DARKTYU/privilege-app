@@ -39,6 +39,40 @@ void main() {
     expect(notification.username, 'runner');
   });
 
+  test('notification messages cover community and progression types', () {
+    CommunityNotification notification(String type, {String? username}) =>
+        CommunityNotification(
+          id: 'id',
+          type: type,
+          postId: null,
+          friendshipId: null,
+          readAt: null,
+          createdAt: DateTime.utc(2026),
+          actorId: null,
+          username: username,
+          fullName: null,
+          avatarUrl: null,
+        );
+    expect(notification('friend_request', username: 'runner').message,
+        '@runner sent you a friend request.');
+    expect(notification('friend_accepted').message,
+        'Someone accepted your friend request.');
+    expect(notification('post_like').message, 'Someone liked your post.');
+    expect(notification('post_comment').message,
+        'Someone commented on your post.');
+    expect(notification('badge_earned').message, 'You earned a badge!');
+    expect(notification('achievement_earned').message,
+        'You completed an achievement!');
+    expect(notification('level_up').message, 'You reached a new level!');
+    expect(notification('challenge_invite').message,
+        'Someone invited you to a challenge.');
+    expect(notification('challenge_result').message,
+        'Your challenge results are ready.');
+    expect(notification('reward_redeemed').message,
+        'Your reward has been redeemed.');
+    expect(notification('future_type').message, 'You have a new notification.');
+  });
+
   test('public profile contains aggregates without private profile fields', () {
     final profile = CommunityPublicProfile.fromJson({
       'user_id': 'user-id',

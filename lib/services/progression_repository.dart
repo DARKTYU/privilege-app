@@ -54,10 +54,18 @@ class AchievementProgress {
 }
 
 class StoreSnapshot {
-  const StoreSnapshot(this.balance, this.tokens, this.rewards);
+  const StoreSnapshot(this.balance, this.tokens, this.rewards,
+      {this.tier = 'Free'});
   final int balance, tokens;
   final List<StoreReward> rewards;
+  final String tier;
 }
+
+int subscriptionTierRank(String tier) => switch (tier) {
+      'Gold' => 2,
+      'Silver' => 1,
+      _ => 0,
+    };
 
 abstract interface class ProgressionDataSource {
   String get accountId;
@@ -91,8 +99,8 @@ class ProgressionRepository implements ProgressionDataSource {
     final userId = _userId;
     final profile = await _request(() =>
         client.from('profiles').select('level_id').eq('id', userId).single());
-    final levels =
-        await _request(() => client.from('levels').select().order('min_xp'));
+    final levels = await _request(
+        () => client.from('levels').select().order('min_xp', ascending: true));
     var xp = 0;
     const pageSize = 500;
     for (var start = 0;; start += pageSize) {
@@ -133,13 +141,34 @@ class ProgressionRepository implements ProgressionDataSource {
     final userId = _userId;
     final balance = await points();
     final tokens = await freezeTokens();
+    final subscriptions = await _request(() => client
+        .from('user_subscriptions')
+        .select('started_at,expires_at,subscription_plans(name)')
+        .eq('user_id', userId)
+        .eq('status', 'active'));
+    final now = DateTime.now().toUtc();
+    var tier = 'Free';
+    for (final subscription in subscriptions) {
+      final started = DateTime.parse(subscription['started_at'] as String);
+      final expires = subscription['expires_at'] == null
+          ? null
+          : DateTime.parse(subscription['expires_at'] as String);
+      if (started.isAfter(now) || (expires != null && !expires.isAfter(now))) {
+        continue;
+      }
+      final plan = subscription['subscription_plans'] as Map<String, dynamic>?;
+      final candidate = plan?['name'] as String? ?? 'Free';
+      if (subscriptionTierRank(candidate) > subscriptionTierRank(tier)) {
+        tier = candidate;
+      }
+    }
     final rows = await _request(() => client
         .from('rewards')
         .select(
             'id,name,description,reward_kind,cost_points,stock,required_tier')
         .eq('is_active', true)
-        .order('cost_points')
-        .order('id'));
+        .order('cost_points', ascending: true)
+        .order('id', ascending: true));
     final owned = await _request(() => client
         .from('reward_redemptions')
         .select('reward_id')
@@ -163,6 +192,7 @@ class ProgressionRepository implements ProgressionDataSource {
                     row['reward_kind'] != 'freeze',
               ))
           .toList(),
+      tier: tier,
     );
   }
 

@@ -913,28 +913,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     child:
                         _avatar(item.avatarUrl, item.username ?? 'P', size: 42),
                   ),
-                  title: Text(_notificationText(item)),
+                  title: Text(item.message),
                   subtitle: Text(
-                      '@${item.username ?? 'Privilege user'} · ${_relativeTime(item.createdAt)}'),
+                      '${item.username == null ? 'Privilege' : '@${item.username}'} · ${_relativeTime(item.createdAt)}'),
                   trailing: const Icon(Icons.chevron_right),
                 ),
               ),
         ],
       ),
     );
-  }
-
-  String _notificationText(CommunityNotification item) {
-    final name = item.fullName?.trim().isNotEmpty == true
-        ? item.fullName!
-        : '@${item.username ?? 'Someone'}';
-    return switch (item.type) {
-      'friend_request' => '$name sent you a friend request.',
-      'friend_accepted' => '$name accepted your friend request.',
-      'post_comment' => '$name commented on your post.',
-      'post_like' => '$name liked your post.',
-      _ => '$name interacted with you.',
-    };
   }
 
   Widget _sectionTitle(String title) => Padding(

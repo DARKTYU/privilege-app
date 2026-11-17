@@ -98,6 +98,27 @@ class CommunityNotification {
 
   bool get isRead => readAt != null;
 
+  String get message {
+    final name = fullName?.trim().isNotEmpty == true
+        ? fullName!.trim()
+        : username?.trim().isNotEmpty == true
+            ? '@${username!.trim()}'
+            : 'Someone';
+    return switch (type) {
+      'friend_request' => '$name sent you a friend request.',
+      'friend_accepted' => '$name accepted your friend request.',
+      'post_comment' => '$name commented on your post.',
+      'post_like' => '$name liked your post.',
+      'challenge_invite' => '$name invited you to a challenge.',
+      'challenge_result' => 'Your challenge results are ready.',
+      'badge_earned' => 'You earned a badge!',
+      'achievement_earned' => 'You completed an achievement!',
+      'level_up' => 'You reached a new level!',
+      'reward_redeemed' => 'Your reward has been redeemed.',
+      _ => 'You have a new notification.',
+    };
+  }
+
   factory CommunityNotification.fromJson(Map<String, dynamic> json) =>
       CommunityNotification(
         id: json['id'] as String,

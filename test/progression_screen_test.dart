@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/screens/progression.dart';
 import 'package:privilege/services/progression_repository.dart';
+import 'package:privilege/ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -68,6 +69,102 @@ void main() {
                 find.byType(LinearProgressIndicator))
             .value,
         0.1);
+  });
+
+  testWidgets('achievement tracks show zero, partial and completed progress',
+      (tester) async {
+    final repo = FakeProgression()
+      ..achievementList = [
+        const AchievementProgress('Zero', '', 0, 10, 5),
+        const AchievementProgress('Partial', '', 3, 100, 5),
+        const AchievementProgress('Complete', '', 10, 10, 5),
+      ]
+      ..badgeList = [];
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: BadgesAchievementsScreen(repository: repo))));
+    await tester.pumpAndSettle();
+    final bars = tester
+        .widgetList<LinearProgressIndicator>(
+            find.byType(LinearProgressIndicator))
+        .toList();
+    expect(bars.map((bar) => bar.value), [0, 0.03, 1]);
+    for (final bar in bars) {
+      expect(bar.backgroundColor, kLine);
+      expect(bar.color, isNot(bar.backgroundColor));
+    }
+    expect(find.text('Completed'), findsOneWidget);
+  });
+
+  testWidgets('earned badges appear before locked badges', (tester) async {
+    final repo = FakeProgression()
+      ..badgeList = [
+        const BadgeProgress('Locked first', '', false),
+        const BadgeProgress('Earned later', '', true),
+      ]
+      ..achievementList = [];
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: BadgesAchievementsScreen(repository: repo))));
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(find.text('Earned later')).dy,
+        lessThan(tester.getTopLeft(find.text('Locked first')).dy));
+  });
+
+  testWidgets('level card names the next level and remaining XP',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(
+        home:
+            Scaffold(body: LevelProgressPanel(repository: FakeProgression()))));
+    await tester.pumpAndSettle();
+    expect(find.text('100 XP · 400 XP to Silver'), findsOneWidget);
+    final bar = tester
+        .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator));
+    expect(bar.value, 0.2);
+    expect(bar.backgroundColor, kLine);
+  });
+
+  testWidgets('store locks rewards for insufficient tier and points',
+      (tester) async {
+    const gold = StoreReward(
+        id: 'gold',
+        name: 'Gold frame',
+        description: '',
+        kind: 'frame',
+        cost: 100,
+        stock: 5,
+        tier: 'Gold',
+        owned: false);
+    const expensive = StoreReward(
+        id: 'expensive',
+        name: 'Expensive free frame',
+        description: '',
+        kind: 'frame',
+        cost: 250,
+        stock: 5,
+        tier: 'Free',
+        owned: false);
+    const affordable = StoreReward(
+        id: 'free',
+        name: 'Free frame',
+        description: '',
+        kind: 'frame',
+        cost: 100,
+        stock: 5,
+        tier: 'Free',
+        owned: false);
+    final repo = FakeProgression()..rewardList = [gold, expensive, affordable];
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: RewardsStoreScreen(repository: repo))));
+    await tester.pumpAndSettle();
+    expect(find.text('Requires Gold tier'), findsOneWidget);
+    expect(find.text('Need 50 more points'), findsOneWidget);
+    final buttons =
+        tester.widgetList<FilledButton>(find.byType(FilledButton)).toList();
+    expect(buttons[0].onPressed, isNull);
+    expect(buttons[1].onPressed, isNull);
+    expect(buttons[2].onPressed, isNotNull);
+    await tester.tap(find.byType(FilledButton).first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
   });
 
   testWidgets('store reports loading errors with retry', (tester) async {

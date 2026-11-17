@@ -8,6 +8,10 @@ class FakeProgression implements ProgressionDataSource {
   String? lastRequest;
   final List<String> requests = [];
   int redemptions = 0;
+  String tier = 'Free';
+  List<StoreReward>? rewardList;
+  List<BadgeProgress>? badgeList;
+  List<AchievementProgress>? achievementList;
   @override
   String get accountId => 'test-user';
   @override
@@ -24,27 +28,36 @@ class FakeProgression implements ProgressionDataSource {
   @override
   Future<StoreSnapshot> store() async {
     if (error != null) throw error!;
-    return StoreSnapshot(balance, tokens, [
-      const StoreReward(
-        id: 'freeze',
-        name: 'Streak freeze token',
-        description: 'One freeze',
-        kind: 'freeze',
-        cost: 50,
-        stock: null,
-        tier: 'Free',
-        owned: false,
-      )
-    ]);
+    return StoreSnapshot(
+        balance,
+        tokens,
+        rewardList ??
+            [
+              const StoreReward(
+                id: 'freeze',
+                name: 'Streak freeze token',
+                description: 'One freeze',
+                kind: 'freeze',
+                cost: 50,
+                stock: null,
+                tier: 'Free',
+                owned: false,
+              )
+            ],
+        tier: tier);
   }
 
   @override
-  Future<List<BadgeProgress>> badges() async => [
+  Future<List<BadgeProgress>> badges() async =>
+      badgeList ??
+      [
         const BadgeProgress('First meal', 'Log a meal', true),
         const BadgeProgress('More meals', 'Log more meals', false),
       ];
   @override
-  Future<List<AchievementProgress>> achievements() async => [
+  Future<List<AchievementProgress>> achievements() async =>
+      achievementList ??
+      [
         const AchievementProgress('Workouts', 'Log workouts', 10, 100, 150),
       ];
   @override

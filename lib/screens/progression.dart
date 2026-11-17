@@ -145,7 +145,11 @@ class LevelProgressPanel extends StatelessWidget {
                   Text('Level: ${level.name}',
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
-                  LinearProgressIndicator(value: level.fraction, color: kGold),
+                  LinearProgressIndicator(
+                    value: level.fraction,
+                    color: kGold,
+                    backgroundColor: kLine,
+                  ),
                   const SizedBox(height: 6),
                   Text(level.nextMinimum == null
                       ? '${level.xp} XP · Highest level'
@@ -284,12 +288,21 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                           Text(reward.description),
                           Text(
                               '${reward.cost} points · ${reward.tier} tier · ${reward.stock == null ? 'Unlimited stock' : '${reward.stock} remaining'}'),
+                          if (subscriptionTierRank(store.tier) <
+                              subscriptionTierRank(reward.tier))
+                            Text('Requires ${reward.tier} tier'),
+                          if (store.balance < reward.cost)
+                            Text(
+                                'Need ${reward.cost - store.balance} more points'),
                           Align(
                             alignment: Alignment.centerRight,
                             child: FilledButton(
                               onPressed: _busy != null ||
                                       reward.owned ||
-                                      reward.stock == 0
+                                      reward.stock == 0 ||
+                                      store.balance < reward.cost ||
+                                      subscriptionTierRank(store.tier) <
+                                          subscriptionTierRank(reward.tier)
                                   ? null
                                   : () => _redeem(reward),
                               child: Text(_busy == reward.id
@@ -331,7 +344,10 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
             builder: (_, badges) => badges.isEmpty
                 ? const Panel(child: Text('No badges available yet.'))
                 : Column(children: [
-                    for (final badge in badges)
+                    for (final badge in [
+                      ...badges.where((badge) => badge.earned),
+                      ...badges.where((badge) => !badge.earned),
+                    ])
                       Panel(
                           child: ListTile(
                         leading: Icon(
@@ -365,9 +381,12 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                             LinearProgressIndicator(
                                 value: (item.progress / item.threshold)
                                     .clamp(0, 1),
-                                color: kGold),
+                                color: kGold,
+                                backgroundColor: kLine),
                             Text(
                                 '${item.progress} / ${item.threshold} · ${item.xp} XP'),
+                            if (item.progress >= item.threshold)
+                              const Text('Completed'),
                           ]))
                   ]),
           ),
