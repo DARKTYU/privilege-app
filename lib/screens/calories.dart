@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../logic/fitness_logic.dart';
-import '../data.dart';
 import '../state.dart';
 import '../ui.dart';
 
@@ -744,29 +743,6 @@ class _ProgressTabState extends State<ProgressTab> {
                       _runActivityAction(context, () => s.toggleMeal(m.id)),
                   onRemove: () =>
                       _runActivityAction(context, () => s.removeMeal(m.id))),
-            Panel(
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(children: [
-                      avatar(avatarYou, 30),
-                      const SizedBox(width: 2),
-                      avatar(avatarPartner, 30),
-                      const SizedBox(width: 8),
-                      const Text('Team Iron',
-                          style: TextStyle(fontWeight: FontWeight.w800)),
-                    ]),
-                    tag('VS', kGold),
-                    Row(children: [
-                      const Text('Rivals',
-                          style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(width: 8),
-                      avatar(avatarRival1, 30),
-                      const SizedBox(width: 2),
-                      avatar(avatarRival2, 30),
-                    ]),
-                  ]),
-            ),
           ],
         );
       },

@@ -4,6 +4,7 @@ import 'package:privilege/models/arena_models.dart';
 import 'package:privilege/models/community_models.dart';
 import 'package:privilege/screens/arena.dart';
 import 'package:privilege/services/arena_repository.dart';
+import 'package:privilege/state.dart';
 import 'package:privilege/ui.dart';
 
 void main() {
@@ -38,9 +39,54 @@ void main() {
     expect(find.text('@runner'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  for (final count in [0, 1, 2]) {
+    testWidgets('Arena displays $count with the correct day unit',
+        (tester) async {
+      tester.view.physicalSize = const Size(393, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final previousStreak = appState.streak;
+      final previousLongestStreak = appState.longestStreak;
+      addTearDown(() {
+        appState.streak = previousStreak;
+        appState.longestStreak = previousLongestStreak;
+      });
+      appState.streak = count;
+      appState.longestStreak = count;
+
+      await tester.pumpWidget(MaterialApp(
+        theme: buildTheme(),
+        home: AppPage(
+          title: 'Streak Arena',
+          builder: () =>
+              ArenaScreen(repository: _ArenaDataSource(score: count)),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      final label = '$count ${count == 1 ? 'day' : 'days'}';
+      expect(find.text('Your streak: $label'), findsOneWidget);
+      expect(find.text('Longest streak: $label'), findsOneWidget);
+      expect(find.text('Your score: $label · #1'), findsOneWidget);
+      await tester.tap(find.text('Morning movement'));
+      await tester.pumpAndSettle();
+      expect(find.text(label), findsOneWidget);
+
+      await tester.tap(find.text('Leaderboard'));
+      await tester.pumpAndSettle();
+      expect(find.text(label), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 class _ArenaDataSource implements ArenaDataSource {
+  _ArenaDataSource({this.score});
+
+  final int? score;
+
   @override
   Future<List<ArenaChallenge>> challenges(String scope) async => [
         ArenaChallenge(
@@ -56,9 +102,9 @@ class _ArenaDataSource implements ArenaDataSource {
           finalizedAt: null,
           winnerId: null,
           participantCount: 1,
-          myScore: 0,
+          myScore: score?.toDouble() ?? 0,
           myRank: 1,
-          joined: false,
+          joined: score != null,
           creatorUsername: 'runner',
           creatorFullName: null,
         )
@@ -74,12 +120,12 @@ class _ArenaDataSource implements ArenaDataSource {
     required String metric,
   }) async =>
       [
-        const ArenaLeaderboardEntry(
+        ArenaLeaderboardEntry(
           userId: 'user-1',
           username: 'runner',
           fullName: null,
           avatarUrl: null,
-          score: 4,
+          score: score ?? 4,
           currentStreak: 2,
           levelId: null,
           levelName: null,
@@ -89,7 +135,17 @@ class _ArenaDataSource implements ArenaDataSource {
       ];
 
   @override
-  Future<List<ArenaStanding>> standings(String challengeId) async => [];
+  Future<List<ArenaStanding>> standings(String challengeId) async => [
+        ArenaStanding(
+          userId: 'user-1',
+          username: 'runner',
+          fullName: null,
+          avatarUrl: null,
+          score: (score ?? 0).toDouble(),
+          rank: 1,
+          isMe: true,
+        )
+      ];
 
   @override
   Future<List<CommunityPerson>> friends() async => [];

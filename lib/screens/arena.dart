@@ -442,9 +442,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Your streak: ${state.streak} days',
+                  Text('Your streak: ${state.streak} ${_dayUnit(state.streak)}',
                       style: const TextStyle(fontWeight: FontWeight.w800)),
-                  Text('Longest streak: ${state.longestStreak} days',
+                  Text(
+                      'Longest streak: ${state.longestStreak} ${_dayUnit(state.longestStreak)}',
                       style: TextStyle(fontSize: 12, color: kMuted)),
                 ],
               ),
@@ -626,7 +627,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                     style: Theme.of(context).textTheme.bodySmall),
                 if (challenge.joined)
                   Text(
-                    'Your score: ${_score(challenge.myScore)} ${_unit(challenge.type)}${challenge.myRank == null ? '' : ' · #${challenge.myRank}'}',
+                    'Your score: ${_score(challenge.myScore)} ${_unit(challenge.type, challenge.myScore)}${challenge.myRank == null ? '' : ' · #${challenge.myRank}'}',
                     style: Theme.of(context).textTheme.bodySmall,
                   )
                 else
@@ -692,7 +693,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
               title: Text(row.fullName?.isNotEmpty == true
                   ? row.fullName!
                   : '@${row.username}'),
-              trailing: Text('${_score(row.score)} ${_unit(challenge.type)}'),
+              trailing: Text(
+                  '${_score(row.score)} ${_unit(challenge.type, row.score)}'),
             ),
         ]);
       },
@@ -772,7 +774,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   'Current streak: ${row.currentStreak}',
                 ].join(' · ')),
                 trailing: Text(
-                  '${row.score} ${_leaderboardMetric == 'streak' ? 'days' : 'workouts'}',
+                  '${row.score} ${_unit(_leaderboardMetric, row.score)}',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -812,7 +814,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
   String _metricLabel(String type) =>
       type == 'workout_count' ? 'Completed workouts' : 'Active days';
 
-  String _unit(String type) => type == 'workout_count' ? 'workouts' : 'days';
+  String _unit(String type, num? score) =>
+      type == 'workout_count' ? 'workouts' : _dayUnit(score);
+
+  String _dayUnit(num? score) => _score(score) == '1' ? 'day' : 'days';
 
   String _score(num? score) => (score ?? 0).toStringAsFixed(0);
 
