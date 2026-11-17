@@ -496,7 +496,7 @@ class _RingsTabState extends State<RingsTab> {
         final inner = math.min(
             1.0, (t.cardioBurnCalories + t.mobilityBurnCalories) / 600);
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           children: [
             Row(children: [
               Expanded(
@@ -564,22 +564,35 @@ class _RingsTabState extends State<RingsTab> {
                           context, () => s.quickAdjustBurned(delta))),
                 ]),
                 const SizedBox(height: 12),
-                Row(children: [
-                  Icon(bal.isSurplus ? Icons.trending_up : Icons.trending_down,
-                      size: 18, color: bal.isSurplus ? kOrange : kGreen),
-                  const SizedBox(width: 6),
-                  Expanded(
-                      child: Text('Net Balance (BMR 1800):',
-                          style: TextStyle(fontSize: 12, color: kMuted))),
-                  Text(
-                    '${bal.netDifference > 0 ? '+' : ''}${bal.netDifference} kcal'
-                    '${bal.netDifference <= 0 ? ' (Natural Stage Cut)' : ' (Mass Lean Bulk)'}',
-                    style: TextStyle(
+                if (t.calorieTarget > 0 &&
+                    t.totalMealCalories < (t.calorieTarget * 0.5).round())
+                  Row(children: [
+                    Icon(Icons.info_outline, size: 18, color: kMuted),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'You’re well below your daily target so far. Your intake can add up as you log meals today.',
+                        style: TextStyle(fontSize: 12, color: kMuted),
+                      ),
+                    ),
+                  ])
+                else
+                  Row(children: [
+                    Icon(Icons.swap_vert, size: 18, color: kMuted),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text('Estimated balance (BMR 1800):',
+                          style: TextStyle(fontSize: 12, color: kMuted)),
+                    ),
+                    Text(
+                      '${bal.netDifference > 0 ? '+' : ''}${bal.netDifference} kcal',
+                      style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: bal.isSurplus ? kOrange : kGreen),
-                  ),
-                ]),
+                        color: kMuted,
+                      ),
+                    ),
+                  ]),
               ]),
             ),
             sectionTitle('Active Logs (${s.meals.length + s.burns.length})'),
@@ -632,7 +645,7 @@ class _ProgressTabState extends State<ProgressTab> {
           targetColor: kPurple,
         );
         return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           children: [
             Row(children: [
               Expanded(

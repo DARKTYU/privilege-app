@@ -43,6 +43,29 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
+  Widget _shortcutList({required bool caloriesTab}) => SizedBox(
+        height: caloriesTab ? 52 : 44,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: caloriesTab
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 2)
+              : const EdgeInsets.symmetric(horizontal: 12),
+          children: [
+            for (final s in _shortcuts)
+              Padding(
+                padding: EdgeInsets.only(right: 8, bottom: caloriesTab ? 2 : 6),
+                child: ActionChip(
+                  avatar: Icon(s.$2, size: 16, color: kGold),
+                  label: Text(s.$1, style: const TextStyle(fontSize: 12)),
+                  backgroundColor: kCard2,
+                  side: BorderSide.none,
+                  onPressed: () => Navigator.pushNamed(context, s.$3),
+                ),
+              ),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return ThemeAwareBuilder(
@@ -61,24 +84,13 @@ class _HomeShellState extends State<HomeShell> {
               ),
             ),
             SizedBox(
-              height: 44,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                children: [
-                  for (final s in _shortcuts)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8, bottom: 6),
-                      child: ActionChip(
-                        avatar: Icon(s.$2, size: 16, color: kGold),
-                        label: Text(s.$1, style: const TextStyle(fontSize: 12)),
-                        backgroundColor: kCard2,
-                        side: BorderSide.none,
-                        onPressed: () => Navigator.pushNamed(context, s.$3),
-                      ),
-                    ),
-                ],
-              ),
+              height: _i == 2 ? 80 : 44,
+              child: _i == 2
+                  ? Column(children: [
+                      _shortcutList(caloriesTab: true),
+                      const SizedBox(height: 28),
+                    ])
+                  : _shortcutList(caloriesTab: false),
             ),
           ]),
         ),
