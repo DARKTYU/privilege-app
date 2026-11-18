@@ -13,17 +13,19 @@ import '../ui.dart';
 import 'progression.dart';
 
 class CommunityScreen extends StatefulWidget {
-  const CommunityScreen({super.key});
+  const CommunityScreen({super.key, this.repository});
+  final CommunityRepository? repository;
 
   @override
   State<CommunityScreen> createState() => _CommunityScreenState();
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-  final _client = Supabase.instance.client;
+  late final _client = _repository.client;
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
-  late final CommunityRepository _repository = CommunityRepository(_client);
+  late final CommunityRepository _repository =
+      widget.repository ?? CommunityRepository(Supabase.instance.client);
   RealtimeChannel? _channel;
   Timer? _searchDebounce;
   Timer? _refreshDebounce;
@@ -239,106 +241,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Future<void> _composePost() async {
-    final textController = TextEditingController();
-    XFile? image;
-    Uint8List? imageBytes;
-    String visibility = 'public';
     final result = await showModalBottomSheet<(String, String, XFile?)>(
       context: context,
       isScrollControlled: true,
       backgroundColor: kCard,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-              18, 18, 18, MediaQuery.viewInsetsOf(context).bottom + 18),
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                Expanded(
-                    child: Text('Create a post',
-                        style: Theme.of(context).textTheme.titleLarge)),
-                IconButton(
-                  tooltip: 'Close',
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ]),
-              const SizedBox(height: 12),
-              TextField(
-                controller: textController,
-                minLines: 3,
-                maxLines: 7,
-                maxLength: 5000,
-                decoration: const InputDecoration(
-                  hintText: 'Share a fitness or nutrition update...',
-                  alignLabelWithHint: true,
-                ),
-              ),
-              if (imageBytes != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(imageBytes!,
-                        height: 190, width: double.infinity, fit: BoxFit.cover),
-                  ),
-                ),
-              Row(children: [
-                IconButton(
-                  tooltip: 'Add photo',
-                  onPressed: () async {
-                    final selected = await ImagePicker().pickImage(
-                      source: ImageSource.gallery,
-                      imageQuality: 88,
-                    );
-                    if (selected == null) return;
-                    final bytes = await selected.readAsBytes();
-                    setModalState(() {
-                      image = selected;
-                      imageBytes = bytes;
-                    });
-                  },
-                  icon: const Icon(Icons.image_outlined),
-                ),
-                if (image != null)
-                  IconButton(
-                    tooltip: 'Remove photo',
-                    onPressed: () => setModalState(() {
-                      image = null;
-                      imageBytes = null;
-                    }),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                const Spacer(),
-                DropdownButton<String>(
-                  value: visibility,
-                  underline: const SizedBox.shrink(),
-                  items: const [
-                    DropdownMenuItem(value: 'public', child: Text('Public')),
-                    DropdownMenuItem(value: 'friends', child: Text('Friends')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) setModalState(() => visibility = value);
-                  },
-                ),
-              ]),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () => Navigator.pop(
-                      context, (textController.text, visibility, image)),
-                  icon: const Icon(Icons.send),
-                  label: const Text('Share post'),
-                ),
-              ),
-            ]),
-          ),
-        ),
-      ),
+      builder: (_) => const _PostComposerSheet(),
     );
-    textController.dispose();
-    if (result == null) return;
+    if (!mounted || result == null) return;
     setState(() => _posting = true);
     try {
       await _repository.post(result.$1, result.$2, image: result.$3);
@@ -1024,6 +933,118 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ),
       ) ??
       false;
+}
+
+class _PostComposerSheet extends StatefulWidget {
+  const _PostComposerSheet();
+
+  @override
+  State<_PostComposerSheet> createState() => _PostComposerSheetState();
+}
+
+class _PostComposerSheetState extends State<_PostComposerSheet> {
+  final _textController = TextEditingController();
+  XFile? _image;
+  Uint8List? _imageBytes;
+  String _visibility = 'public';
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectImage() async {
+    final selected = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 88,
+    );
+    if (selected == null || !mounted) return;
+    final bytes = await selected.readAsBytes();
+    if (!mounted) return;
+    setState(() {
+      _image = selected;
+      _imageBytes = bytes;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            18, 18, 18, MediaQuery.viewInsetsOf(context).bottom + 18),
+        child: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              Expanded(
+                  child: Text('Create a post',
+                      style: Theme.of(context).textTheme.titleLarge)),
+              IconButton(
+                tooltip: 'Close',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _textController,
+              minLines: 3,
+              maxLines: 7,
+              maxLength: 5000,
+              decoration: const InputDecoration(
+                hintText: 'Share a fitness or nutrition update...',
+                alignLabelWithHint: true,
+              ),
+            ),
+            if (_imageBytes != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(_imageBytes!,
+                      height: 190, width: double.infinity, fit: BoxFit.cover),
+                ),
+              ),
+            Row(children: [
+              IconButton(
+                tooltip: 'Add photo',
+                onPressed: _selectImage,
+                icon: const Icon(Icons.image_outlined),
+              ),
+              if (_image != null)
+                IconButton(
+                  tooltip: 'Remove photo',
+                  onPressed: () => setState(() {
+                    _image = null;
+                    _imageBytes = null;
+                  }),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              const Spacer(),
+              DropdownButton<String>(
+                value: _visibility,
+                underline: const SizedBox.shrink(),
+                items: const [
+                  DropdownMenuItem(value: 'public', child: Text('Public')),
+                  DropdownMenuItem(value: 'friends', child: Text('Friends')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _visibility = value);
+                },
+              ),
+            ]),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pop(
+                    context, (_textController.text, _visibility, _image)),
+                icon: const Icon(Icons.send),
+                label: const Text('Share post'),
+              ),
+            ),
+          ]),
+        ),
+      );
 }
 
 class _CommentsSheet extends StatefulWidget {
