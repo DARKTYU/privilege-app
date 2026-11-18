@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/user_profile.dart';
+import '../logic/username.dart';
 import '../services/account_types.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -14,6 +15,7 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   late final TextEditingController _name;
+  late final TextEditingController _username;
   late final TextEditingController _weight;
   late final TextEditingController _height;
   String? _goal;
@@ -26,6 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.initState();
     final p = appState.profile;
     _name = TextEditingController(text: p.name);
+    _username = TextEditingController();
     _weight = TextEditingController();
     _height = TextEditingController();
   }
@@ -33,6 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() {
     _name.dispose();
+    _username.dispose();
     _weight.dispose();
     _height.dispose();
     super.dispose();
@@ -77,6 +81,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         goal = _goal,
         recommended = _recommended;
     final name = _name.text.trim();
+    final username = _username.text.trim();
+    final usernameError = validateUsername(username);
+    if (usernameError != null) {
+      setState(() => _error = usernameError);
+      return;
+    }
     if (name.isEmpty || name.length > 60) {
       setState(() => _error = 'Enter your name (up to 60 characters).');
       return;
@@ -102,6 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       await appState.completeOnboarding(appState.profile.copyWith(
         name: name,
+        username: username,
         weightKg: kg.roundToDouble(),
         heightCm: cm.roundToDouble(),
         targetGoal: goal,
@@ -215,6 +226,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     TextField(
                         controller: _name,
                         decoration: fieldDecoration('e.g. Alex Johnson')),
+                    const SizedBox(height: 14),
+                    _label('Username', Icons.alternate_email, kGold),
+                    TextField(
+                        controller: _username,
+                        maxLength: 20,
+                        autocorrect: false,
+                        decoration: fieldDecoration(
+                            'Letters, numbers and underscores')),
                     const SizedBox(height: 14),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

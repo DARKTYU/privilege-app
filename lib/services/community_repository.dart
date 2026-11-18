@@ -190,27 +190,33 @@ class CommunityRepository {
     CommunityComment? before,
   }) async {
     final rows =
-        await _request(() => client.rpc('community_comments_page', params: {
+        await _request(() => client.rpc('community_comments_page_v2', params: {
               'p_post_id': postId,
               'p_before_created_at':
                   before?.createdAt.toUtc().toIso8601String(),
               'p_before_id': before?.id,
               'p_limit': commentPageSize,
             }));
-    final data = (rows as List)
-        .map((row) => Map<String, dynamic>.from(row as Map))
+    return (rows as List)
+        .map((row) =>
+            CommunityComment.fromJson(Map<String, dynamic>.from(row as Map)))
         .toList();
-    if (data.isEmpty) return [];
-    final likes = await _request(() => client
-        .from('community_comment_likes')
-        .select('comment_id')
-        .eq('user_id', _userId)
-        .inFilter('comment_id', data.map((row) => row['id']).toList()));
-    final liked = likes.map((row) => row['comment_id']).toSet();
-    return data.map((row) {
-      row['liked_by_me'] = liked.contains(row['id']);
-      return CommunityComment.fromJson(row);
-    }).toList();
+  }
+
+  Future<List<CommunityPerson>> commentLikers(String commentId) async {
+    final people = <CommunityPerson>[];
+    const pageSize = 50;
+    for (var offset = 0;; offset += pageSize) {
+      final rows = await _request(() => client.rpc('community_comment_likers',
+              params: {
+                'p_comment_id': commentId,
+                'p_limit': pageSize,
+                'p_offset': offset
+              })) as List;
+      people.addAll(rows.map((row) =>
+          CommunityPerson.fromJson(Map<String, dynamic>.from(row as Map))));
+      if (rows.length < pageSize) return people;
+    }
   }
 
   Future<void> setCommentLiked(String id, bool liked) async {
@@ -257,8 +263,11 @@ class CommunityRepository {
   }
 
   Future<List<CommunityPerson>> searchUsers(String query) async {
-    final rows = await _request(() => client.rpc('community_search_users',
-        params: {'p_query': query.trim(), 'p_limit': 30, 'p_offset': 0}));
+    final trimmed = query.trim();
+    final rows = await _request(() => trimmed.isEmpty
+        ? client.rpc('community_discover_users', params: {'p_limit': 30})
+        : client.rpc('community_search_users',
+            params: {'p_query': trimmed, 'p_limit': 30, 'p_offset': 0}));
     return (rows as List)
         .map((row) =>
             CommunityPerson.fromJson(Map<String, dynamic>.from(row as Map)))

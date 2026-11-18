@@ -599,6 +599,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget _buildPeople() {
+    final visiblePeople = _peopleQuery.isEmpty
+        ? _searchResults
+            .where((person) =>
+                person.relationship == 'none' &&
+                person.id != _client.auth.currentUser?.id &&
+                !_friends.any((friend) => friend.id == person.id) &&
+                !_requests.any((request) => request.id == person.id))
+            .toList()
+        : _searchResults;
     if (_peopleLoading && _searchResults.isEmpty && _friends.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -648,12 +657,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (_searchResults.isEmpty)
+          else if (visiblePeople.isEmpty)
             const Panel(
               child: Text('No people found. Try a different name or username.'),
             )
           else
-            for (final person in _searchResults) _personCard(person),
+            for (final person in visiblePeople) _personCard(person),
         ],
       ),
     );
@@ -1080,7 +1089,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           _comments = [
             for (final item in _comments)
               if (item.id == comment.id)
-                item.withLikedByMe(!comment.likedByMe)
+                item.withLikedByMe(!comment.likedByMe,
+                    isPostAuthor:
+                        widget.repository.client.auth.currentUser?.id ==
+                            widget.post.authorId)
               else
                 item,
           ];
@@ -1092,6 +1104,56 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       _liking.remove(comment.id);
       if (mounted) setState(() {});
     }
+  }
+
+  void _showLikers(CommunityComment comment) {
+    final future = widget.repository.commentLikers(comment.id);
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: kCard,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: 320,
+          child: FutureBuilder<List<CommunityPerson>>(
+            future: future,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(
+                    child: Text('Could not load likes: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.data!.isEmpty) {
+                return const Center(child: Text('No visible likes.'));
+              }
+              return ListView(
+                children: [
+                  const ListTile(title: Text('Liked by')),
+                  for (final person in snapshot.data!)
+                    ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: kCard2,
+                        foregroundImage: person.avatarUrl == null ||
+                                person.avatarUrl!.isEmpty
+                            ? null
+                            : NetworkImage(person.avatarUrl!),
+                        child: Text(person.username.isEmpty
+                            ? '?'
+                            : person.username.characters.first.toUpperCase()),
+                      ),
+                      title: Text(person.fullName?.trim().isNotEmpty == true
+                          ? person.fullName!
+                          : person.username),
+                      subtitle: Text('@${person.username}'),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1165,7 +1227,6 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                               child: Text('Be the first to comment.'))
                           : ListView.builder(
                               controller: _scrollController,
-                              reverse: true,
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 14),
                               itemCount: _comments.length,
@@ -1182,21 +1243,68 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                       child: Text(
                                           name.characters.first.toUpperCase())),
                                   title: Text(name),
-                                  subtitle: Text(comment.body),
-                                  trailing: IconButton(
-                                    tooltip: comment.likedByMe
-                                        ? 'Unlike comment'
-                                        : 'Like comment',
-                                    onPressed: _liking.contains(comment.id)
-                                        ? null
-                                        : () => _toggleCommentLike(comment),
-                                    icon: Icon(
-                                        comment.likedByMe
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color:
-                                            comment.likedByMe ? kRed : kMuted),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(comment.body),
+                                      if (comment.likedByAuthor)
+                                        Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircleAvatar(
+                                                radius: 8,
+                                                backgroundColor: kCard2,
+                                                foregroundImage: comment
+                                                                .postAuthorAvatarUrl ==
+                                                            null ||
+                                                        comment
+                                                            .postAuthorAvatarUrl!
+                                                            .isEmpty
+                                                    ? null
+                                                    : NetworkImage(comment
+                                                        .postAuthorAvatarUrl!),
+                                                child: comment.postAuthorAvatarUrl ==
+                                                            null ||
+                                                        comment
+                                                            .postAuthorAvatarUrl!
+                                                            .isEmpty
+                                                    ? const Icon(Icons.person,
+                                                        size: 10)
+                                                    : null,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              const Text('Liked by author'),
+                                            ]),
+                                    ],
                                   ),
+                                  trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: comment.likedByMe
+                                              ? 'Unlike comment'
+                                              : 'Like comment',
+                                          onPressed: _liking
+                                                  .contains(comment.id)
+                                              ? null
+                                              : () =>
+                                                  _toggleCommentLike(comment),
+                                          icon: Icon(
+                                              comment.likedByMe
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: comment.likedByMe
+                                                  ? kRed
+                                                  : kMuted),
+                                        ),
+                                        if (comment.likeCount > 0)
+                                          TextButton(
+                                            onPressed: () =>
+                                                _showLikers(comment),
+                                            child: Text('${comment.likeCount}'),
+                                          ),
+                                      ]),
                                 );
                               },
                             ),

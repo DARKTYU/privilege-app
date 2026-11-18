@@ -48,6 +48,9 @@ class CommunityComment {
     required this.body,
     required this.createdAt,
     this.likedByMe = false,
+    this.likeCount = 0,
+    this.likedByAuthor = false,
+    this.postAuthorAvatarUrl,
   });
 
   final String id;
@@ -59,8 +62,12 @@ class CommunityComment {
   final String body;
   final DateTime createdAt;
   final bool likedByMe;
+  final int likeCount;
+  final bool likedByAuthor;
+  final String? postAuthorAvatarUrl;
 
-  CommunityComment withLikedByMe(bool liked) => CommunityComment(
+  CommunityComment withLikedByMe(bool liked, {required bool isPostAuthor}) =>
+      CommunityComment(
         id: id,
         postId: postId,
         authorId: authorId,
@@ -70,6 +77,9 @@ class CommunityComment {
         body: body,
         createdAt: createdAt,
         likedByMe: liked,
+        likeCount: (likeCount + (liked ? 1 : -1)).clamp(0, 1 << 31),
+        likedByAuthor: isPostAuthor ? liked : likedByAuthor,
+        postAuthorAvatarUrl: postAuthorAvatarUrl,
       );
 
   factory CommunityComment.fromJson(Map<String, dynamic> json) =>
@@ -83,6 +93,9 @@ class CommunityComment {
         body: json['body'] as String,
         createdAt: DateTime.parse(json['created_at'] as String),
         likedByMe: json['liked_by_me'] as bool? ?? false,
+        likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
+        likedByAuthor: json['liked_by_author'] as bool? ?? false,
+        postAuthorAvatarUrl: json['post_author_avatar_url'] as String?,
       );
 }
 

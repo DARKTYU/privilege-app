@@ -140,6 +140,16 @@ class SupabaseAuthService {
             'missing_profile', 'Your profile could not be saved.');
       }
     } on sb.PostgrestException catch (error) {
+      if (error.code == '23505' &&
+          ('${error.message} ${error.details}').contains('username')) {
+        throw AuthException(
+            'username_taken', 'That username is already taken.');
+      }
+      if (error.code == '23514' &&
+          error.message.toLowerCase().contains('username')) {
+        throw AuthException('invalid_username',
+            'Username must be 3 to 20 letters, numbers or underscores.');
+      }
       throw AuthException('profile_error',
           'Could not save your profile. Check that the Supabase auth migration has been applied. (${error.code ?? 'database error'})');
     } on SocketException {

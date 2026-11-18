@@ -46,7 +46,7 @@ void main() {
         ]);
       }
       if (path.endsWith('/community_notification_settings')) return json(null);
-      if (path.endsWith('/community_comments_page')) {
+      if (path.endsWith('/community_comments_page_v2')) {
         return json([
           {
             'id': 'comment',
@@ -57,14 +57,10 @@ void main() {
             'avatar_url': null,
             'body': 'Great!',
             'created_at': '2026-01-01T00:00:00Z',
+            'liked_by_me': true,
+            'like_count': 2,
+            'liked_by_author': true,
           }
-        ]);
-      }
-      if (path.endsWith('/community_comment_likes')) {
-        expect(request.url.queryParameters['user_id'],
-            'eq.aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
-        return json([
-          {'comment_id': 'comment'}
         ]);
       }
       if (path.endsWith('/community_set_comment_like') ||

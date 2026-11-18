@@ -94,6 +94,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Post from an alert'), findsOneWidget);
     expect(find.text('A comment'), findsOneWidget);
+    expect(find.text('Liked by author'), findsOneWidget);
+    await tester.tap(find.text('2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Liked by'), findsOneWidget);
+    expect(find.text('@liker'), findsOneWidget);
+    Navigator.of(tester.element(find.text('Liked by'))).pop();
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Like comment'));
     await tester.pumpAndSettle();
     expect(repository.commentLiked, isTrue);
@@ -102,13 +109,66 @@ void main() {
     await tester.pumpAndSettle();
     expect(repository.commentLiked, isFalse);
   });
+
+  testWidgets('comments start at top and zero likes have no count',
+      (tester) async {
+    final repository = _FakeCommunityRepository(client)..zeroLikes = true;
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: AppPage(
+        title: 'Community',
+        builder: () =>
+            CommunityScreen(repository: repository, openPostId: 'target'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('0'), findsNothing);
+    final scroll = tester.widget<ListView>(find.byType(ListView).last);
+    expect(scroll.reverse, isFalse);
+    expect(tester.getTopLeft(find.text('A comment')).dy,
+        lessThan(tester.getBottomLeft(find.text('Comments')).dy + 150));
+  });
+
+  testWidgets('discover excludes friends and pending requests', (tester) async {
+    final repository = _FakeCommunityRepository(client)
+      ..people = [
+        _person('friend', 'friends'),
+        _person('pending', 'request_outgoing'),
+        _person('discovery', 'none'),
+      ]
+      ..friendList = [_person('friend', 'friends')];
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: AppPage(
+          title: 'Community',
+          builder: () => CommunityScreen(repository: repository)),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('People'));
+    await tester.pumpAndSettle();
+    expect(find.text('friend'), findsOneWidget);
+    expect(find.text('pending'), findsNothing);
+    expect(find.text('discovery'), findsOneWidget);
+  });
 }
+
+CommunityPerson _person(String name, String relationship) => CommunityPerson(
+      id: name,
+      username: name,
+      fullName: null,
+      avatarUrl: null,
+      relationship: relationship,
+      followedByMe: false,
+    );
 
 class _FakeCommunityRepository extends CommunityRepository {
   _FakeCommunityRepository(super.client);
   final List<String> bodies = [];
   int feedReads = 0;
   bool commentLiked = false;
+  bool zeroLikes = false;
+  List<CommunityPerson> people = [];
+  List<CommunityPerson> friendList = [];
 
   @override
   Future<CommunityPost?> postById(String id) async => CommunityPost(
@@ -141,6 +201,8 @@ class _FakeCommunityRepository extends CommunityRepository {
           body: 'A comment',
           createdAt: DateTime.utc(2026),
           likedByMe: commentLiked,
+          likeCount: zeroLikes ? 0 : 2,
+          likedByAuthor: !zeroLikes,
         )
       ];
 
@@ -148,6 +210,18 @@ class _FakeCommunityRepository extends CommunityRepository {
   Future<void> setCommentLiked(String id, bool liked) async {
     commentLiked = liked;
   }
+
+  @override
+  Future<List<CommunityPerson>> commentLikers(String commentId) async => [
+        const CommunityPerson(
+          id: 'liker',
+          username: 'liker',
+          fullName: null,
+          avatarUrl: null,
+          relationship: 'none',
+          followedByMe: false,
+        )
+      ];
 
   @override
   Future<List<CommunityPost>> feed({CommunityPost? before}) async {
@@ -178,9 +252,9 @@ class _FakeCommunityRepository extends CommunityRepository {
   }
 
   @override
-  Future<List<CommunityPerson>> searchUsers(String query) async => [];
+  Future<List<CommunityPerson>> searchUsers(String query) async => people;
   @override
-  Future<List<CommunityPerson>> friends() async => [];
+  Future<List<CommunityPerson>> friends() async => friendList;
   @override
   Future<List<CommunityPerson>> friendRequests() async => [];
   @override

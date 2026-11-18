@@ -167,6 +167,7 @@ class AppState extends ChangeNotifier {
           'invalid_session', 'Please log in again to finish setup.');
     }
     await SupabaseAuthService.saveProfile({
+      'username': p.username,
       'full_name': p.name,
       'weight_kg': p.weightKg,
       'height_cm': p.heightCm,
@@ -187,6 +188,7 @@ class AppState extends ChangeNotifier {
       throw AuthException('invalid_session', 'Please log in again.');
     }
     await SupabaseAuthService.saveProfile({
+      if (p.username != profile.username) 'username': p.username,
       'full_name': p.name,
       'weight_kg': p.weightKg,
       'height_cm': p.heightCm,

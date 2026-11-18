@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../logic/fitness_logic.dart';
 import '../logic/user_profile.dart';
+import '../logic/username.dart';
 import '../services/account_types.dart' show AuthException;
 import '../services/progression_repository.dart';
 import '../state.dart';
@@ -24,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _saved = false;
   bool _saving = false;
   Timer? _timer;
-  late TextEditingController _name, _weight, _height, _bio;
+  late TextEditingController _name, _username, _weight, _height, _bio;
   late String _goal;
 
   @override
@@ -36,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _loadForm() {
     final p = appState.profile;
     _name = TextEditingController(text: p.name);
+    _username = TextEditingController(text: p.username);
     _weight = TextEditingController(text: p.weightKg.round().toString());
     _height = TextEditingController(text: p.heightCm.round().toString());
     _bio = TextEditingController(text: p.bio);
@@ -46,6 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _timer?.cancel();
     _name.dispose();
+    _username.dispose();
     _weight.dispose();
     _height.dispose();
     _bio.dispose();
@@ -55,12 +58,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _save() async {
     if (_saving) return;
     final p = appState.profile;
+    final username = _username.text.trim();
+    final usernameError = validateUsername(username);
+    if (username != p.username && usernameError != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(usernameError)));
+      return;
+    }
     final w = double.tryParse(_weight.text) ?? p.weightKg;
     final h = double.tryParse(_height.text) ?? p.heightCm;
     setState(() => _saving = true);
     try {
       await appState.updateProfile(p.copyWith(
         name: _name.text.trim().isEmpty ? p.name : _name.text.trim(),
+        username: username,
         weightKg: w,
         heightCm: h,
         targetGoal: _goal,
@@ -144,7 +155,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 TextButton.icon(
                   onPressed: () => setState(() {
-                    if (!_editing) _loadForm();
+                    if (!_editing) {
+                      final profile = appState.profile;
+                      _name.text = profile.name;
+                      _username.text = profile.username;
+                      _weight.text = profile.weightKg.round().toString();
+                      _height.text = profile.heightCm.round().toString();
+                      _bio.text = profile.bio;
+                      _goal = profile.targetGoal;
+                    }
                     _editing = !_editing;
                   }),
                   icon: const Icon(Icons.edit, size: 16),
@@ -164,6 +183,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       TextField(
                           controller: _name,
                           decoration: fieldDecoration('Full name')),
+                      const SizedBox(height: 10),
+                      Text('Username',
+                          style: TextStyle(fontSize: 11, color: kMuted)),
+                      TextField(
+                          controller: _username,
+                          autocorrect: false,
+                          decoration: fieldDecoration('Username')),
                       const SizedBox(height: 10),
                       Row(children: [
                         Expanded(
