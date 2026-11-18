@@ -9,8 +9,10 @@ import '../models/community_models.dart';
 import '../models/community_post.dart';
 import '../services/community_repository.dart';
 import '../services/progression_repository.dart';
+import '../services/groups_repository.dart';
 import '../ui.dart';
 import 'progression.dart';
+import 'groups.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen(
@@ -374,6 +376,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
           child: Row(children: [
             _tabButton('Feed', Icons.dynamic_feed_outlined, 0),
             _tabButton('People', Icons.people_outline, 1),
+            _tabButton('Groups', Icons.groups_outlined, 2),
           ]),
         ),
         const SizedBox(height: 8),
@@ -383,6 +386,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             children: [
               _buildFeed(),
               _buildPeople(),
+              _tab == 2
+                  ? GroupsTab(repository: GroupsRepository(_client))
+                  : const SizedBox.shrink(),
             ],
           ),
         ),

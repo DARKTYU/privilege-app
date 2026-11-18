@@ -149,6 +149,19 @@ void main() {
     expect(
         _notification('a', 'unknown').message, 'You have a new notification.');
   });
+
+  test('group notifications have friendly messages', () {
+    expect(_notification('a', 'group_join_request').message,
+        '@hossam requested to join your group.');
+    expect(_notification('a', 'group_request_approved').message,
+        '@hossam approved your group request.');
+    expect(_notification('a', 'group_removed').message,
+        '@hossam removed you from a group.');
+    expect(_notification('a', 'group_banned').message,
+        '@hossam banned you from a group.');
+    expect(_notification('a', 'group_invited').message,
+        '@hossam invited you to a group.');
+  });
 }
 
 CommunityNotification _notification(String id, String type, {String? body}) =>

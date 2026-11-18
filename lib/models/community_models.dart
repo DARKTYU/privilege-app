@@ -150,6 +150,11 @@ class CommunityNotification {
       'achievement_earned' => 'You completed an achievement!',
       'level_up' => 'You reached a new level!',
       'reward_redeemed' => 'Your reward has been redeemed.',
+      'group_join_request' => '$name requested to join your group.',
+      'group_request_approved' => '$name approved your group request.',
+      'group_removed' => '$name removed you from a group.',
+      'group_banned' => '$name banned you from a group.',
+      'group_invited' => '$name invited you to a group.',
       _ => 'You have a new notification.',
     };
   }

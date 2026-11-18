@@ -5,8 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/community_models.dart';
 import '../services/community_repository.dart';
+import '../services/groups_repository.dart';
 import '../ui.dart';
 import 'community.dart';
+import 'groups.dart';
 
 final alertsChanged = ValueNotifier<int>(0);
 void refreshAlerts() => alertsChanged.value++;
@@ -257,7 +259,26 @@ class _AlertsPageState extends State<AlertsPage> {
 }
 
 Future<void> openAlertTarget(BuildContext context, CommunityNotification item,
-    CommunityRepository repository) async {
+    CommunityRepository repository,
+    {GroupsRepository? groupsRepository}) async {
+  if (item.type.startsWith('group_')) {
+    final groups = groupsRepository ?? GroupsRepository(repository.client);
+    final id = await groups.notificationTarget(item.id);
+    if (!context.mounted) return;
+    if (id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This group is no longer available.')));
+      return;
+    }
+    await Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+            builder: (_) => GroupPage(
+                repository: groups,
+                groupId: id,
+                invited: item.type == 'group_invited')));
+    return;
+  }
   if (item.postId != null ||
       item.actorId != null &&
           {'friend_request', 'friend_accepted', 'follow'}.contains(item.type)) {
