@@ -79,12 +79,75 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(repository.bodies, isEmpty);
   });
+
+  testWidgets('alert post opens its comments and can toggle a comment like',
+      (tester) async {
+    final repository = _FakeCommunityRepository(client);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: AppPage(
+        title: 'Community',
+        builder: () =>
+            CommunityScreen(repository: repository, openPostId: 'target'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Post from an alert'), findsOneWidget);
+    expect(find.text('A comment'), findsOneWidget);
+    await tester.tap(find.byTooltip('Like comment'));
+    await tester.pumpAndSettle();
+    expect(repository.commentLiked, isTrue);
+    expect(find.byTooltip('Unlike comment'), findsOneWidget);
+    await tester.tap(find.byTooltip('Unlike comment'));
+    await tester.pumpAndSettle();
+    expect(repository.commentLiked, isFalse);
+  });
 }
 
 class _FakeCommunityRepository extends CommunityRepository {
   _FakeCommunityRepository(super.client);
   final List<String> bodies = [];
   int feedReads = 0;
+  bool commentLiked = false;
+
+  @override
+  Future<CommunityPost?> postById(String id) async => CommunityPost(
+        id: id,
+        authorId: 'user',
+        username: 'runner',
+        fullName: null,
+        avatarUrl: null,
+        body: 'Post from an alert',
+        visibility: 'public',
+        imagePath: null,
+        createdAt: DateTime.utc(2026),
+        friendGroup: 0,
+        likeCount: 0,
+        commentCount: 1,
+        likedByMe: false,
+      );
+
+  @override
+  Future<List<CommunityComment>> comments(String postId,
+          {CommunityComment? before}) async =>
+      [
+        CommunityComment(
+          id: 'comment',
+          postId: postId,
+          authorId: 'user',
+          username: 'runner',
+          fullName: null,
+          avatarUrl: null,
+          body: 'A comment',
+          createdAt: DateTime.utc(2026),
+          likedByMe: commentLiked,
+        )
+      ];
+
+  @override
+  Future<void> setCommentLiked(String id, bool liked) async {
+    commentLiked = liked;
+  }
 
   @override
   Future<List<CommunityPost>> feed({CommunityPost? before}) async {

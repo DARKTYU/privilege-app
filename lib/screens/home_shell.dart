@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../ui.dart';
+import 'alerts.dart';
 import 'calories.dart';
 import 'plan.dart';
 import 'profile.dart';
@@ -72,6 +73,10 @@ class _HomeShellState extends State<HomeShell> {
       builder: () => Scaffold(
         body: SafeArea(
           child: Column(children: [
+            const Align(
+              alignment: Alignment.centerRight,
+              child: AlertBell(),
+            ),
             Expanded(
               child: IndexedStack(
                 index: _i,

@@ -47,6 +47,7 @@ class CommunityComment {
     required this.avatarUrl,
     required this.body,
     required this.createdAt,
+    this.likedByMe = false,
   });
 
   final String id;
@@ -57,6 +58,19 @@ class CommunityComment {
   final String? avatarUrl;
   final String body;
   final DateTime createdAt;
+  final bool likedByMe;
+
+  CommunityComment withLikedByMe(bool liked) => CommunityComment(
+        id: id,
+        postId: postId,
+        authorId: authorId,
+        username: username,
+        fullName: fullName,
+        avatarUrl: avatarUrl,
+        body: body,
+        createdAt: createdAt,
+        likedByMe: liked,
+      );
 
   factory CommunityComment.fromJson(Map<String, dynamic> json) =>
       CommunityComment(
@@ -68,6 +82,7 @@ class CommunityComment {
         avatarUrl: json['avatar_url'] as String?,
         body: json['body'] as String,
         createdAt: DateTime.parse(json['created_at'] as String),
+        likedByMe: json['liked_by_me'] as bool? ?? false,
       );
 }
 
@@ -83,6 +98,7 @@ class CommunityNotification {
     required this.username,
     required this.fullName,
     required this.avatarUrl,
+    this.commentBody,
   });
 
   final String id;
@@ -95,6 +111,7 @@ class CommunityNotification {
   final String? username;
   final String? fullName;
   final String? avatarUrl;
+  final String? commentBody;
 
   bool get isRead => readAt != null;
 
@@ -107,8 +124,13 @@ class CommunityNotification {
     return switch (type) {
       'friend_request' => '$name sent you a friend request.',
       'friend_accepted' => '$name accepted your friend request.',
-      'post_comment' => '$name commented on your post.',
+      'post_comment' => commentBody?.trim().isNotEmpty == true
+          ? '$name commented: ${commentBody!.trim()}'
+          : '$name commented on your post.',
       'post_like' => '$name liked your post.',
+      'comment_like' => '$name liked your comment.',
+      'follow' => '$name started following you.',
+      'friend_post' => '$name shared a new post.',
       'challenge_invite' => '$name invited you to a challenge.',
       'challenge_result' => 'Your challenge results are ready.',
       'badge_earned' => 'You earned a badge!',
@@ -133,6 +155,7 @@ class CommunityNotification {
         username: json['username'] as String?,
         fullName: json['full_name'] as String?,
         avatarUrl: json['avatar_url'] as String?,
+        commentBody: json['comment_body'] as String?,
       );
 }
 

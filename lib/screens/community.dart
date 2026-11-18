@@ -13,8 +13,11 @@ import '../ui.dart';
 import 'progression.dart';
 
 class CommunityScreen extends StatefulWidget {
-  const CommunityScreen({super.key, this.repository});
+  const CommunityScreen(
+      {super.key, this.repository, this.openPostId, this.openProfileId});
   final CommunityRepository? repository;
+  final String? openPostId;
+  final String? openProfileId;
 
   @override
   State<CommunityScreen> createState() => _CommunityScreenState();
@@ -34,18 +37,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
   bool _feedMoreLoading = false;
   bool _feedHasMore = true;
   bool _peopleLoading = true;
-  bool _notificationsLoading = true;
   bool _posting = false;
-  int _unreadCount = 0;
   String? _feedError;
   String? _peopleError;
-  String? _notificationsError;
   String _peopleQuery = '';
   List<CommunityPost> _posts = [];
   List<CommunityPerson> _searchResults = [];
   List<CommunityPerson> _friends = [];
   List<CommunityPerson> _requests = [];
-  List<CommunityNotification> _notifications = [];
   final Set<String> _busyPostIds = {};
   final Map<String, Future<String>> _imageUrls = {};
 
@@ -55,8 +54,29 @@ class _CommunityScreenState extends State<CommunityScreen> {
     _scrollController.addListener(_onScroll);
     unawaited(_loadFeed());
     unawaited(_loadPeople());
-    unawaited(_loadNotifications());
     _subscribe();
+    if (widget.openPostId != null || widget.openProfileId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openTarget());
+    }
+  }
+
+  Future<void> _openTarget() async {
+    if (!mounted) return;
+    try {
+      if (widget.openPostId != null) {
+        final post = await _repository.postById(widget.openPostId!);
+        if (!mounted) return;
+        if (post == null) {
+          _showMessage('This post is no longer available.');
+        } else {
+          await _showComments(post);
+        }
+      } else if (widget.openProfileId != null) {
+        await _showPublicProfile(widget.openProfileId!);
+      }
+    } catch (error) {
+      _showMessage(error.toString());
+    }
   }
 
   @override
@@ -97,12 +117,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
-          table: 'community_notifications',
-          callback: (_) => _scheduleRefresh(),
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
           table: 'friendships',
           callback: (_) => _scheduleRefresh(people: true),
         )..subscribe((status, error) {
@@ -115,7 +129,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     _refreshDebounce = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
       unawaited(_loadFeed());
-      unawaited(_loadNotifications());
       if (people) unawaited(_loadPeople());
     });
   }
@@ -197,30 +210,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
       setState(() {
         _peopleError = error.toString();
         _peopleLoading = false;
-      });
-    }
-  }
-
-  Future<void> _loadNotifications() async {
-    if (!mounted) return;
-    setState(() => _notificationsLoading = true);
-    try {
-      final result = await Future.wait([
-        _repository.notifications(),
-        _repository.unreadCount(),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _notifications = result[0] as List<CommunityNotification>;
-        _unreadCount = result[1] as int;
-        _notificationsLoading = false;
-        _notificationsError = null;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _notificationsError = error.toString();
-        _notificationsLoading = false;
       });
     }
   }
@@ -351,28 +340,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     }
   }
 
-  Future<void> _handleNotification(CommunityNotification item) async {
-    try {
-      if (!item.isRead) await _repository.markNotificationRead(item.id);
-      await _loadNotifications();
-      if (item.type == 'friend_request') {
-        setState(() => _tab = 1);
-        await _loadPeople();
-      } else if (item.postId != null) {
-        CommunityPost? post;
-        for (final candidate in _posts) {
-          if (candidate.id == item.postId) {
-            post = candidate;
-            break;
-          }
-        }
-        if (post != null && mounted) await _showComments(post);
-      }
-    } catch (error) {
-      _showMessage(error.toString());
-    }
-  }
-
   @override
   Widget build(BuildContext context) => Column(children: [
         Padding(
@@ -407,8 +374,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
           child: Row(children: [
             _tabButton('Feed', Icons.dynamic_feed_outlined, 0),
             _tabButton('People', Icons.people_outline, 1),
-            _tabButton('Alerts', Icons.notifications_none, 2,
-                badge: _unreadCount),
           ]),
         ),
         const SizedBox(height: 8),
@@ -418,13 +383,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
             children: [
               _buildFeed(),
               _buildPeople(),
-              _buildNotifications(),
             ],
           ),
         ),
       ]);
 
-  Widget _tabButton(String title, IconData icon, int index, {int badge = 0}) {
+  Widget _tabButton(String title, IconData icon, int index) {
     final selected = _tab == index;
     return Expanded(
       child: Padding(
@@ -435,11 +399,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             backgroundColor: selected ? kCard2 : Colors.transparent,
           ),
           onPressed: () => setState(() => _tab = index),
-          icon: Badge(
-            isLabelVisible: badge > 0,
-            label: Text(badge > 99 ? '99+' : '$badge'),
-            child: Icon(icon, size: 18),
-          ),
+          icon: Icon(icon, size: 18),
           label: Text(title),
         ),
       ),
@@ -773,66 +733,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildNotifications() {
-    if (_notificationsLoading && _notifications.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_notificationsError != null && _notifications.isEmpty) {
-      return _errorState(_notificationsError!, _loadNotifications);
-    }
-    return RefreshIndicator(
-      onRefresh: _loadNotifications,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 18),
-        children: [
-          if (_unreadCount > 0)
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () async {
-                  try {
-                    await _repository.markAllNotificationsRead();
-                    await _loadNotifications();
-                  } catch (error) {
-                    _showMessage(error.toString());
-                  }
-                },
-                child: const Text('Mark all as read'),
-              ),
-            ),
-          if (_notificationsError != null)
-            _inlineError(_notificationsError!, _loadNotifications),
-          if (_notifications.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(top: 80),
-              child: Column(children: [
-                Icon(Icons.notifications_none, size: 42),
-                SizedBox(height: 14),
-                Text('You are all caught up.'),
-              ]),
-            )
-          else
-            for (final item in _notifications)
-              Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  onTap: () => _handleNotification(item),
-                  leading: Badge(
-                    isLabelVisible: !item.isRead,
-                    child:
-                        _avatar(item.avatarUrl, item.username ?? 'P', size: 42),
-                  ),
-                  title: Text(item.message),
-                  subtitle: Text(
-                      '${item.username == null ? 'Privilege' : '@${item.username}'} · ${_relativeTime(item.createdAt)}'),
-                  trailing: const Icon(Icons.chevron_right),
-                ),
-              ),
-        ],
-      ),
-    );
-  }
-
   Widget _sectionTitle(String title) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 20, 2, 10),
         child: Text(title,
@@ -1064,19 +964,24 @@ class _CommentsSheet extends StatefulWidget {
 class _CommentsSheetState extends State<_CommentsSheet> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  final _realtime = Supabase.instance.client;
+  late final _realtime = widget.repository.client;
   RealtimeChannel? _channel;
   List<CommunityComment> _comments = [];
   bool _loading = true;
   bool _loadingMore = false;
   bool _hasMore = true;
   bool _sending = false;
+  final Set<String> _liking = {};
   String? _error;
+  late final Future<String>? _postImage = widget.post.imagePath == null
+      ? null
+      : widget.repository.signedImageUrl(widget.post.imagePath!);
 
   @override
   void initState() {
     super.initState();
     unawaited(_load());
+    if (_realtime.auth.currentUser == null) return;
     _channel = _realtime
         .channel('community-comments-${widget.post.id}')
         .onPostgresChanges(
@@ -1148,6 +1053,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     setState(() => _sending = true);
     try {
       await widget.repository.comment(widget.post.id, _controller.text);
+      if (!mounted) return;
       _controller.clear();
       await _load();
       widget.onChanged();
@@ -1159,8 +1065,33 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   }
 
   void _message(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _toggleCommentLike(CommunityComment comment) async {
+    if (!_liking.add(comment.id)) return;
+    setState(() {});
+    try {
+      await widget.repository.setCommentLiked(comment.id, !comment.likedByMe);
+      if (mounted) {
+        setState(() {
+          _comments = [
+            for (final item in _comments)
+              if (item.id == comment.id)
+                item.withLikedByMe(!comment.likedByMe)
+              else
+                item,
+          ];
+        });
+      }
+    } catch (error) {
+      _message(error.toString());
+    } finally {
+      _liking.remove(comment.id);
+      if (mounted) setState(() {});
+    }
   }
 
   @override
@@ -1178,6 +1109,35 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close)),
               ]),
+            ),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 140),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(widget.post.body),
+                    if (_postImage != null)
+                      FutureBuilder<String>(
+                        future: _postImage,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Text('Post image is unavailable.');
+                          }
+                          if (!snapshot.hasData) {
+                            return const LinearProgressIndicator();
+                          }
+                          return Image.network(snapshot.data!,
+                              height: 100,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) =>
+                                  const Text('Post image is unavailable.'));
+                        },
+                      ),
+                  ],
+                ),
+              ),
             ),
             if (_comments.isNotEmpty && _hasMore)
               TextButton(
@@ -1223,10 +1183,19 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           name.characters.first.toUpperCase())),
                                   title: Text(name),
                                   subtitle: Text(comment.body),
-                                  trailing: Text(
-                                    _relativeTime(comment.createdAt),
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                  trailing: IconButton(
+                                    tooltip: comment.likedByMe
+                                        ? 'Unlike comment'
+                                        : 'Like comment',
+                                    onPressed: _liking.contains(comment.id)
+                                        ? null
+                                        : () => _toggleCommentLike(comment),
+                                    icon: Icon(
+                                        comment.likedByMe
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color:
+                                            comment.likedByMe ? kRed : kMuted),
                                   ),
                                 );
                               },

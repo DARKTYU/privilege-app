@@ -197,10 +197,53 @@ class CommunityRepository {
               'p_before_id': before?.id,
               'p_limit': commentPageSize,
             }));
-    return (rows as List)
-        .map((row) =>
-            CommunityComment.fromJson(Map<String, dynamic>.from(row as Map)))
+    final data = (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
         .toList();
+    if (data.isEmpty) return [];
+    final likes = await _request(() => client
+        .from('community_comment_likes')
+        .select('comment_id')
+        .eq('user_id', _userId)
+        .inFilter('comment_id', data.map((row) => row['id']).toList()));
+    final liked = likes.map((row) => row['comment_id']).toSet();
+    return data.map((row) {
+      row['liked_by_me'] = liked.contains(row['id']);
+      return CommunityComment.fromJson(row);
+    }).toList();
+  }
+
+  Future<void> setCommentLiked(String id, bool liked) async {
+    await _request(() => client.rpc('community_set_comment_like',
+        params: {'p_comment_id': id, 'p_liked': liked}));
+  }
+
+  Future<CommunityPost?> postById(String id) async {
+    final row = await _request(() => client
+        .from('community_posts')
+        .select('id,author_id,body,visibility,image_path,created_at')
+        .eq('id', id)
+        .maybeSingle());
+    if (row == null) return null;
+    final identity = await _request(() => client
+        .from('community_profiles')
+        .select('username,full_name,avatar_url')
+        .eq('id', row['author_id'])
+        .maybeSingle());
+    if (identity == null) return null;
+    final likes = await _request(() => client
+        .from('community_likes')
+        .select('id')
+        .eq('post_id', id)
+        .eq('user_id', _userId));
+    return CommunityPost.fromJson({
+      ...row,
+      ...identity,
+      'friend_group': 0,
+      'like_count': 0,
+      'comment_count': 0,
+      'liked_by_me': likes.isNotEmpty,
+    });
   }
 
   Future<void> comment(String postId, String body) async {
@@ -283,7 +326,7 @@ class CommunityRepository {
 
   Future<List<CommunityNotification>> notifications() async {
     final rows = await _request(() =>
-        client.rpc('community_notifications_page', params: {'p_limit': 50}));
+        client.rpc('community_notifications_page_v2', params: {'p_limit': 50}));
     return (rows as List)
         .map((row) => CommunityNotification.fromJson(
             Map<String, dynamic>.from(row as Map)))
@@ -312,5 +355,33 @@ class CommunityRepository {
         .update({'read_at': DateTime.now().toUtc().toIso8601String()})
         .eq('recipient_id', _userId)
         .isFilter('read_at', null));
+  }
+
+  Future<Map<String, bool>> notificationSettings() async {
+    final row = await _request(() => client
+        .from('community_notification_settings')
+        .select(
+            'likes_enabled,comments_enabled,friend_posts_enabled,friend_requests_enabled')
+        .eq('user_id', _userId)
+        .maybeSingle());
+    return {
+      for (final key in [
+        'likes_enabled',
+        'comments_enabled',
+        'friend_posts_enabled',
+        'friend_requests_enabled'
+      ])
+        key: row == null ? true : row[key] as bool,
+    };
+  }
+
+  Future<void> saveNotificationSettings(Map<String, bool> settings) async {
+    await _request(
+        () => client.rpc('community_set_notification_settings', params: {
+              'p_likes': settings['likes_enabled'],
+              'p_comments': settings['comments_enabled'],
+              'p_friend_posts': settings['friend_posts_enabled'],
+              'p_friend_requests': settings['friend_requests_enabled'],
+            }));
   }
 }
