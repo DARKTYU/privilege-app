@@ -19,6 +19,12 @@ class FakeProgression implements ProgressionDataSource {
   @override
   Future<int> freezeTokens() async => tokens;
   @override
+  Future<String> subscriptionTier() async {
+    if (error != null) throw error!;
+    return tier;
+  }
+
+  @override
   Future<LevelProgress?> level() async => const LevelProgress(
       name: 'Bronze',
       xp: 100,

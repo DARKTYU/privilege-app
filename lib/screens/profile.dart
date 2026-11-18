@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import '../logic/fitness_logic.dart';
 import '../logic/user_profile.dart';
 import '../logic/username.dart';
 import '../services/account_types.dart' show AuthException;
@@ -13,14 +12,18 @@ import '../ui.dart';
 import 'progression.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.progressionRepository});
+  final ProgressionDataSource? progressionRepository;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final _progression = ProgressionRepository();
+class _ProfileScreenState extends State<ProfileScreen>
+    with WidgetsBindingObserver {
+  late final _progression =
+      widget.progressionRepository ?? ProgressionRepository();
+  late Future<String> _subscription;
   bool _editing = false;
   bool _saved = false;
   bool _saving = false;
@@ -31,7 +34,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _subscription = _progression.subscriptionTier();
     _loadForm();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _reloadSubscription();
+  }
+
+  void _reloadSubscription() {
+    setState(() {
+      _subscription = _progression.subscriptionTier();
+    });
   }
 
   void _loadForm() {
@@ -47,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _name.dispose();
     _username.dispose();
     _weight.dispose();
@@ -144,32 +161,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           children: [
-            ScreenHeader(
-              'Athlete Profile',
-              'Privilege ${p.subscriptionTier.label} Member',
-              actions: [
-                IconButton(
-                  tooltip: 'Settings',
-                  onPressed: () => Navigator.pushNamed(context, '/settings'),
-                  icon: const Icon(Icons.settings_outlined),
-                ),
-                TextButton.icon(
-                  onPressed: () => setState(() {
-                    if (!_editing) {
-                      final profile = appState.profile;
-                      _name.text = profile.name;
-                      _username.text = profile.username;
-                      _weight.text = profile.weightKg.round().toString();
-                      _height.text = profile.heightCm.round().toString();
-                      _bio.text = profile.bio;
-                      _goal = profile.targetGoal;
-                    }
-                    _editing = !_editing;
-                  }),
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: Text(_editing ? 'Cancel' : 'Edit Profile'),
-                ),
-              ],
+            FutureBuilder<String>(
+              future: _subscription,
+              builder: (context, snapshot) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ScreenHeader(
+                    'Athlete Profile',
+                    snapshot.connectionState != ConnectionState.done
+                        ? 'Loading membership...'
+                        : snapshot.hasError
+                            ? 'Membership unavailable'
+                            : 'Privilege ${snapshot.data} Member',
+                    actions: [
+                      IconButton(
+                        tooltip: 'Settings',
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/settings'),
+                        icon: const Icon(Icons.settings_outlined),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => setState(() {
+                          if (!_editing) {
+                            final profile = appState.profile;
+                            _name.text = profile.name;
+                            _username.text = profile.username;
+                            _weight.text = profile.weightKg.round().toString();
+                            _height.text = profile.heightCm.round().toString();
+                            _bio.text = profile.bio;
+                            _goal = profile.targetGoal;
+                          }
+                          _editing = !_editing;
+                        }),
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: Text(_editing ? 'Cancel' : 'Edit Profile'),
+                      ),
+                    ],
+                  ),
+                  if (snapshot.hasError)
+                    TextButton(
+                      onPressed: _reloadSubscription,
+                      child: const Text('Retry membership'),
+                    ),
+                ],
+              ),
             ),
             if (_saved) toastBanner('Profile successfully updated!'),
             if (_editing)
@@ -269,18 +304,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   Text(appState.email,
                                       style: TextStyle(
                                           fontSize: 11, color: kMuted)),
-                                const SizedBox(height: 6),
-                                Row(children: [
-                                  Icon(Icons.verified_user,
-                                      size: 14, color: kGreen),
-                                  SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                        '100% Natural Drug-Free Verified',
-                                        style: TextStyle(
-                                            fontSize: 11, color: kGreen)),
-                                  ),
-                                ]),
                               ]),
                         ),
                       ]),

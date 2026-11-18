@@ -7,6 +7,67 @@ import 'package:privilege/services/progression_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  test('membership chooses highest current active plan or Free', () async {
+    var subscriptions = <Map<String, dynamic>>[];
+    final mock = MockClient((request) async {
+      http.Response jsonResponse(Object value) =>
+          http.Response(jsonEncode(value), 200,
+              request: request, headers: {'content-type': 'application/json'});
+      if (request.url.path.endsWith('/token')) {
+        return jsonResponse({
+          'access_token': 'token',
+          'refresh_token': 'refresh',
+          'token_type': 'bearer',
+          'expires_in': 3600,
+          'user': {
+            'id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            'aud': 'authenticated',
+            'created_at': '2026-01-01T00:00:00Z',
+          }
+        });
+      }
+      if (request.url.path.endsWith('/user_subscriptions')) {
+        expect(request.url.queryParameters['user_id'],
+            'eq.aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+        expect(request.url.queryParameters['status'], 'eq.active');
+        return jsonResponse(subscriptions);
+      }
+      return http.Response('Unexpected request', 500);
+    });
+    final client = SupabaseClient('https://example.supabase.co', 'test-key',
+        httpClient: mock,
+        authOptions: const AuthClientOptions(autoRefreshToken: false));
+    await client.auth
+        .signInWithPassword(email: 'a@example.com', password: 'password');
+    final repo = ProgressionRepository(client: client);
+    expect(await repo.subscriptionTier(), 'Free');
+    subscriptions = [
+      {
+        'started_at': '2020-01-01T00:00:00Z',
+        'expires_at': null,
+        'subscription_plans': {'name': 'Silver'}
+      },
+      {
+        'started_at': '2020-01-01T00:00:00Z',
+        'expires_at': '2021-01-01T00:00:00Z',
+        'subscription_plans': {'name': 'Gold'}
+      },
+      {
+        'started_at': '2099-01-01T00:00:00Z',
+        'expires_at': null,
+        'subscription_plans': {'name': 'Gold'}
+      },
+    ];
+    expect(await repo.subscriptionTier(), 'Silver');
+    subscriptions.add({
+      'started_at': '2020-01-01T00:00:00Z',
+      'expires_at': null,
+      'subscription_plans': {'name': 'Gold'}
+    });
+    expect(await repo.subscriptionTier(), 'Gold');
+    await client.dispose();
+  });
+
   test('store reads active rewards and uses redemptions, not legacy rewards',
       () async {
     final requests = <http.Request>[];

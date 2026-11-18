@@ -72,6 +72,7 @@ abstract interface class ProgressionDataSource {
   Future<LevelProgress?> level();
   Future<int> points();
   Future<int> freezeTokens();
+  Future<String> subscriptionTier();
   Future<StoreSnapshot> store();
   Future<List<BadgeProgress>> badges();
   Future<List<AchievementProgress>> achievements();
@@ -137,10 +138,8 @@ class ProgressionRepository implements ProgressionDataSource {
           .toInt();
 
   @override
-  Future<StoreSnapshot> store() async {
+  Future<String> subscriptionTier() async {
     final userId = _userId;
-    final balance = await points();
-    final tokens = await freezeTokens();
     final subscriptions = await _request(() => client
         .from('user_subscriptions')
         .select('started_at,expires_at,subscription_plans(name)')
@@ -162,6 +161,15 @@ class ProgressionRepository implements ProgressionDataSource {
         tier = candidate;
       }
     }
+    return tier;
+  }
+
+  @override
+  Future<StoreSnapshot> store() async {
+    final userId = _userId;
+    final balance = await points();
+    final tokens = await freezeTokens();
+    final tier = await subscriptionTier();
     final rows = await _request(() => client
         .from('rewards')
         .select(
