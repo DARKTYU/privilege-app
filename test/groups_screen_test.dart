@@ -34,6 +34,41 @@ void main() {
     expect(repo.lastParams?['p_member_limit'], 100);
   });
 
+  testWidgets('moderators see pending requests and can approve them', (tester) async {
+    final repo = _GroupsRepo(client)
+      ..status = 'active'
+      ..role = 'moderator'
+      ..extraMembers = [{'user_id': 'requester', 'status': 'pending', 'role': 'member'}];
+    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('requester'), 180, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Join requests'), findsOneWidget);
+    final tile = find.ancestor(of: find.text('requester'), matching: find.byType(ListTile)).first;
+    await tester.tap(find.descendant(of: tile, matching: find.byType(PopupMenuButton<String>)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Approve request'));
+    await tester.pumpAndSettle();
+    expect(repo.lastParams?['p_action'], 'approve');
+    expect(repo.memberReads, greaterThan(1));
+    expect(repo.postReads, greaterThan(1));
+    expect(repo.countReads, greaterThan(1));
+  });
+
+  testWidgets('group refreshes on app resume and pull to refresh', (tester) async {
+    final repo = _GroupsRepo(client)..status = 'active';
+    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    final before = repo.memberReads;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(repo.memberReads, greaterThan(before));
+    final afterResume = repo.memberReads;
+    await tester.drag(find.byType(ListView).first, const Offset(0, 400));
+    await tester.pumpAndSettle();
+    expect(repo.memberReads, greaterThan(afterResume));
+  });
+
   testWidgets('join and leave update the group page', (tester) async {
     final repo = _GroupsRepo(client);
     await tester.pumpWidget(
@@ -44,9 +79,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Leave group'), findsOneWidget);
     expect(find.text('No posts yet.'), findsOneWidget);
+    final readsAfterJoin = repo.memberReads;
     await tester.tap(find.text('Leave group'));
     await tester.pumpAndSettle();
     expect(find.text('Join'), findsOneWidget);
+    expect(repo.memberReads, greaterThan(readsAfterJoin));
   });
 
   testWidgets('owner can save settings including chat placeholder',
@@ -114,10 +151,110 @@ void main() {
     await tester.tap(find.text('Request to join'));
     await tester.pumpAndSettle();
     expect(find.text('Cancel request'), findsOneWidget);
+    expect(find.text('Request pending'), findsOneWidget);
     await tester.tap(find.text('Cancel request'));
     await tester.pumpAndSettle();
     expect(find.text('Request to join'), findsOneWidget);
   });
+
+  testWidgets('discover displays pending request', (tester) async {
+    final repo = _GroupsRepo(client)..status = 'pending';
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Request pending'), findsOneWidget);
+  });
+
+  testWidgets('banned join error is specific and does not add membership',
+      (tester) async {
+    final repo = _GroupsRepo(client)..failure = const GroupException('banned_from_group');
+    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Join'));
+    await tester.pumpAndSettle();
+    expect(find.text('You are banned from this group. Only the group owner or a moderator can unban you.'), findsOneWidget);
+    expect(find.text('Join'), findsOneWidget);
+    expect(repo.status, isNull);
+  });
+
+  for (final role in ['owner', 'moderator']) {
+    testWidgets('$role can view and unban banned members', (tester) async {
+      final repo = _GroupsRepo(client)
+        ..status = 'active'
+        ..role = role
+        ..banned = [
+          {'user_id': 'banned', 'full_name': 'Banned Person', 'username': 'banned_user',
+           'avatar_url': null, 'banned_at': '2026-01-02T00:00:00Z',
+           'banned_by_full_name': 'Moderator Name'}
+        ];
+      await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Banned members'));
+      await tester.pumpAndSettle();
+      expect(find.text('Banned Person'), findsOneWidget);
+      expect(find.textContaining('By Moderator Name'), findsOneWidget);
+      expect(find.textContaining('2026'), findsOneWidget);
+      await tester.tap(find.text('Unban'));
+      await tester.pumpAndSettle();
+      expect(find.text('Unban member?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(TextButton, 'Unban').last);
+      await tester.pumpAndSettle();
+      expect(repo.lastCall, 'group_unban');
+      expect(repo.lastParams?['p_user'], 'banned');
+      expect(find.text('No banned members.'), findsOneWidget);
+      expect(repo.memberReads, greaterThan(1));
+      expect(repo.postReads, greaterThan(1));
+      expect(repo.countReads, greaterThan(1));
+    });
+  }
+
+  testWidgets('regular members cannot access banned list or pending members', (tester) async {
+    final repo = _GroupsRepo(client)
+      ..status = 'active'
+      ..extraMembers = [
+        {'user_id': 'pending', 'status': 'pending', 'role': 'member'},
+        {'user_id': 'former', 'status': 'left', 'role': 'member'},
+        {'user_id': 'banned', 'status': 'banned', 'role': 'member'},
+      ];
+    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Banned members'), findsNothing);
+    expect(repo.bannedReads, 0);
+    expect(find.text('pending'), findsNothing);
+    expect(find.text('former'), findsNothing);
+    expect(find.text('banned'), findsNothing);
+  });
+
+  for (final operation in ['Remove', 'Ban']) {
+    testWidgets('$operation confirms and refreshes the group after success', (tester) async {
+      final repo = _GroupsRepo(client)
+        ..status = 'active'
+        ..role = 'owner'
+        ..extraMembers = [{'user_id': 'target', 'status': 'active', 'role': 'member'}];
+      await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('target'), 180, scrollable: find.byType(Scrollable).first);
+      final tile = find.ancestor(of: find.text('target'), matching: find.byType(ListTile)).first;
+      await tester.tap(find.descendant(of: tile, matching: find.byType(PopupMenuButton<String>)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(operation).last);
+      await tester.pumpAndSettle();
+      expect(find.text(operation == 'Remove'
+          ? 'This removes the member and hides their posts and comments in this group. They can join again.'
+          : 'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.'), findsOneWidget);
+      expect(repo.lastCall, isNull);
+      await tester.tap(find.widgetWithText(TextButton, operation).last);
+      await tester.pumpAndSettle();
+      expect(repo.lastParams?['p_action'], operation.toLowerCase());
+      expect(repo.memberReads, greaterThan(1));
+      expect(repo.postReads, greaterThan(1));
+      expect(repo.countReads, greaterThan(1));
+      expect(find.text('target'), findsNothing);
+    });
+  }
 
   testWidgets('private invitation can be accepted without exposing the group',
       (tester) async {
@@ -168,8 +305,11 @@ void main() {
   });
 
   test('group errors are friendly', () {
+    final wrapped = groupError(const PostgrestException(message: 'banned_from_group'));
+    expect(groupError(GroupException(wrapped)),
+        'You are banned from this group. Only the group owner or a moderator can unban you.');
     expect(groupError(const GroupException('You are banned from this group')),
-        'You are banned from this group.');
+        'You are banned from this group. Only the group owner or a moderator can unban you.');
     expect(groupError(const GroupException('Only moderators can post')),
         'Only moderators can post in this group.');
     expect(
@@ -185,10 +325,14 @@ class _GroupsRepo extends GroupsRepository {
   _GroupsRepo(super.client);
   String? status, lastCall;
   String joinMode = 'open';
+  String role = 'member';
   bool hiddenUntilJoin = false;
   bool showPost = false;
   Map<String, dynamic>? lastParams;
   Object? failure;
+  List<Map<String, dynamic>> extraMembers = [];
+  List<Map<String, dynamic>> banned = [];
+  int memberReads = 0, postReads = 0, countReads = 0, bannedReads = 0;
   @override
   String get userId => 'me';
   Group get item => Group.fromJson({
@@ -210,19 +354,36 @@ class _GroupsRepo extends GroupsRepository {
   Future<Group?> group(String id) async =>
       hiddenUntilJoin && status != 'active' ? null : item;
   @override
+  Future<List<Group>> groups() async => [item];
+  @override
+  Future<List<Map<String, dynamic>>> myMemberships() async => status == null
+      ? [] : [{'group_id': 'group', 'status': status}];
+  @override
+  Future<List<Map<String, dynamic>>> invitations() async => [];
+  @override
+  Future<List<Map<String, dynamic>>> bannedMembers(String id) async {
+    bannedReads++;
+    return List.of(banned);
+  }
+  @override
   Future<String?> notificationTarget(String id) async => 'group';
   @override
-  Future<int> count(String id) async => status == 'active' ? 2 : 1;
+  Future<int> count(String id) async {
+    countReads++;
+    return status == 'active' ? 2 : 1;
+  }
   @override
-  Future<List<Map<String, dynamic>>> members(String id) async => status == null
-      ? []
-      : [
-          {'user_id': 'me', 'status': status, 'role': 'member'}
-        ];
+  Future<List<Map<String, dynamic>>> members(String id) async {
+    memberReads++;
+    return [if (status != null) {'user_id': 'me', 'status': status, 'role': role}, ...extraMembers];
+  }
   @override
-  Future<List<Map<String, dynamic>>> posts(String id) async => showPost
+  Future<List<Map<String, dynamic>>> posts(String id) async {
+    postReads++;
+    return showPost
       ? [{'id': 'post', 'author_id': 'me', 'body': 'Group post', 'image_path': 'photo'}]
       : [];
+  }
   @override
   Future<List<Map<String, dynamic>>> likes(String id) async => [];
   @override
@@ -230,7 +391,7 @@ class _GroupsRepo extends GroupsRepository {
   @override
   Future<Map<String, dynamic>?> profile(String id) async => showPost
       ? {'username': 'hossam', 'full_name': 'Hossam Ahmed', 'avatar_url': 'https://example.com/avatar.png'}
-      : {'username': 'me'};
+      : {'username': id};
   @override
   Future<dynamic> rpc(String name, Map<String, dynamic> params) async {
     lastCall = name;
@@ -240,6 +401,10 @@ class _GroupsRepo extends GroupsRepository {
       status = joinMode == 'approval' ? 'pending' : 'active';
     }
     if (name == 'group_leave') status = null;
+    if (name == 'group_unban') banned.removeWhere((m) => m['user_id'] == params['p_user']);
+    if (name == 'group_manage_member' && ['remove', 'ban'].contains(params['p_action'])) {
+      extraMembers.removeWhere((m) => m['user_id'] == params['p_user']);
+    }
     return null;
   }
 }

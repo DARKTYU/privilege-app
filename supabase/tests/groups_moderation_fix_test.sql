@@ -177,7 +177,11 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000801'
 select public.group_update_settings(current_setting('test.group_b')::uuid,'Group B','','fitness','public','approval',20,'',null,'everyone',false,false);
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000805',true);
 select pg_temp.assert_group_fix(public.group_join(current_setting('test.group_b')::uuid)='pending','approval remains pending');
-select pg_temp.assert_group_fix((select count(*)=0 from public.group_members where user_id=auth.uid() and group_id=current_setting('test.group_b')::uuid),'pending invisible to nonmoderator');
+select pg_temp.assert_group_fix((select count(*)=1 from public.group_members where user_id=auth.uid() and group_id=current_setting('test.group_b')::uuid),'pending request visible to requester');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000802',true);
+select pg_temp.assert_group_fix((select count(*)=0 from public.group_members
+ where user_id='00000000-0000-4000-8000-000000000805' and status='pending'),'other member cannot see pending request');
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000805',true);
 do $$ begin
  begin
   perform public.group_unban(current_setting('test.group_b')::uuid,'00000000-0000-4000-8000-000000000802');

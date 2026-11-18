@@ -15,12 +15,6 @@ comment on column public.group_comments.hidden_reason is 'Moderation action that
 comment on column public.group_members.banned_at is 'Time of the current ban; null for historical bans without recorded metadata.';
 comment on column public.group_members.banned_by is 'Moderator who imposed the current ban, if known.';
 
-drop policy if exists group_members_read on public.group_members;
-create policy group_members_read on public.group_members for select to authenticated using (
- public.group_is_member(group_id)
- and (user_id=auth.uid() or not public.community_is_blocked(user_id))
- and (status='active' or (status='pending' and public.group_is_moderator(group_id)))
-);
 drop policy if exists group_posts_read on public.group_posts;
 create policy group_posts_read on public.group_posts for select to authenticated using (
  hidden_at is null and public.group_is_member(group_id)
@@ -275,5 +269,13 @@ revoke all on function public.group_create_comment(uuid,text), public.group_set_
  public.group_delete_post(uuid), public.group_report(uuid,text,uuid,uuid) from public, anon;
 grant execute on function public.group_create_comment(uuid,text), public.group_set_post_like(uuid,boolean),
  public.group_delete_post(uuid), public.group_report(uuid,text,uuid,uuid) to authenticated;
+
+drop policy if exists group_members_read on public.group_members;
+create policy group_members_read on public.group_members for select to authenticated using (
+  (public.group_is_member(group_id)
+    and (user_id = auth.uid() or not public.community_is_blocked(user_id))
+    and (status = 'active' or (status = 'pending' and public.group_is_moderator(group_id))))
+  or (user_id = auth.uid() and status = 'pending')
+);
 
 commit;

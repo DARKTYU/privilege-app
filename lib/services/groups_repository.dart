@@ -19,8 +19,10 @@ class GroupException implements Exception {
 String groupError(Object error) {
   final text = error is PostgrestException ? error.message : error.toString();
   final lower = text.toLowerCase();
+  if (lower.contains('banned')) {
+    return 'You are banned from this group. Only the group owner or a moderator can unban you.';
+  }
   if (lower.contains('group is full')) return 'This group is full.';
-  if (lower.contains('banned')) return 'You are banned from this group.';
   if (lower.contains('only moderators can post')) {
     return 'Only moderators can post in this group.';
   }
@@ -99,6 +101,13 @@ class GroupsRepository {
           .select()
           .eq('group_id', id)
           .order('created_at'));
+
+  Future<List<Map<String, dynamic>>> bannedMembers(String id) async {
+    final rows = await rpc('group_banned_members', {'p_group': id});
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
 
   Future<List<Map<String, dynamic>>> myMemberships() async =>
       await request(() => client
