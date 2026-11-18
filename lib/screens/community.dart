@@ -11,6 +11,7 @@ import '../services/community_repository.dart';
 import '../services/progression_repository.dart';
 import '../services/groups_repository.dart';
 import '../ui.dart';
+import '../widgets/post_image.dart';
 import 'progression.dart';
 import 'groups.dart';
 
@@ -560,22 +561,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       child: Center(child: CircularProgressIndicator()),
                     );
                   }
-                  return Image.network(snapshot.data!,
-                      width: double.infinity,
-                      height: 240,
-                      fit: BoxFit.cover, errorBuilder: (_, __, ___) {
-                    Future<void>.microtask(() {
-                      if (mounted) {
-                        setState(() => _imageUrls.remove(post.imagePath));
-                      }
-                    });
-                    return Container(
-                      height: 160,
-                      color: kCard2,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image_outlined),
-                    );
-                  });
+                  return PostImage(
+                    image: NetworkImage(snapshot.data!),
+                    onRetry: () => setState(() {
+                      _imageUrls.remove(post.imagePath);
+                    }),
+                  );
                 },
               ),
             ),
@@ -1196,11 +1187,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           if (!snapshot.hasData) {
                             return const LinearProgressIndicator();
                           }
-                          return Image.network(snapshot.data!,
-                              height: 100,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) =>
-                                  const Text('Post image is unavailable.'));
+                          return PostImage(image: NetworkImage(snapshot.data!), maxHeight: 100);
                         },
                       ),
                   ],

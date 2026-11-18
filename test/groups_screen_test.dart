@@ -5,6 +5,7 @@ import 'package:privilege/screens/alerts.dart';
 import 'package:privilege/models/community_models.dart';
 import 'package:privilege/services/community_repository.dart';
 import 'package:privilege/services/groups_repository.dart';
+import 'package:privilege/widgets/post_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -80,6 +81,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('This group is full.'), findsOneWidget);
     expect(find.text('Join'), findsOneWidget);
+  });
+
+  testWidgets('posts and members show display name, username and avatar',
+      (tester) async {
+    final repo = _GroupsRepo(client)
+      ..status = 'active'
+      ..showPost = true;
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    expect(find.text('Hossam Ahmed'), findsOneWidget);
+    expect(find.text('@hossam'), findsOneWidget);
+    expect(find.byType(PostImage), findsOneWidget);
+    final post = tester.element(find.text('Hossam Ahmed'));
+    final tile = tester.widget<ListTile>(find.ancestor(
+        of: find.byElementPredicate((e) => e == post),
+        matching: find.byType(ListTile)).first);
+    final avatar = tile.leading as CircleAvatar;
+    expect(avatar.foregroundImage, isA<NetworkImage>());
+    await tester.scrollUntilVisible(find.textContaining('@hossam · member'),
+        200, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Hossam Ahmed'), findsNWidgets(2));
+    expect(find.textContaining('@hossam · member'), findsOneWidget);
   });
 
   testWidgets('approval requests can be cancelled', (tester) async {
@@ -162,6 +186,7 @@ class _GroupsRepo extends GroupsRepository {
   String? status, lastCall;
   String joinMode = 'open';
   bool hiddenUntilJoin = false;
+  bool showPost = false;
   Map<String, dynamic>? lastParams;
   Object? failure;
   @override
@@ -195,9 +220,17 @@ class _GroupsRepo extends GroupsRepository {
           {'user_id': 'me', 'status': status, 'role': 'member'}
         ];
   @override
-  Future<List<Map<String, dynamic>>> posts(String id) async => [];
+  Future<List<Map<String, dynamic>>> posts(String id) async => showPost
+      ? [{'id': 'post', 'author_id': 'me', 'body': 'Group post', 'image_path': 'photo'}]
+      : [];
   @override
-  Future<Map<String, dynamic>?> profile(String id) async => {'username': 'me'};
+  Future<List<Map<String, dynamic>>> likes(String id) async => [];
+  @override
+  Future<String> imageUrl(String path) async => 'https://example.com/image.png';
+  @override
+  Future<Map<String, dynamic>?> profile(String id) async => showPost
+      ? {'username': 'hossam', 'full_name': 'Hossam Ahmed', 'avatar_url': 'https://example.com/avatar.png'}
+      : {'username': 'me'};
   @override
   Future<dynamic> rpc(String name, Map<String, dynamic> params) async {
     lastCall = name;

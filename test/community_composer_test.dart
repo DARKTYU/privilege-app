@@ -6,6 +6,7 @@ import 'package:privilege/models/community_post.dart';
 import 'package:privilege/screens/community.dart';
 import 'package:privilege/services/community_repository.dart';
 import 'package:privilege/ui.dart';
+import 'package:privilege/widgets/post_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -78,6 +79,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(repository.bodies, isEmpty);
+  });
+
+  testWidgets('community feed uses the uncropped image viewer', (tester) async {
+    final repository = _FakeCommunityRepository(client)
+      ..bodies.add('Picture post')
+      ..hasImage = true;
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: AppPage(
+        title: 'Community',
+        builder: () => CommunityScreen(repository: repository),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byType(PostImage), findsOneWidget);
   });
 
   testWidgets('alert post opens its comments and can toggle a comment like',
@@ -167,6 +183,7 @@ class _FakeCommunityRepository extends CommunityRepository {
   int feedReads = 0;
   bool commentLiked = false;
   bool zeroLikes = false;
+  bool hasImage = false;
   List<CommunityPerson> people = [];
   List<CommunityPerson> friendList = [];
 
@@ -236,7 +253,7 @@ class _FakeCommunityRepository extends CommunityRepository {
           avatarUrl: null,
           body: bodies[i],
           visibility: 'public',
-          imagePath: null,
+          imagePath: hasImage ? 'image' : null,
           createdAt: DateTime.utc(2026),
           friendGroup: 1,
           likeCount: 0,
@@ -250,6 +267,10 @@ class _FakeCommunityRepository extends CommunityRepository {
   Future<void> post(String body, String visibility, {XFile? image}) async {
     bodies.add(body);
   }
+
+  @override
+  Future<String> signedImageUrl(String path) async =>
+      'https://example.com/image.png';
 
   @override
   Future<List<CommunityPerson>> searchUsers(String query) async => people;

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/groups_repository.dart';
 import '../services/community_repository.dart';
 import '../models/community_models.dart';
+import '../widgets/post_image.dart';
 
 class GroupsTab extends StatefulWidget {
   const GroupsTab({super.key, this.repository});
@@ -144,6 +145,31 @@ Widget _avatar(String? url) => CircleAvatar(
       foregroundImage: url == null || url.isEmpty ? null : NetworkImage(url),
       child: const Icon(Icons.groups_outlined),
     );
+
+String _profileName(Map<String, dynamic>? profile) {
+  final name = (profile?['full_name'] as String?)?.trim();
+  final username = (profile?['username'] as String?)?.trim();
+  return name?.isNotEmpty == true
+      ? name!
+      : username?.isNotEmpty == true ? username! : 'Member';
+}
+
+Widget _personAvatar(Map<String, dynamic>? profile) {
+  final name = _profileName(profile);
+  final url = profile?['avatar_url'] as String?;
+  return CircleAvatar(
+    foregroundImage: url == null || url.isEmpty ? null : NetworkImage(url),
+    onForegroundImageError: url == null || url.isEmpty
+        ? null
+        : (error, stack) => debugPrint('Could not load profile avatar: $error'),
+    child: Text(name.characters.first.toUpperCase()),
+  );
+}
+
+String _profileUsername(Map<String, dynamic>? profile) {
+  final username = (profile?['username'] as String?)?.trim();
+  return username == null || username.isEmpty ? '' : '@$username';
+}
 
 Widget _error(Object error, VoidCallback retry) => Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -737,9 +763,10 @@ Future<(String, XFile?)?> _composeGroupPost(BuildContext context, bool images) {
               final selected = await ImagePicker().pickImage(source: ImageSource.gallery);
               if (context.mounted && selected != null) update(() => image = selected);
             } catch (error) {
+              debugPrint('Could not choose group image: $error');
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Could not choose an image: $error')));
+                const SnackBar(content: Text('Could not choose the image. Please try again.')));
               }
             }
           }),
@@ -774,13 +801,14 @@ class _MemberTile extends StatelessWidget {
       builder: (context, snapshot) {
         final p = snapshot.data;
         return ListTile(
-          leading: _avatar(p?['avatar_url'] as String?),
+          leading: _personAvatar(p),
           title: Text(snapshot.hasError
               ? 'Profile unavailable'
-              : (p?['full_name'] as String?)?.isNotEmpty == true
-                  ? p!['full_name'] as String
-                  : (p?['username'] as String? ?? 'Member')),
-          subtitle: Text('${member['role']} · ${member['status']}'),
+              : _profileName(p)),
+          subtitle: Text([
+            if (_profileUsername(p).isNotEmpty) _profileUsername(p),
+            '${member['role']} · ${member['status']}',
+          ].join(' · ')),
           trailing: allowModeration || onReport != null
               ? PopupMenuButton<String>(
                   onSelected: (v) {
@@ -848,10 +876,12 @@ class _GroupPostState extends State<_GroupPost> {
             future:
                 widget.repository.profile(widget.post['author_id'] as String),
             builder: (context, snapshot) => ListTile(
-                  leading: _avatar(snapshot.data?['avatar_url'] as String?),
+                  leading: _personAvatar(snapshot.data),
                   title: Text(snapshot.hasError
                       ? 'Profile unavailable'
-                      : snapshot.data?['username'] as String? ?? 'Member'),
+                      : _profileName(snapshot.data)),
+                  subtitle: _profileUsername(snapshot.data).isEmpty
+                      ? null : Text(_profileUsername(snapshot.data)),
                   trailing: PopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'report') {
@@ -888,11 +918,15 @@ class _GroupPostState extends State<_GroupPost> {
           FutureBuilder(
             future: widget.repository.imageUrl(widget.post['image_path'] as String),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return const Text('Image unavailable.');
+              if (snapshot.hasError) {
+                return TextButton(
+                    onPressed: () => setState(() {}),
+                    child: const Text('Image unavailable. Retry'));
+              }
               if (!snapshot.hasData) return const LinearProgressIndicator();
-              return Image.network(snapshot.data!,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Text('Image unavailable.'));
+              return PostImage(
+                  image: NetworkImage(snapshot.data!),
+                  onRetry: () => setState(() {}));
             }),
         FutureBuilder(
             future: likes,

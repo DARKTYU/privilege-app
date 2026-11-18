@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -150,17 +151,27 @@ class GroupsRepository {
     if (image != null) {
       final name = image.name.toLowerCase();
       final mime = image.mimeType;
-      final type = mime == 'image/png' || name.endsWith('.png')
-          ? 'image/png'
-          : mime == 'image/webp' || name.endsWith('.webp')
-              ? 'image/webp'
-              : mime == 'image/jpeg' ||
-                      name.endsWith('.jpg') ||
-                      name.endsWith('.jpeg')
-                  ? 'image/jpeg'
-                  : null;
-      final size = await image.length();
-      if (type == null || size == 0 || size > 8 * 1024 * 1024) {
+      final type = mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp'
+          ? mime
+          : name.endsWith('.png')
+              ? 'image/png'
+              : name.endsWith('.webp')
+                  ? 'image/webp'
+                  : name.endsWith('.jpg') || name.endsWith('.jpeg')
+                      ? 'image/jpeg'
+                      : null;
+      if (type == null) {
+        throw const GroupException(
+            'Choose a JPG, PNG or WebP image smaller than 8 MB.');
+      }
+      final Uint8List bytes;
+      try {
+        bytes = await image.readAsBytes();
+      } catch (error, stack) {
+        debugPrint('Could not read group image: $error\n$stack');
+        throw const GroupException('Could not read the image. Please choose it again.');
+      }
+      if (bytes.isEmpty || bytes.length > 8 * 1024 * 1024) {
         throw const GroupException(
             'Choose a JPG, PNG or WebP image smaller than 8 MB.');
       }
@@ -169,12 +180,17 @@ class GroupsRepository {
           : type == 'image/webp'
               ? 'webp'
               : 'jpg';
-      path =
-          '$groupId/$userId/${DateTime.now().microsecondsSinceEpoch}-${Random.secure().nextInt(1 << 32)}.$suffix';
-      await request(() async => client.storage
-          .from('group-post-images')
-          .uploadBinary(path!, await image.readAsBytes(),
-              fileOptions: FileOptions(contentType: type)));
+      final random = Random.secure();
+      final filename = List.generate(16, (_) => random.nextInt(256))
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+      path = '$groupId/$userId/$filename.$suffix';
+      try {
+        await request(() => client.storage.from('group-post-images')
+            .uploadBinary(path!, bytes, fileOptions: FileOptions(contentType: type)));
+      } on GroupException catch (error, stack) {
+        debugPrint('Group image upload failed: $error\n$stack');
+        throw const GroupException('Could not upload the image. Please try again.');
+      }
     }
     try {
       await rpc('group_create_post',
