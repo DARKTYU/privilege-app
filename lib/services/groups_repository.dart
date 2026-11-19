@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
@@ -48,6 +49,7 @@ class Group {
         limit = (row['member_limit'] as num).toInt(),
         rules = row['rules'] as String,
         avatar = row['avatar_url'] as String?,
+        avatarPath = row['avatar_path'] as String?,
         posting = row['who_can_post'] as String,
         images = row['images_allowed'] as bool,
         chat = row['chat_enabled'] as bool;
@@ -55,12 +57,24 @@ class Group {
   final int limit;
   final String rules, posting;
   final String? avatar;
+  final String? avatarPath;
   final bool images, chat;
+}
+
+class GroupAvatarImage {
+  const GroupAvatarImage(this.bytes, this.extension, this.contentType);
+  final Uint8List bytes;
+  final String extension;
+  final String contentType;
 }
 
 class GroupsRepository {
   GroupsRepository(this.client);
   final SupabaseClient client;
+  static final Expando<Map<String, (String, DateTime)>> _avatarCache =
+      Expando();
+  Map<String, (String, DateTime)> get _avatarUrls =>
+      _avatarCache[client] ??= {};
   String get userId =>
       client.auth.currentUser?.id ??
       (throw const GroupException('Please sign in again.'));
@@ -155,20 +169,139 @@ class GroupsRepository {
   Future<String> imageUrl(String path) => request(() =>
       client.storage.from('group-post-images').createSignedUrl(path, 600));
 
+  Future<String> signedAvatarUrl(String path) async {
+    final key = '$userId:$path';
+    final cached = _avatarUrls[key];
+    if (cached != null && DateTime.now().isBefore(cached.$2)) return cached.$1;
+    final url = await request(
+        () => client.storage.from('group-avatars').createSignedUrl(path, 600));
+    _avatarUrls[key] = (url, DateTime.now().add(const Duration(minutes: 8)));
+    return url;
+  }
+
+  Future<GroupAvatarImage> prepareAvatar(XFile image) async {
+    final name = image.name.toLowerCase();
+    final extension = name.split('.').last;
+    final contentType = switch (extension) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      _ => null,
+    };
+    if (contentType == null || !name.contains('.')) {
+      throw const GroupException('Choose a JPG, PNG or WebP photo.');
+    }
+    final Uint8List bytes;
+    try {
+      bytes = await image.readAsBytes();
+    } catch (error, stack) {
+      debugPrint('Could not read group photo: $error\n$stack');
+      throw const GroupException(
+          'Could not read the photo. Please choose it again.');
+    }
+    if (bytes.isEmpty) {
+      throw const GroupException('The photo is empty. Choose another photo.');
+    }
+    final matchesType = switch (contentType) {
+      'image/jpeg' => bytes.length >= 3 &&
+          bytes[0] == 0xff &&
+          bytes[1] == 0xd8 &&
+          bytes[2] == 0xff,
+      'image/png' => bytes.length >= 8 &&
+          listEquals(bytes.sublist(0, 8), [137, 80, 78, 71, 13, 10, 26, 10]),
+      'image/webp' => bytes.length >= 12 &&
+          String.fromCharCodes(bytes.sublist(0, 4)) == 'RIFF' &&
+          String.fromCharCodes(bytes.sublist(8, 12)) == 'WEBP',
+      _ => false,
+    };
+    if (!matchesType) {
+      throw const GroupException(
+          'The photo does not match its file type. Choose a valid JPG, PNG or WebP image.');
+    }
+    try {
+      final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
+      final ui.ImageDescriptor descriptor;
+      try {
+        descriptor = await ui.ImageDescriptor.encoded(buffer);
+      } finally {
+        buffer.dispose();
+      }
+      final width = descriptor.width;
+      final height = descriptor.height;
+      descriptor.dispose();
+      if (width > 1024 || height > 1024) {
+        final scale = 1024 / max(width, height);
+        final codec = await ui.instantiateImageCodec(bytes,
+            targetWidth: max(1, (width * scale).round()),
+            targetHeight: max(1, (height * scale).round()));
+        final frame = await codec.getNextFrame();
+        final data =
+            await frame.image.toByteData(format: ui.ImageByteFormat.png);
+        frame.image.dispose();
+        codec.dispose();
+        if (data == null) throw StateError('Image encoding failed');
+        final resized =
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        if (resized.length > 2 * 1024 * 1024) {
+          throw const GroupException(
+              'The photo is too large. Choose one under 2 MB.');
+        }
+        return GroupAvatarImage(resized, 'png', 'image/png');
+      }
+    } on GroupException {
+      rethrow;
+    } catch (error, stack) {
+      debugPrint('Could not decode group photo: $error\n$stack');
+      throw const GroupException(
+          'Could not read the photo. Choose a valid JPG, PNG or WebP image.');
+    }
+    if (bytes.length > 2 * 1024 * 1024) {
+      throw const GroupException(
+          'The photo is too large. Choose one under 2 MB.');
+    }
+    return GroupAvatarImage(bytes, extension, contentType);
+  }
+
+  Future<void> setAvatar(
+      String groupId, GroupAvatarImage? image, String? oldPath) async {
+    String? newPath;
+    if (image != null) {
+      final random = Random.secure();
+      final filename = List.generate(16, (_) => random.nextInt(256))
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+          .join();
+      newPath = '$groupId/$filename.${image.extension}';
+      await request(() => client.storage.from('group-avatars').uploadBinary(
+          newPath!, image.bytes,
+          fileOptions: FileOptions(contentType: image.contentType)));
+    }
+    await rpc('group_set_avatar', {'p_group': groupId, 'p_path': newPath});
+    if (oldPath != null && oldPath != newPath) {
+      try {
+        await request(
+            () => client.storage.from('group-avatars').remove([oldPath]));
+      } catch (error, stack) {
+        debugPrint('Could not clean up old group photo: $error\n$stack');
+      }
+      _avatarUrls.remove('$userId:$oldPath');
+    }
+  }
+
   Future<void> createPost(String groupId, String body, XFile? image) async {
     String? path;
     if (image != null) {
       final name = image.name.toLowerCase();
       final mime = image.mimeType;
-      final type = mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp'
-          ? mime
-          : name.endsWith('.png')
-              ? 'image/png'
-              : name.endsWith('.webp')
-                  ? 'image/webp'
-                  : name.endsWith('.jpg') || name.endsWith('.jpeg')
-                      ? 'image/jpeg'
-                      : null;
+      final type =
+          mime == 'image/jpeg' || mime == 'image/png' || mime == 'image/webp'
+              ? mime
+              : name.endsWith('.png')
+                  ? 'image/png'
+                  : name.endsWith('.webp')
+                      ? 'image/webp'
+                      : name.endsWith('.jpg') || name.endsWith('.jpeg')
+                          ? 'image/jpeg'
+                          : null;
       if (type == null) {
         throw const GroupException(
             'Choose a JPG, PNG or WebP image smaller than 8 MB.');
@@ -178,7 +311,8 @@ class GroupsRepository {
         bytes = await image.readAsBytes();
       } catch (error, stack) {
         debugPrint('Could not read group image: $error\n$stack');
-        throw const GroupException('Could not read the image. Please choose it again.');
+        throw const GroupException(
+            'Could not read the image. Please choose it again.');
       }
       if (bytes.isEmpty || bytes.length > 8 * 1024 * 1024) {
         throw const GroupException(
@@ -191,14 +325,18 @@ class GroupsRepository {
               : 'jpg';
       final random = Random.secure();
       final filename = List.generate(16, (_) => random.nextInt(256))
-          .map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+          .map((byte) => byte.toRadixString(16).padLeft(2, '0'))
+          .join();
       path = '$groupId/$userId/$filename.$suffix';
       try {
-        await request(() => client.storage.from('group-post-images')
-            .uploadBinary(path!, bytes, fileOptions: FileOptions(contentType: type)));
+        await request(() => client.storage
+            .from('group-post-images')
+            .uploadBinary(path!, bytes,
+                fileOptions: FileOptions(contentType: type)));
       } on GroupException catch (error, stack) {
         debugPrint('Group image upload failed: $error\n$stack');
-        throw const GroupException('Could not upload the image. Please try again.');
+        throw const GroupException(
+            'Could not upload the image. Please try again.');
       }
     }
     try {

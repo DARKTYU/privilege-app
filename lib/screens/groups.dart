@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,11 +21,62 @@ const groupCategories = [
   'Other',
 ];
 
-class GroupAvatar extends StatelessWidget {
-  const GroupAvatar({super.key, required this.id, required this.name, this.url});
+class GroupAvatar extends StatefulWidget {
+  const GroupAvatar(
+      {super.key,
+      required this.id,
+      required this.name,
+      this.url,
+      this.path,
+      this.repository,
+      this.preview});
   final String id;
   final String name;
   final String? url;
+  final String? path;
+  final GroupsRepository? repository;
+  final Uint8List? preview;
+
+  @override
+  State<GroupAvatar> createState() => _GroupAvatarState();
+}
+
+class _GroupAvatarState extends State<GroupAvatar> {
+  Future<String>? signedUrl;
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  @override
+  void didUpdateWidget(GroupAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.path != widget.path ||
+        oldWidget.repository != widget.repository) {
+      load();
+    }
+  }
+
+  void load() {
+    timer?.cancel();
+    signedUrl = widget.path == null || widget.repository == null
+        ? null
+        : widget.repository!.signedAvatarUrl(widget.path!);
+    if (signedUrl != null) {
+      timer = Timer(const Duration(minutes: 9), () {
+        if (mounted) setState(load);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,23 +89,39 @@ class GroupAvatar extends StatelessWidget {
       Color(0xFF526782),
     ];
     var hash = 0;
-    for (final unit in id.codeUnits) {
+    for (final unit in widget.id.codeUnits) {
       hash = (hash * 31 + unit) & 0x7fffffff;
     }
-    final words = name.trim().split(RegExp(r'\s+'));
+    final words = widget.name.trim().split(RegExp(r'\s+'));
     final initials = words.first.isEmpty
         ? '?'
         : '${words.first.characters.first}${words.length > 1 ? words.last.characters.first : ''}'
             .toUpperCase();
-    return CircleAvatar(
-      backgroundColor: palette[hash % palette.length],
-      foregroundColor: Colors.white,
-      foregroundImage: url == null || url!.isEmpty ? null : NetworkImage(url!),
-      onForegroundImageError: url == null || url!.isEmpty
-          ? null
-          : (error, stack) => debugPrint('Could not load group avatar: $error'),
-      child:
-          Text(initials, style: const TextStyle(fontWeight: FontWeight.bold)),
+    return FutureBuilder<String>(
+      future: signedUrl,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          debugPrint('Could not sign group photo: ${snapshot.error}');
+        }
+        final url = widget.path == null ? widget.url : snapshot.data;
+        ImageProvider? image;
+        if (widget.preview != null) {
+          image = MemoryImage(widget.preview!);
+        } else if (url != null && url.isNotEmpty) {
+          image = NetworkImage(url);
+        }
+        return CircleAvatar(
+          backgroundColor: palette[hash % palette.length],
+          foregroundColor: Colors.white,
+          foregroundImage: image,
+          onForegroundImageError: image == null
+              ? null
+              : (error, stack) =>
+                  debugPrint('Could not load group avatar: $error'),
+          child: Text(initials,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+        );
+      },
     );
   }
 }
@@ -150,12 +220,18 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                   IconButton(
                       tooltip: 'Create group',
                       onPressed: () async {
-                        await Navigator.push(
+                        final message = await Navigator.push<String>(
                             context,
-                            MaterialPageRoute<void>(
+                            MaterialPageRoute<String>(
                                 builder: (_) =>
                                     GroupSettingsPage(repository: repo)));
-                        if (mounted) reload();
+                        if (mounted) {
+                          reload();
+                          if (message != null && context.mounted) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(content: Text(message)));
+                          }
+                        }
                       },
                       icon: const Icon(Icons.add_circle_outline)),
                 ]),
@@ -185,7 +261,11 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                           : GroupAvatar(
                               id: id,
                               name: groups.firstWhere((g) => g.id == id).name,
-                              url: groups.firstWhere((g) => g.id == id).avatar),
+                              url: groups.firstWhere((g) => g.id == id).avatar,
+                              path: groups
+                                  .firstWhere((g) => g.id == id)
+                                  .avatarPath,
+                              repository: repo),
                       title: Text(groups.where((g) => g.id == id).isEmpty
                           ? 'Group invitation'
                           : groups.firstWhere((g) => g.id == id).name),
@@ -211,7 +291,11 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                     Card(
                         child: ListTile(
                       leading: GroupAvatar(
-                          id: group.id, name: group.name, url: group.avatar),
+                          id: group.id,
+                          name: group.name,
+                          url: group.avatar,
+                          path: group.avatarPath,
+                          repository: repo),
                       title: Text(group.name),
                       subtitle: Text('${group.category} · ${group.visibility}'
                           '${pendingIds.contains(group.id) ? ' · Request pending' : ''}'),
@@ -290,9 +374,11 @@ Widget _error(Object error, VoidCallback retry) => Center(
     ]));
 
 class GroupSettingsPage extends StatefulWidget {
-  const GroupSettingsPage({super.key, required this.repository, this.group});
+  const GroupSettingsPage(
+      {super.key, required this.repository, this.group, this.pickPhoto});
   final GroupsRepository repository;
   final Group? group;
+  final Future<XFile?> Function()? pickPhoto;
   @override
   State<GroupSettingsPage> createState() => _GroupSettingsPageState();
 }
@@ -311,7 +397,43 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   late bool images = widget.group?.images ?? false;
   late bool chat = widget.group?.chat ?? false;
   bool busy = false;
+  bool choosingPhoto = false;
   String? error;
+  GroupAvatarImage? photo;
+  bool removePhoto = false;
+
+  Future<void> choosePhoto() async {
+    setState(() => choosingPhoto = true);
+    try {
+      final selected = await (widget.pickPhoto?.call() ??
+          ImagePicker().pickImage(
+              source: ImageSource.gallery,
+              maxWidth: 1024,
+              maxHeight: 1024,
+              imageQuality: 85));
+      if (selected == null) return;
+      final prepared = await widget.repository.prepareAvatar(selected);
+      if (mounted) {
+        setState(() {
+          photo = prepared;
+          removePhoto = false;
+          error = null;
+        });
+      }
+    } catch (e, stack) {
+      debugPrint('Could not choose group photo: $e\n$stack');
+      if (mounted) {
+        final message = e is GroupException
+            ? e.message
+            : 'Could not choose the photo. Please try again.';
+        setState(() => error = message);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
+    } finally {
+      if (mounted) setState(() => choosingPhoto = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -352,9 +474,36 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
         'p_chat_enabled': chat,
       };
       if (widget.group != null) params['p_group'] = widget.group!.id;
-      await widget.repository.rpc(
+      final result = await widget.repository.rpc(
           widget.group == null ? 'group_create' : 'group_update_settings',
           params);
+      if (widget.group == null && photo != null) {
+        try {
+          if (result is! String || result.isEmpty) {
+            throw StateError('Group creation returned no ID');
+          }
+          await widget.repository.setAvatar(result, photo, null);
+        } catch (e, stack) {
+          debugPrint('Group created but photo upload failed: $e\n$stack');
+          if (mounted) {
+            Navigator.pop(context,
+                'Group created, but the photo could not be uploaded. You can add it from group settings.');
+          }
+          return;
+        }
+      } else if (widget.group != null && (photo != null || removePhoto)) {
+        try {
+          await widget.repository
+              .setAvatar(widget.group!.id, photo, widget.group!.avatarPath);
+        } catch (e, stack) {
+          debugPrint('Group photo update failed: $e\n$stack');
+          if (mounted) {
+            setState(() =>
+                error = 'Could not save the group photo. Please try again.');
+          }
+          return;
+        }
+      }
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) setState(() => error = groupError(e));
@@ -382,83 +531,108 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
         appBar: AppBar(
             title:
                 Text(widget.group == null ? 'Create group' : 'Group settings')),
-        body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              TextField(
-                  controller: name,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  maxLength: 80,
-                  buildCounter: _counter),
-              TextField(
-                  controller: description,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLength: 2000,
-                  buildCounter: _counter),
-              dropdown(
-                  'Category',
-                  category,
-                  {
-                    for (final value in groupCategories) value: value,
-                    if (!groupCategories.contains(category)) category: category,
-                  },
-                  (v) => category = v),
-              const SizedBox(height: 12),
-              dropdown(
-                  'Visibility',
-                  visibility,
-                  {'public': 'Public', 'private': 'Private'},
-                  (v) => visibility = v),
-              const SizedBox(height: 12),
-              dropdown(
-                  'Join mode',
-                  joinMode,
-                  {
-                    'open': 'Open',
-                    'approval': 'Approval needed',
-                    'invite_only': 'Invite only'
-                  },
-                  (v) => joinMode = v),
-              if (visibility == 'private')
-                const Text('Private groups require an invitation.'),
-              const SizedBox(height: 12),
-              TextField(
-                  controller: limit,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Member limit')),
-              const SizedBox(height: 12),
-              dropdown(
-                  'Who can post',
-                  posting,
-                  {'everyone': 'Everyone', 'moderators': 'Moderators'},
-                  (v) => posting = v),
-              SwitchListTile(
-                  title: const Text('Images allowed'),
-                  value: images,
-                  onChanged: busy ? null : (v) => setState(() => images = v)),
-              SwitchListTile(
-                  title: const Text('Chat (coming in phase 2)'),
-                  subtitle: const Text(
-                      'This setting is saved, but chat is not available yet.'),
-                  value: chat,
-                  onChanged: busy ? null : (v) => setState(() => chat = v)),
-              TextField(
-                  controller: rules,
-                  maxLines: 3,
-                  maxLength: 5000,
-                  decoration: const InputDecoration(labelText: 'Rules'),
-                  buildCounter: _counter),
-              if (error != null)
-                Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Text(error!,
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.error))),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                  onPressed: busy ? null : save,
-                  child: Text(busy ? 'Saving...' : 'Save')),
+        body: ListView(padding: const EdgeInsets.all(16), children: [
+          if (widget.group == null ||
+              widget.group!.ownerId == widget.repository.userId) ...[
+            GroupAvatar(
+              id: widget.group?.id ?? '',
+              name: name.text,
+              url: removePhoto ? null : widget.group?.avatar,
+              path: removePhoto ? null : widget.group?.avatarPath,
+              repository: widget.repository,
+              preview: photo?.bytes,
+            ),
+            Row(children: [
+              TextButton(
+                  onPressed: busy || choosingPhoto ? null : choosePhoto,
+                  child: const Text('Choose photo')),
+              if (photo != null ||
+                  (!removePhoto && widget.group?.avatarPath != null))
+                TextButton(
+                    onPressed: busy || choosingPhoto
+                        ? null
+                        : () => setState(() {
+                              photo = null;
+                              removePhoto = true;
+                            }),
+                    child: const Text('Remove photo')),
             ]),
+          ],
+          TextField(
+              controller: name,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(labelText: 'Name'),
+              maxLength: 80,
+              buildCounter: _counter),
+          TextField(
+              controller: description,
+              decoration: const InputDecoration(labelText: 'Description'),
+              maxLength: 2000,
+              buildCounter: _counter),
+          dropdown(
+              'Category',
+              category,
+              {
+                for (final value in groupCategories) value: value,
+                if (!groupCategories.contains(category)) category: category,
+              },
+              (v) => category = v),
+          const SizedBox(height: 12),
+          dropdown(
+              'Visibility',
+              visibility,
+              {'public': 'Public', 'private': 'Private'},
+              (v) => visibility = v),
+          const SizedBox(height: 12),
+          dropdown(
+              'Join mode',
+              joinMode,
+              {
+                'open': 'Open',
+                'approval': 'Approval needed',
+                'invite_only': 'Invite only'
+              },
+              (v) => joinMode = v),
+          if (visibility == 'private')
+            const Text('Private groups require an invitation.'),
+          const SizedBox(height: 12),
+          TextField(
+              controller: limit,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Member limit')),
+          const SizedBox(height: 12),
+          dropdown(
+              'Who can post',
+              posting,
+              {'everyone': 'Everyone', 'moderators': 'Moderators'},
+              (v) => posting = v),
+          SwitchListTile(
+              title: const Text('Images allowed'),
+              value: images,
+              onChanged: busy ? null : (v) => setState(() => images = v)),
+          SwitchListTile(
+              title: const Text('Chat (coming in phase 2)'),
+              subtitle: const Text(
+                  'This setting is saved, but chat is not available yet.'),
+              value: chat,
+              onChanged: busy ? null : (v) => setState(() => chat = v)),
+          TextField(
+              controller: rules,
+              maxLines: 3,
+              maxLength: 5000,
+              decoration: const InputDecoration(labelText: 'Rules'),
+              buildCounter: _counter),
+          if (error != null)
+            Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(error!,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.error))),
+          const SizedBox(height: 12),
+          ElevatedButton(
+              onPressed: busy || choosingPhoto ? null : save,
+              child: Text(busy ? 'Saving...' : 'Save')),
+        ]),
       );
 
   Widget _counter(BuildContext context,
@@ -662,7 +836,11 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                   children: [
                     Row(children: [
                       GroupAvatar(
-                          id: group.id, name: group.name, url: group.avatar),
+                          id: group.id,
+                          name: group.name,
+                          url: group.avatar,
+                          path: group.avatarPath,
+                          repository: widget.repository),
                       const SizedBox(width: 12),
                       Expanded(
                           child: Column(
@@ -984,7 +1162,9 @@ class _InvitePageState extends State<_InvitePage> {
             leading: GroupAvatar(
                 id: widget.group.id,
                 name: widget.group.name,
-                url: widget.group.avatar),
+                url: widget.group.avatar,
+                path: widget.group.avatarPath,
+                repository: widget.repository),
             title: Text(widget.group.name),
           ),
           Padding(
