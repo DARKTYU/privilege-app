@@ -136,24 +136,54 @@ class MealItem {
     required this.icon,
     required this.consumed,
     required this.category,
+    this.foodId,
+    this.grams,
+    this.servingLabel,
+    this.sugarG,
+    this.sodiumMg,
+    this.source = 'manual',
   });
   final String id, name, time, icon;
   final int calories, proteinGrams, carbsGrams, fatGrams, fiberGrams;
   final bool consumed;
   final MealCategory category;
+  final String? foodId, servingLabel;
+  final double? grams, sugarG, sodiumMg;
+  final String source;
 
-  MealItem copyWith({String? id, int? calories, bool? consumed}) => MealItem(
+  MealItem copyWith({
+    String? id,
+    int? calories,
+    bool? consumed,
+    int? proteinGrams,
+    int? carbsGrams,
+    int? fatGrams,
+    int? fiberGrams,
+    double? grams,
+    double? sugarG,
+    double? sodiumMg,
+    String? servingLabel,
+    bool clearServingLabel = false,
+  }) =>
+      MealItem(
         id: id ?? this.id,
         name: name,
         time: time,
         calories: calories ?? this.calories,
-        proteinGrams: proteinGrams,
-        carbsGrams: carbsGrams,
-        fatGrams: fatGrams,
-        fiberGrams: fiberGrams,
+        proteinGrams: proteinGrams ?? this.proteinGrams,
+        carbsGrams: carbsGrams ?? this.carbsGrams,
+        fatGrams: fatGrams ?? this.fatGrams,
+        fiberGrams: fiberGrams ?? this.fiberGrams,
         icon: icon,
         consumed: consumed ?? this.consumed,
         category: category,
+        foodId: foodId,
+        grams: grams ?? this.grams,
+        servingLabel:
+            clearServingLabel ? null : servingLabel ?? this.servingLabel,
+        sugarG: sugarG ?? this.sugarG,
+        sodiumMg: sodiumMg ?? this.sodiumMg,
+        source: source,
       );
 }
 

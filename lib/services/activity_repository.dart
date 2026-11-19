@@ -44,7 +44,7 @@ class ActivityRepository {
     final mealRows = await _session.request(() => _client
         .from('meal_logs')
         .select(
-            'id,user_id,logged_date,meal_type,name,calories,protein_g,carbs_g,fat_g,fiber_g,category,icon,consumed,created_at,updated_at')
+            'id,user_id,logged_date,meal_type,name,calories,protein_g,carbs_g,fat_g,fiber_g,category,icon,consumed,food_id,grams,serving_label,sugar_g,sodium_mg,source,created_at,updated_at')
         .eq('user_id', userId)
         .eq('logged_date', today)
         .order('created_at', ascending: false));
@@ -105,7 +105,43 @@ class ActivityRepository {
           'category': category,
           'icon': meal.icon,
           'consumed': meal.consumed,
+          'food_id': meal.foodId,
+          'grams': meal.grams,
+          'serving_label': meal.servingLabel,
+          'sugar_g': meal.sugarG,
+          'sodium_mg': meal.sodiumMg,
+          'source': meal.source,
         }));
+  }
+
+  Future<void> updateFoodPortion(MealItem meal) async {
+    if (meal.source != 'food_db' ||
+        meal.foodId == null ||
+        meal.foodId!.isEmpty ||
+        meal.grams == null) {
+      throw StateError('This meal is not linked to a food in the database.');
+    }
+    final rows = await _session.request(() => _client
+        .from('meal_logs')
+        .update({
+          'grams': meal.grams,
+          'serving_label': meal.servingLabel,
+          'calories': meal.calories,
+          'protein_g': meal.proteinGrams,
+          'carbs_g': meal.carbsGrams,
+          'fat_g': meal.fatGrams,
+          'fiber_g': meal.fiberGrams,
+          'sugar_g': meal.sugarG,
+          'sodium_mg': meal.sodiumMg,
+        })
+        .eq('id', meal.id)
+        .eq('user_id', _userId)
+        .eq('source', 'food_db')
+        .eq('food_id', meal.foodId!)
+        .select('id'));
+    if (rows.isEmpty) {
+      throw StateError('The food log could not be found or has changed.');
+    }
   }
 
   Future<void> addWorkout(BurnItem workout) async {
@@ -194,6 +230,12 @@ class ActivityRepository {
       icon: row['icon'] as String,
       consumed: row['consumed'] as bool,
       category: category,
+      foodId: row['food_id'] as String?,
+      grams: (row['grams'] as num?)?.toDouble(),
+      servingLabel: row['serving_label'] as String?,
+      sugarG: (row['sugar_g'] as num?)?.toDouble(),
+      sodiumMg: (row['sodium_mg'] as num?)?.toDouble(),
+      source: row['source'] as String? ?? 'manual',
     );
   }
 

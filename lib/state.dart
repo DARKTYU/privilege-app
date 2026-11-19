@@ -6,16 +6,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import 'logic/fitness_logic.dart';
+import 'logic/food_nutrition.dart';
 import 'logic/user_profile.dart';
+import 'models/food_item.dart';
 import 'services/account_types.dart';
 import 'services/activity_repository.dart';
+import 'services/food_database.dart';
 import 'services/supabase_auth_service.dart';
 import 'services/session_recovery.dart';
 
 /// Port of FitnessContext.tsx plus profile, subscription and streak-arena state.
 class AppState extends ChangeNotifier {
+  AppState({ActivityRepository? activityRepository, FoodDatabase? foodDatabase})
+      : _activityRepository = activityRepository ?? ActivityRepository(),
+        _foodDatabase = foodDatabase ?? FoodDatabase();
+
   Timer? _toastTimer;
-  final ActivityRepository _activityRepository = ActivityRepository();
+  final ActivityRepository _activityRepository;
+  final FoodDatabase _foodDatabase;
   int _activityGeneration = 0;
   int _activityLoadGeneration = 0;
   String? _activityUserId;
@@ -339,6 +347,76 @@ class AppState extends ChangeNotifier {
       () => _activityRepository.addMeal(item),
       successMessage: 'Added meal ${item.name} (+${item.calories} kcal)!',
     );
+  }
+
+  Future<void> logFood(
+      FoodItem food, PortionResult portion, MealCategory mealType,
+      {String? servingLabel}) async {
+    final grams = _foodGrams(portion.grams);
+    final snapshot = grams == portion.grams
+        ? portion
+        : calculateFoodPortion(food.per100g, grams);
+    await addMeal(MealItem(
+      id: '',
+      name: food.nameEn,
+      time: 'Just now',
+      calories: snapshot.kcal,
+      proteinGrams: snapshot.proteinG.round(),
+      carbsGrams: snapshot.carbsG.round(),
+      fatGrams: snapshot.fatG.round(),
+      fiberGrams: snapshot.fiberG.round(),
+      icon: '🍽️',
+      consumed: true,
+      category: mealType,
+      foodId: food.id,
+      grams: grams,
+      servingLabel: servingLabel,
+      sugarG: (snapshot.sugarG * 10).round() / 10,
+      sodiumMg: (snapshot.sodiumMg * 10).round() / 10,
+      source: 'food_db',
+    ));
+  }
+
+  Future<void> updateFoodPortion(MealItem log, double newGrams) async {
+    if (log.source != 'food_db' || log.foodId == null || log.foodId!.isEmpty) {
+      throw StateError('This meal is not linked to a food in the database.');
+    }
+    final grams = _foodGrams(newGrams);
+    await _foodDatabase.load();
+    FoodItem? food;
+    for (final item in _foodDatabase.foods) {
+      if (item.id == log.foodId) {
+        food = item;
+        break;
+      }
+    }
+    if (food == null) {
+      throw StateError(
+          'This food is no longer available in the food database. The meal was not changed.');
+    }
+    final portion = calculateFoodPortion(food.per100g, grams);
+    final updated = log.copyWith(
+      grams: grams,
+      calories: portion.kcal,
+      proteinGrams: portion.proteinG.round(),
+      carbsGrams: portion.carbsG.round(),
+      fatGrams: portion.fatG.round(),
+      fiberGrams: portion.fiberG.round(),
+      sugarG: portion.sugarG,
+      sodiumMg: portion.sodiumMg,
+      clearServingLabel: grams != log.grams,
+    );
+    await _writeActivity(
+      () => _activityRepository.updateFoodPortion(updated),
+      successMessage: 'Updated ${log.name}.',
+    );
+  }
+
+  double _foodGrams(double grams) {
+    if (!grams.isFinite || grams < 1 || grams > 3000) {
+      throw RangeError.range(grams, 1, 3000, 'grams');
+    }
+    return (grams * 10).round() / 10;
   }
 
   Future<void> removeMeal(String id) async {
