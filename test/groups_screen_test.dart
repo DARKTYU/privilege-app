@@ -23,28 +23,42 @@ void main() {
         .pumpWidget(MaterialApp(home: GroupSettingsPage(repository: repo)));
     await tester.enterText(
         find.widgetWithText(TextField, 'Name'), 'Fitness friends');
-    await tester.enterText(
-        find.widgetWithText(TextField, 'Category'), 'Fitness');
+    await tester.tap(find.text('General fitness'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Running & cardio').last);
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(find.text('Save'), 300,
         scrollable: find.byType(Scrollable).first);
+    expect(find.text('Avatar image URL'), findsNothing);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(repo.lastCall, 'group_create');
     expect(repo.lastParams?['p_name'], 'Fitness friends');
+    expect(repo.lastParams?['p_category'], 'Running & cardio');
     expect(repo.lastParams?['p_member_limit'], 100);
+    expect(repo.lastParams!.containsKey('p_avatar_url'), isTrue);
+    expect(repo.lastParams?['p_avatar_url'], isNull);
   });
 
-  testWidgets('moderators see pending requests and can approve them', (tester) async {
+  testWidgets('moderators see pending requests and can approve them',
+      (tester) async {
     final repo = _GroupsRepo(client)
       ..status = 'active'
       ..role = 'moderator'
-      ..extraMembers = [{'user_id': 'requester', 'status': 'pending', 'role': 'member'}];
-    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+      ..extraMembers = [
+        {'user_id': 'requester', 'status': 'pending', 'role': 'member'}
+      ];
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('requester'), 180, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('requester'), 180,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text('Join requests'), findsOneWidget);
-    final tile = find.ancestor(of: find.text('requester'), matching: find.byType(ListTile)).first;
-    await tester.tap(find.descendant(of: tile, matching: find.byType(PopupMenuButton<String>)));
+    final tile = find
+        .ancestor(of: find.text('requester'), matching: find.byType(ListTile))
+        .first;
+    await tester.tap(find.descendant(
+        of: tile, matching: find.byType(PopupMenuButton<String>)));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Approve request'));
     await tester.pumpAndSettle();
@@ -54,9 +68,11 @@ void main() {
     expect(repo.countReads, greaterThan(1));
   });
 
-  testWidgets('group refreshes on app resume and pull to refresh', (tester) async {
+  testWidgets('group refreshes on app resume and pull to refresh',
+      (tester) async {
     final repo = _GroupsRepo(client)..status = 'active';
-    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
     await tester.pumpAndSettle();
     final before = repo.memberReads;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -78,6 +94,9 @@ void main() {
     await tester.tap(find.text('Join'));
     await tester.pumpAndSettle();
     expect(find.text('Leave group'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Leave group'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Create post'), findsOneWidget);
+    expect(find.byType(PopupMenuButton<String>), findsWidgets);
     expect(find.text('No posts yet.'), findsOneWidget);
     final readsAfterJoin = repo.memberReads;
     await tester.tap(find.text('Leave group'));
@@ -88,7 +107,8 @@ void main() {
 
   testWidgets('owner can save settings including chat placeholder',
       (tester) async {
-    final repo = _GroupsRepo(client);
+    final repo = _GroupsRepo(client)
+      ..avatarUrl = 'https://example.com/group-avatar.png';
     await tester.pumpWidget(MaterialApp(
         home: GroupSettingsPage(repository: repo, group: repo.item)));
     await tester.scrollUntilVisible(
@@ -101,11 +121,29 @@ void main() {
     await tester.tap(find.text('Chat (coming in phase 2)'));
     await tester.scrollUntilVisible(find.text('Save'), 200,
         scrollable: find.byType(Scrollable).first);
+    expect(find.text('Avatar image URL'), findsNothing);
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(repo.lastCall, 'group_update_settings');
     expect(repo.lastParams?['p_member_limit'], 15);
     expect(repo.lastParams?['p_chat_enabled'], true);
+    expect(repo.lastParams?['p_avatar_url'], repo.avatarUrl);
+  });
+
+  testWidgets('existing group avatar URL is displayed', (tester) async {
+    final repo = _GroupsRepo(client)
+      ..avatarUrl = 'https://example.com/group-avatar.png';
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpAndSettle();
+    final avatar = tester.widget<CircleAvatar>(find.descendant(
+        of: find.byType(GroupAvatar), matching: find.byType(CircleAvatar)));
+    expect(avatar.foregroundImage, NetworkImage(repo.avatarUrl!));
+    await tester.tap(find.text('Fitness friends'));
+    await tester.pumpAndSettle();
+    final pageAvatar = tester.widget<CircleAvatar>(find.descendant(
+        of: find.byType(GroupAvatar), matching: find.byType(CircleAvatar)));
+    expect(pageAvatar.foregroundImage, NetworkImage(repo.avatarUrl!));
   });
 
   testWidgets('join failures show a clear message', (tester) async {
@@ -132,15 +170,185 @@ void main() {
     expect(find.text('@hossam'), findsOneWidget);
     expect(find.byType(PostImage), findsOneWidget);
     final post = tester.element(find.text('Hossam Ahmed'));
-    final tile = tester.widget<ListTile>(find.ancestor(
-        of: find.byElementPredicate((e) => e == post),
-        matching: find.byType(ListTile)).first);
+    final tile = tester.widget<ListTile>(find
+        .ancestor(
+            of: find.byElementPredicate((e) => e == post),
+            matching: find.byType(ListTile))
+        .first);
     final avatar = tile.leading as CircleAvatar;
     expect(avatar.foregroundImage, isA<NetworkImage>());
-    await tester.scrollUntilVisible(find.textContaining('@hossam · member'),
-        200, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(find.text('Members'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     expect(find.text('Hossam Ahmed'), findsNWidgets(2));
-    expect(find.textContaining('@hossam · member'), findsOneWidget);
+    expect(find.text('@hossam'), findsNWidgets(2));
+    expect(find.textContaining('active'), findsNothing);
+  });
+
+  testWidgets(
+      'group avatars stay consistent across tabs, page and invite screen',
+      (tester) async {
+    final repo = _GroupsRepo(client)
+      ..status = 'active'
+      ..role = 'owner';
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpAndSettle();
+    final discoverAvatar = tester.widget<CircleAvatar>(find
+        .descendant(
+            of: find.byType(GroupAvatar), matching: find.byType(CircleAvatar))
+        .first);
+    expect(find.text('FF'), findsOneWidget);
+    await tester.tap(find.text('My groups'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<CircleAvatar>(find
+                .descendant(
+                    of: find.byType(GroupAvatar),
+                    matching: find.byType(CircleAvatar))
+                .first)
+            .backgroundColor,
+        discoverAvatar.backgroundColor);
+    await tester.tap(find.text('Fitness friends'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<CircleAvatar>(find
+                .descendant(
+                    of: find.byType(GroupAvatar),
+                    matching: find.byType(CircleAvatar))
+                .first)
+            .backgroundColor,
+        discoverAvatar.backgroundColor);
+    await tester.tap(find.byType(PopupMenuButton<String>).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Invite people'));
+    await tester.pumpAndSettle();
+    expect(
+        tester
+            .widget<CircleAvatar>(find
+                .descendant(
+                    of: find.byType(GroupAvatar),
+                    matching: find.byType(CircleAvatar))
+                .first)
+            .backgroundColor,
+        discoverAvatar.backgroundColor);
+  });
+
+  testWidgets('selected tab has an underline and distinct color',
+      (tester) async {
+    final repo = _GroupsRepo(client);
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpAndSettle();
+    Color? color(String label) {
+      final button =
+          tester.widget<TextButton>(find.widgetWithText(TextButton, label));
+      return button.style!.foregroundColor!.resolve({});
+    }
+
+    final selected = color('Discover');
+    final unselected = color('My groups');
+    expect(selected, isNot(unselected));
+    await tester.tap(find.text('My groups'));
+    await tester.pumpAndSettle();
+    expect(color('Discover'), unselected);
+    expect(color('My groups'), selected);
+  });
+
+  testWidgets('fixed category filter includes legacy values under Other',
+      (tester) async {
+    final repo = _GroupsRepo(client);
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Fitness · public'), findsOneWidget);
+    await tester.tap(find.text('All'));
+    await tester.pumpAndSettle();
+    for (final category in groupCategories) {
+      expect(find.text(category), findsOneWidget);
+    }
+    await tester.tap(find.text('Other').last);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Fitness · public'), findsOneWidget);
+    await tester.tap(find.text('Other'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nutrition').last);
+    await tester.pumpAndSettle();
+    expect(find.text('No groups found.'), findsOneWidget);
+  });
+
+  testWidgets('legacy category is preserved when editing', (tester) async {
+    final repo = _GroupsRepo(client);
+    await tester.pumpWidget(MaterialApp(
+        home: GroupSettingsPage(repository: repo, group: repo.item)));
+    expect(find.text('Fitness'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Save'), 300,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(repo.lastParams?['p_category'], 'Fitness');
+  });
+
+  testWidgets('member counts, role badges and username layout', (tester) async {
+    final repo = _GroupsRepo(client)
+      ..status = 'active'
+      ..role = 'owner'
+      ..extraMembers = [
+        {'user_id': 'mod', 'status': 'active', 'role': 'moderator'}
+      ];
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    expect(find.text('Fitness · 2 members'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Moderator'), 200,
+        scrollable: find.byType(Scrollable).first);
+    expect(find.text('Owner'), findsOneWidget);
+    expect(find.text('Moderator'), findsOneWidget);
+    final username = tester.widget<Text>(find.text('@mod'));
+    expect(username.maxLines, 1);
+    expect(username.overflow, TextOverflow.ellipsis);
+    expect(find.textContaining('· active'), findsNothing);
+    repo.status = null;
+    await tester.pumpWidget(MaterialApp(
+        home: GroupPage(key: UniqueKey(), repository: repo, groupId: 'group')));
+    await tester.pumpAndSettle();
+    expect(find.text('Fitness · 1 member'), findsOneWidget);
+  });
+
+  testWidgets('form counters align and rules remain reachable with keyboard',
+      (tester) async {
+    final repo = _GroupsRepo(client);
+    await tester
+        .pumpWidget(MaterialApp(home: GroupSettingsPage(repository: repo)));
+    await tester.enterText(find.widgetWithText(TextField, 'Name'), 'Fit');
+    await tester.pumpAndSettle();
+    expect(find.text('3 / 80'), findsOneWidget);
+    final counter = tester.widget<Align>(find
+        .ancestor(of: find.text('3 / 80'), matching: find.byType(Align))
+        .first);
+    expect(counter.alignment, Alignment.centerRight);
+    final keyboardInset = 300 * tester.view.devicePixelRatio;
+    tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+        find.widgetWithText(TextField, 'Rules'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.enterText(find.widgetWithText(TextField, 'Rules'), 'Be kind');
+    tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -150));
+    await tester.pumpAndSettle();
+    expect(find.text('7 / 5000'), findsOneWidget);
+    final rulesRect = tester.getRect(find.widgetWithText(TextField, 'Rules'));
+    expect(
+        rulesRect.bottom,
+        lessThanOrEqualTo(
+            tester.view.physicalSize.height / tester.view.devicePixelRatio -
+                300));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('approval requests can be cancelled', (tester) async {
@@ -159,19 +367,25 @@ void main() {
 
   testWidgets('discover displays pending request', (tester) async {
     final repo = _GroupsRepo(client)..status = 'pending';
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
     await tester.pumpAndSettle();
     expect(find.textContaining('Request pending'), findsOneWidget);
   });
 
   testWidgets('banned join error is specific and does not add membership',
       (tester) async {
-    final repo = _GroupsRepo(client)..failure = const GroupException('banned_from_group');
-    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    final repo = _GroupsRepo(client)
+      ..failure = const GroupException('banned_from_group');
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Join'));
     await tester.pumpAndSettle();
-    expect(find.text('You are banned from this group. Only the group owner or a moderator can unban you.'), findsOneWidget);
+    expect(
+        find.text(
+            'You are banned from this group. Only the group owner or a moderator can unban you.'),
+        findsOneWidget);
     expect(find.text('Join'), findsOneWidget);
     expect(repo.status, isNull);
   });
@@ -182,11 +396,17 @@ void main() {
         ..status = 'active'
         ..role = role
         ..banned = [
-          {'user_id': 'banned', 'full_name': 'Banned Person', 'username': 'banned_user',
-           'avatar_url': null, 'banned_at': '2026-01-02T00:00:00Z',
-           'banned_by_full_name': 'Moderator Name'}
+          {
+            'user_id': 'banned',
+            'full_name': 'Banned Person',
+            'username': 'banned_user',
+            'avatar_url': null,
+            'banned_at': '2026-01-02T00:00:00Z',
+            'banned_by_full_name': 'Moderator Name'
+          }
         ];
-      await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+      await tester.pumpWidget(
+          MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(PopupMenuButton<String>).first);
       await tester.pumpAndSettle();
@@ -209,7 +429,8 @@ void main() {
     });
   }
 
-  testWidgets('regular members cannot access banned list or pending members', (tester) async {
+  testWidgets('regular members cannot access banned list or pending members',
+      (tester) async {
     final repo = _GroupsRepo(client)
       ..status = 'active'
       ..extraMembers = [
@@ -217,7 +438,8 @@ void main() {
         {'user_id': 'former', 'status': 'left', 'role': 'member'},
         {'user_id': 'banned', 'status': 'banned', 'role': 'member'},
       ];
-    await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+    await tester.pumpWidget(
+        MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(PopupMenuButton<String>).first);
     await tester.pumpAndSettle();
@@ -229,22 +451,32 @@ void main() {
   });
 
   for (final operation in ['Remove', 'Ban']) {
-    testWidgets('$operation confirms and refreshes the group after success', (tester) async {
+    testWidgets('$operation confirms and refreshes the group after success',
+        (tester) async {
       final repo = _GroupsRepo(client)
         ..status = 'active'
         ..role = 'owner'
-        ..extraMembers = [{'user_id': 'target', 'status': 'active', 'role': 'member'}];
-      await tester.pumpWidget(MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+        ..extraMembers = [
+          {'user_id': 'target', 'status': 'active', 'role': 'member'}
+        ];
+      await tester.pumpWidget(
+          MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(find.text('target'), 180, scrollable: find.byType(Scrollable).first);
-      final tile = find.ancestor(of: find.text('target'), matching: find.byType(ListTile)).first;
-      await tester.tap(find.descendant(of: tile, matching: find.byType(PopupMenuButton<String>)));
+      await tester.scrollUntilVisible(find.text('target'), 180,
+          scrollable: find.byType(Scrollable).first);
+      final tile = find
+          .ancestor(of: find.text('target'), matching: find.byType(ListTile))
+          .first;
+      await tester.tap(find.descendant(
+          of: tile, matching: find.byType(PopupMenuButton<String>)));
       await tester.pumpAndSettle();
       await tester.tap(find.text(operation).last);
       await tester.pumpAndSettle();
-      expect(find.text(operation == 'Remove'
-          ? 'This removes the member and hides their posts and comments in this group. They can join again.'
-          : 'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.'), findsOneWidget);
+      expect(
+          find.text(operation == 'Remove'
+              ? 'This removes the member and hides their posts and comments in this group. They can join again.'
+              : 'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.'),
+          findsOneWidget);
       expect(repo.lastCall, isNull);
       await tester.tap(find.widgetWithText(TextButton, operation).last);
       await tester.pumpAndSettle();
@@ -305,7 +537,8 @@ void main() {
   });
 
   test('group errors are friendly', () {
-    final wrapped = groupError(const PostgrestException(message: 'banned_from_group'));
+    final wrapped =
+        groupError(const PostgrestException(message: 'banned_from_group'));
     expect(groupError(GroupException(wrapped)),
         'You are banned from this group. Only the group owner or a moderator can unban you.');
     expect(groupError(const GroupException('You are banned from this group')),
@@ -328,6 +561,7 @@ class _GroupsRepo extends GroupsRepository {
   String role = 'member';
   bool hiddenUntilJoin = false;
   bool showPost = false;
+  String? avatarUrl;
   Map<String, dynamic>? lastParams;
   Object? failure;
   List<Map<String, dynamic>> extraMembers = [];
@@ -345,7 +579,7 @@ class _GroupsRepo extends GroupsRepository {
         'join_mode': joinMode,
         'member_limit': 100,
         'rules': '',
-        'avatar_url': null,
+        'avatar_url': avatarUrl,
         'who_can_post': 'everyone',
         'images_allowed': false,
         'chat_enabled': false,
@@ -357,7 +591,10 @@ class _GroupsRepo extends GroupsRepository {
   Future<List<Group>> groups() async => [item];
   @override
   Future<List<Map<String, dynamic>>> myMemberships() async => status == null
-      ? [] : [{'group_id': 'group', 'status': status}];
+      ? []
+      : [
+          {'group_id': 'group', 'status': status}
+        ];
   @override
   Future<List<Map<String, dynamic>>> invitations() async => [];
   @override
@@ -365,6 +602,7 @@ class _GroupsRepo extends GroupsRepository {
     bannedReads++;
     return List.of(banned);
   }
+
   @override
   Future<String?> notificationTarget(String id) async => 'group';
   @override
@@ -372,25 +610,42 @@ class _GroupsRepo extends GroupsRepository {
     countReads++;
     return status == 'active' ? 2 : 1;
   }
+
   @override
   Future<List<Map<String, dynamic>>> members(String id) async {
     memberReads++;
-    return [if (status != null) {'user_id': 'me', 'status': status, 'role': role}, ...extraMembers];
+    return [
+      if (status != null) {'user_id': 'me', 'status': status, 'role': role},
+      ...extraMembers
+    ];
   }
+
   @override
   Future<List<Map<String, dynamic>>> posts(String id) async {
     postReads++;
     return showPost
-      ? [{'id': 'post', 'author_id': 'me', 'body': 'Group post', 'image_path': 'photo'}]
-      : [];
+        ? [
+            {
+              'id': 'post',
+              'author_id': 'me',
+              'body': 'Group post',
+              'image_path': 'photo'
+            }
+          ]
+        : [];
   }
+
   @override
   Future<List<Map<String, dynamic>>> likes(String id) async => [];
   @override
   Future<String> imageUrl(String path) async => 'https://example.com/image.png';
   @override
   Future<Map<String, dynamic>?> profile(String id) async => showPost
-      ? {'username': 'hossam', 'full_name': 'Hossam Ahmed', 'avatar_url': 'https://example.com/avatar.png'}
+      ? {
+          'username': 'hossam',
+          'full_name': 'Hossam Ahmed',
+          'avatar_url': 'https://example.com/avatar.png'
+        }
       : {'username': id};
   @override
   Future<dynamic> rpc(String name, Map<String, dynamic> params) async {
@@ -401,8 +656,11 @@ class _GroupsRepo extends GroupsRepository {
       status = joinMode == 'approval' ? 'pending' : 'active';
     }
     if (name == 'group_leave') status = null;
-    if (name == 'group_unban') banned.removeWhere((m) => m['user_id'] == params['p_user']);
-    if (name == 'group_manage_member' && ['remove', 'ban'].contains(params['p_action'])) {
+    if (name == 'group_unban') {
+      banned.removeWhere((m) => m['user_id'] == params['p_user']);
+    }
+    if (name == 'group_manage_member' &&
+        ['remove', 'ban'].contains(params['p_action'])) {
       extraMembers.removeWhere((m) => m['user_id'] == params['p_user']);
     }
     return null;

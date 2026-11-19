@@ -7,6 +7,57 @@ import '../services/community_repository.dart';
 import '../models/community_models.dart';
 import '../widgets/post_image.dart';
 
+const groupCategories = [
+  'Weight loss',
+  'Muscle building',
+  'Running & cardio',
+  'Yoga & mobility',
+  'Nutrition',
+  'Beginners',
+  'General fitness',
+  'Other',
+];
+
+class GroupAvatar extends StatelessWidget {
+  const GroupAvatar({super.key, required this.id, required this.name, this.url});
+  final String id;
+  final String name;
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    const palette = [
+      Color(0xFF3D6B70),
+      Color(0xFF5B5982),
+      Color(0xFF795B70),
+      Color(0xFF796344),
+      Color(0xFF476B58),
+      Color(0xFF526782),
+    ];
+    var hash = 0;
+    for (final unit in id.codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
+    final words = name.trim().split(RegExp(r'\s+'));
+    final initials = words.first.isEmpty
+        ? '?'
+        : '${words.first.characters.first}${words.length > 1 ? words.last.characters.first : ''}'
+            .toUpperCase();
+    return CircleAvatar(
+      backgroundColor: palette[hash % palette.length],
+      foregroundColor: Colors.white,
+      foregroundImage: url == null || url!.isEmpty ? null : NetworkImage(url!),
+      onForegroundImageError: url == null || url!.isEmpty
+          ? null
+          : (error, stack) => debugPrint('Could not load group avatar: $error'),
+      child:
+          Text(initials, style: const TextStyle(fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
+String _memberCount(int count) => '$count ${count == 1 ? 'member' : 'members'}';
+
 class GroupsTab extends StatefulWidget {
   const GroupsTab({super.key, this.repository});
   final GroupsRepository? repository;
@@ -63,12 +114,6 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
             return const Center(child: CircularProgressIndicator());
           }
           final (groups, memberships, invitations) = snapshot.data!;
-          final categories = groups
-              .map((g) => g.category)
-              .where((c) => c != 'All')
-              .toSet()
-              .toList()
-            ..sort();
           final ids = memberships.map((m) => m['group_id']).toSet();
           final pendingIds = memberships
               .where((m) => m['status'] == 'pending')
@@ -79,7 +124,10 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
           final filtered = groups
               .where((g) =>
                   (!mine || ids.contains(g.id)) &&
-                  (category == 'All' || g.category == category) &&
+                  (category == 'All' ||
+                      g.category == category ||
+                      (category == 'Other' &&
+                          !groupCategories.contains(g.category))) &&
                   ('${g.name} ${g.description}'
                       .toLowerCase()
                       .contains(query.toLowerCase())))
@@ -94,13 +142,11 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
               children: [
                 Row(children: [
                   Expanded(
-                      child: TextButton(
-                          onPressed: () => setState(() => mine = false),
-                          child: const Text('Discover'))),
+                      child: _tab('Discover', !mine,
+                          () => setState(() => mine = false))),
                   Expanded(
-                      child: TextButton(
-                          onPressed: () => setState(() => mine = true),
-                          child: const Text('My groups'))),
+                      child: _tab('My groups', mine,
+                          () => setState(() => mine = true))),
                   IconButton(
                       tooltip: 'Create group',
                       onPressed: () async {
@@ -120,10 +166,9 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                     onChanged: (value) => setState(() => query = value)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                    initialValue:
-                        categories.contains(category) ? category : 'All',
+                    initialValue: category,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: ['All', ...categories]
+                    items: ['All', ...groupCategories]
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
                     onChanged: (value) =>
@@ -135,8 +180,15 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                   for (final id in inviteIds)
                     Card(
                         child: ListTile(
-                      leading: const Icon(Icons.mail_outline),
-                      title: const Text('Group invitation'),
+                      leading: groups.where((g) => g.id == id).isEmpty
+                          ? const Icon(Icons.mail_outline)
+                          : GroupAvatar(
+                              id: id,
+                              name: groups.firstWhere((g) => g.id == id).name,
+                              url: groups.firstWhere((g) => g.id == id).avatar),
+                      title: Text(groups.where((g) => g.id == id).isEmpty
+                          ? 'Group invitation'
+                          : groups.firstWhere((g) => g.id == id).name),
                       subtitle: const Text('Open to accept'),
                       onTap: () async {
                         await Navigator.push(
@@ -158,7 +210,8 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                   for (final group in filtered)
                     Card(
                         child: ListTile(
-                      leading: _avatar(group.avatar),
+                      leading: GroupAvatar(
+                          id: group.id, name: group.name, url: group.avatar),
                       title: Text(group.name),
                       subtitle: Text('${group.category} · ${group.visibility}'
                           '${pendingIds.contains(group.id) ? ' · Request pending' : ''}'),
@@ -178,12 +231,30 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
           );
         },
       );
-}
 
-Widget _avatar(String? url) => CircleAvatar(
-      foregroundImage: url == null || url.isEmpty ? null : NetworkImage(url),
-      child: const Icon(Icons.groups_outlined),
+  Widget _tab(String label, bool selected, VoidCallback onPressed) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      selected: selected,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+              bottom: BorderSide(
+                  color: selected ? colors.primary : Colors.transparent,
+                  width: 2)),
+        ),
+        child: TextButton(
+          onPressed: onPressed,
+          style: TextButton.styleFrom(
+              foregroundColor: selected
+                  ? colors.primary
+                  : colors.onSurface.withValues(alpha: 0.6)),
+          child: Text(label),
+        ),
+      ),
     );
+  }
+}
 
 String _profileName(Map<String, dynamic>? profile) {
   final name = (profile?['full_name'] as String?)?.trim();
@@ -230,12 +301,10 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   late final name = TextEditingController(text: widget.group?.name ?? '');
   late final description =
       TextEditingController(text: widget.group?.description ?? '');
-  late final category =
-      TextEditingController(text: widget.group?.category ?? '');
+  late String category = widget.group?.category ?? 'General fitness';
   late final limit =
       TextEditingController(text: '${widget.group?.limit ?? 100}');
   late final rules = TextEditingController(text: widget.group?.rules ?? '');
-  late final avatar = TextEditingController(text: widget.group?.avatar ?? '');
   late String visibility = widget.group?.visibility ?? 'public';
   late String joinMode = widget.group?.joinMode ?? 'open';
   late String posting = widget.group?.posting ?? 'everyone';
@@ -248,17 +317,15 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   void dispose() {
     name.dispose();
     description.dispose();
-    category.dispose();
     limit.dispose();
     rules.dispose();
-    avatar.dispose();
     super.dispose();
   }
 
   Future<void> save() async {
     final size = int.tryParse(limit.text);
     if (name.text.trim().length < 3 ||
-        category.text.trim().isEmpty ||
+        category.trim().isEmpty ||
         size == null ||
         size < 1 ||
         size > 10000) {
@@ -274,12 +341,12 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
       final params = <String, dynamic>{
         'p_name': name.text.trim(),
         'p_description': description.text.trim(),
-        'p_category': category.text.trim(),
+        'p_category': category.trim(),
         'p_visibility': visibility,
         'p_join_mode': joinMode,
         'p_member_limit': size,
         'p_rules': rules.text.trim(),
-        'p_avatar_url': avatar.text.trim().isEmpty ? null : avatar.text.trim(),
+        'p_avatar_url': widget.group?.avatar,
         'p_who_can_post': posting,
         'p_images_allowed': images,
         'p_chat_enabled': chat,
@@ -315,76 +382,93 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
         appBar: AppBar(
             title:
                 Text(widget.group == null ? 'Create group' : 'Group settings')),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
-          TextField(
-              controller: name,
-              decoration: const InputDecoration(labelText: 'Name'),
-              maxLength: 80),
-          TextField(
-              controller: description,
-              decoration: const InputDecoration(labelText: 'Description'),
-              maxLength: 2000),
-          TextField(
-              controller: category,
-              decoration: const InputDecoration(labelText: 'Category'),
-              maxLength: 60),
-          dropdown(
-              'Visibility',
-              visibility,
-              {'public': 'Public', 'private': 'Private'},
-              (v) => visibility = v),
-          const SizedBox(height: 12),
-          dropdown(
-              'Join mode',
-              joinMode,
-              {
-                'open': 'Open',
-                'approval': 'Approval needed',
-                'invite_only': 'Invite only'
-              },
-              (v) => joinMode = v),
-          if (visibility == 'private')
-            const Text('Private groups require an invitation.'),
-          const SizedBox(height: 12),
-          TextField(
-              controller: limit,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Member limit')),
-          const SizedBox(height: 12),
-          dropdown(
-              'Who can post',
-              posting,
-              {'everyone': 'Everyone', 'moderators': 'Moderators'},
-              (v) => posting = v),
-          SwitchListTile(
-              title: const Text('Images allowed'),
-              value: images,
-              onChanged: busy ? null : (v) => setState(() => images = v)),
-          SwitchListTile(
-              title: const Text('Chat (coming in phase 2)'),
-              subtitle: const Text(
-                  'This setting is saved, but chat is not available yet.'),
-              value: chat,
-              onChanged: busy ? null : (v) => setState(() => chat = v)),
-          TextField(
-              controller: rules,
-              maxLines: 3,
-              maxLength: 5000,
-              decoration: const InputDecoration(labelText: 'Rules')),
-          TextField(
-              controller: avatar,
-              decoration: const InputDecoration(labelText: 'Avatar image URL')),
-          if (error != null)
-            Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(error!,
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.error))),
-          const SizedBox(height: 12),
-          ElevatedButton(
-              onPressed: busy ? null : save,
-              child: Text(busy ? 'Saving...' : 'Save')),
-        ]),
+        body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              TextField(
+                  controller: name,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  maxLength: 80,
+                  buildCounter: _counter),
+              TextField(
+                  controller: description,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLength: 2000,
+                  buildCounter: _counter),
+              dropdown(
+                  'Category',
+                  category,
+                  {
+                    for (final value in groupCategories) value: value,
+                    if (!groupCategories.contains(category)) category: category,
+                  },
+                  (v) => category = v),
+              const SizedBox(height: 12),
+              dropdown(
+                  'Visibility',
+                  visibility,
+                  {'public': 'Public', 'private': 'Private'},
+                  (v) => visibility = v),
+              const SizedBox(height: 12),
+              dropdown(
+                  'Join mode',
+                  joinMode,
+                  {
+                    'open': 'Open',
+                    'approval': 'Approval needed',
+                    'invite_only': 'Invite only'
+                  },
+                  (v) => joinMode = v),
+              if (visibility == 'private')
+                const Text('Private groups require an invitation.'),
+              const SizedBox(height: 12),
+              TextField(
+                  controller: limit,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Member limit')),
+              const SizedBox(height: 12),
+              dropdown(
+                  'Who can post',
+                  posting,
+                  {'everyone': 'Everyone', 'moderators': 'Moderators'},
+                  (v) => posting = v),
+              SwitchListTile(
+                  title: const Text('Images allowed'),
+                  value: images,
+                  onChanged: busy ? null : (v) => setState(() => images = v)),
+              SwitchListTile(
+                  title: const Text('Chat (coming in phase 2)'),
+                  subtitle: const Text(
+                      'This setting is saved, but chat is not available yet.'),
+                  value: chat,
+                  onChanged: busy ? null : (v) => setState(() => chat = v)),
+              TextField(
+                  controller: rules,
+                  maxLines: 3,
+                  maxLength: 5000,
+                  decoration: const InputDecoration(labelText: 'Rules'),
+                  buildCounter: _counter),
+              if (error != null)
+                Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(error!,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error))),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                  onPressed: busy ? null : save,
+                  child: Text(busy ? 'Saving...' : 'Save')),
+            ]),
+      );
+
+  Widget _counter(BuildContext context,
+          {required int currentLength,
+          required bool isFocused,
+          required int? maxLength}) =>
+      Align(
+        alignment: Alignment.centerRight,
+        child: Text('$currentLength / $maxLength',
+            style: Theme.of(context).textTheme.bodySmall),
       );
 }
 
@@ -540,11 +624,13 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     const SizedBox(height: 100),
-                    const Center(child: Text(
-                        'This group is unavailable. Private groups require an invitation.')),
+                    const Center(
+                        child: Text(
+                            'This group is unavailable. Private groups require an invitation.')),
                     if (invited)
                       TextButton(
-                          onPressed: busy ? null : () => changeMembership(false),
+                          onPressed:
+                              busy ? null : () => changeMembership(false),
                           child: const Text('Accept invitation')),
                   ],
                 ),
@@ -556,7 +642,8 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
             final status = myRows.isEmpty ? null : myRows.first['status'];
             final role = myRows.isEmpty ? null : myRows.first['role'];
             final active = status == 'active';
-            final moderator = active && (role == 'owner' || role == 'moderator');
+            final moderator =
+                active && (role == 'owner' || role == 'moderator');
             final visibleMembers = members
                 .where((member) =>
                     member['status'] == 'active' ||
@@ -574,7 +661,8 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                   padding: const EdgeInsets.all(16),
                   children: [
                     Row(children: [
-                      _avatar(group.avatar),
+                      GroupAvatar(
+                          id: group.id, name: group.name, url: group.avatar),
                       const SizedBox(width: 12),
                       Expanded(
                           child: Column(
@@ -582,7 +670,7 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                               children: [
                             Text(group.name,
                                 style: Theme.of(context).textTheme.titleLarge),
-                            Text('${group.category} · $count members'),
+                            Text('${group.category} · ${_memberCount(count)}'),
                           ])),
                       PopupMenuButton<String>(
                           onSelected: (v) async {
@@ -606,7 +694,7 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                                   MaterialPageRoute<void>(
                                       builder: (_) => _InvitePage(
                                           repository: widget.repository,
-                                          groupId: group.id)));
+                                          group: group)));
                               if (mounted) reload();
                               return;
                             }
@@ -647,27 +735,29 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                     Text(group.description),
                     if (group.rules.isNotEmpty) Text('Rules: ${group.rules}'),
                     if (role != 'owner')
-                      TextButton(
-                        onPressed: busy ||
-                                (!active &&
-                                    status != 'pending' &&
-                                    group.joinMode == 'invite_only' &&
-                                    !invited)
-                            ? null
-                            : () =>
-                                changeMembership(active || status == 'pending'),
-                        child: Text(active
-                            ? 'Leave group'
-                            : status == 'pending'
-                                ? 'Cancel request'
-                                : invited
-                                    ? 'Accept invitation'
-                                    : group.joinMode == 'approval'
-                                        ? 'Request to join'
-                                        : group.joinMode == 'invite_only'
-                                            ? 'Invitation required'
-                                            : 'Join'),
-                      ),
+                      Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: busy ||
+                                    (!active &&
+                                        status != 'pending' &&
+                                        group.joinMode == 'invite_only' &&
+                                        !invited)
+                                ? null
+                                : () => changeMembership(
+                                    active || status == 'pending'),
+                            child: Text(active
+                                ? 'Leave group'
+                                : status == 'pending'
+                                    ? 'Cancel request'
+                                    : invited
+                                        ? 'Accept invitation'
+                                        : group.joinMode == 'approval'
+                                            ? 'Request to join'
+                                            : group.joinMode == 'invite_only'
+                                                ? 'Invitation required'
+                                                : 'Join'),
+                          )),
                     if (!active)
                       Padding(
                           padding: const EdgeInsets.all(16),
@@ -682,7 +772,7 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                                 style:
                                     Theme.of(context).textTheme.titleMedium)),
                         if (canPost)
-                          TextButton(
+                          FilledButton(
                               onPressed: busy
                                   ? null
                                   : () async {
@@ -865,9 +955,9 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
 }
 
 class _InvitePage extends StatefulWidget {
-  const _InvitePage({required this.repository, required this.groupId});
+  const _InvitePage({required this.repository, required this.group});
   final GroupsRepository repository;
-  final String groupId;
+  final Group group;
   @override
   State<_InvitePage> createState() => _InvitePageState();
 }
@@ -890,6 +980,13 @@ class _InvitePageState extends State<_InvitePage> {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: const Text('Invite people')),
         body: Column(children: [
+          ListTile(
+            leading: GroupAvatar(
+                id: widget.group.id,
+                name: widget.group.name,
+                url: widget.group.avatar),
+            title: Text(widget.group.name),
+          ),
           Padding(
               padding: const EdgeInsets.all(12),
               child: Row(children: [
@@ -923,7 +1020,11 @@ class _InvitePageState extends State<_InvitePage> {
                         return ListView(children: [
                           for (final person in snapshot.data!)
                             ListTile(
-                              leading: _avatar(person.avatarUrl),
+                              leading: _personAvatar({
+                                'full_name': person.fullName,
+                                'username': person.username,
+                                'avatar_url': person.avatarUrl,
+                              }),
                               title: Text(person.fullName?.isNotEmpty == true
                                   ? person.fullName!
                                   : person.username),
@@ -936,7 +1037,7 @@ class _InvitePageState extends State<_InvitePage> {
                                           try {
                                             await widget.repository.rpc(
                                                 'group_invite', {
-                                              'p_group': widget.groupId,
+                                              'p_group': widget.group.id,
                                               'p_user': person.id
                                             });
                                             if (context.mounted) {
@@ -1068,12 +1169,41 @@ class _MemberTile extends StatelessWidget {
         final p = snapshot.data;
         return ListTile(
           leading: _personAvatar(p),
-          title:
-              Text(snapshot.hasError ? 'Profile unavailable' : _profileName(p)),
-          subtitle: Text([
-            if (_profileUsername(p).isNotEmpty) _profileUsername(p),
-            '${member['role']} · ${member['status']}',
-          ].join(' · ')),
+          title: Row(children: [
+            Flexible(
+                child: Text(
+              snapshot.hasError ? 'Profile unavailable' : _profileName(p),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            )),
+            if (member['role'] == 'owner' || member['role'] == 'moderator') ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(member['role'] == 'owner' ? 'Owner' : 'Moderator',
+                    style: Theme.of(context).textTheme.labelSmall),
+              ),
+            ],
+          ]),
+          subtitle: _profileUsername(p).isEmpty
+              ? null
+              : Text(
+                  _profileUsername(p),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.65)),
+                ),
           trailing: allowModeration || onReport != null
               ? PopupMenuButton<String>(
                   onSelected: (v) {
