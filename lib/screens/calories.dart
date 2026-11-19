@@ -9,6 +9,7 @@ import '../ui.dart';
 import 'calories_food_explorer.dart';
 import 'calories_food_summary.dart';
 import 'calorie_profile_sheet.dart';
+import 'workout_logger_sheet.dart';
 
 class CaloriesSection extends StatelessWidget {
   const CaloriesSection({super.key, this.state, this.database});
@@ -18,7 +19,7 @@ class CaloriesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TabbedPage(
         title: 'Calories',
-        subtitle: 'Rings, macros & meal logs',
+        subtitle: 'Meals, macros & activity',
         labels: ['Food Log', 'Activity'],
         children: [
           FoodLogTab(state: state ?? appState, database: database),
@@ -94,7 +95,7 @@ class FoodLogTab extends StatelessWidget {
 
 // ───────────────────────── painters ─────────────────────────
 
-/// Three concentric rings (burned / consumed / cardio), like the SVG in the React app.
+/// Rings for total, strength, and cardio burn against the daily burn goal.
 class RingsPainter extends CustomPainter {
   RingsPainter(this.outer, this.middle, this.inner);
   final double outer, middle, inner; // 0..1
@@ -141,10 +142,22 @@ class RingsPainter extends CustomPainter {
 Color _burnColor(BurnType t) =>
     t == BurnType.strength ? kGold : (t == BurnType.cardio ? kCyan : kGreen);
 
-Widget _burnTile(BurnItem b, {VoidCallback? onRemove}) => Panel(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      child: Row(children: [
+Widget _activityCard(CaloriesPalette palette, Widget child) => Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: palette.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: palette.border),
+      ),
+      child: child,
+    );
+
+Widget _burnTile(CaloriesPalette palette, BurnItem b,
+        {VoidCallback? onRemove}) =>
+    _activityCard(
+      palette,
+      Row(children: [
         Text(b.icon, style: const TextStyle(fontSize: 22)),
         const SizedBox(width: 10),
         Expanded(
@@ -161,10 +174,10 @@ Widget _burnTile(BurnItem b, {VoidCallback? onRemove}) => Panel(
               const SizedBox(width: 6),
               tag(b.type.name, _burnColor(b.type)),
             ]),
-            Text(b.time, style: TextStyle(fontSize: 11, color: kMuted)),
+            Text(b.time, style: TextStyle(fontSize: 11, color: palette.muted)),
             Text('${fmt(b.calories)} kcal burned',
                 style: TextStyle(
-                    color: _burnColor(b.type),
+                    color: palette.text,
                     fontWeight: FontWeight.w800,
                     fontSize: 12)),
           ]),
@@ -177,16 +190,17 @@ Widget _burnTile(BurnItem b, {VoidCallback? onRemove}) => Panel(
       ]),
     );
 
-Widget _activityStatus(AppState state) {
-  if (state.activityLoading && state.meals.isEmpty && state.burns.isEmpty) {
+Widget _activityStatus(AppState state, CaloriesPalette palette) {
+  if (state.activityLoading && state.burns.isEmpty) {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 20),
       child: Center(child: CircularProgressIndicator()),
     );
   }
   if (state.activityError != null) {
-    return Panel(
-      child: Column(children: [
+    return _activityCard(
+      palette,
+      Column(children: [
         Text(state.activityError!, textAlign: TextAlign.center),
         const SizedBox(height: 8),
         TextButton.icon(
@@ -197,12 +211,13 @@ Widget _activityStatus(AppState state) {
       ]),
     );
   }
-  if (!state.activityLoading && state.meals.isEmpty && state.burns.isEmpty) {
-    return Panel(
-      child: Text(
-        'No meals or completed workouts logged today yet.',
+  if (!state.activityLoading && state.burns.isEmpty) {
+    return _activityCard(
+      palette,
+      Text(
+        'No workouts logged today yet.',
         textAlign: TextAlign.center,
-        style: TextStyle(color: kMuted),
+        style: TextStyle(color: palette.muted),
       ),
     );
   }
@@ -384,94 +399,60 @@ class _AddFormState extends State<_AddForm> {
 
 // ───────────────────────── Activity Rings ─────────────────────────
 
-class ActivityTab extends StatefulWidget {
+class ActivityTab extends StatelessWidget {
   const ActivityTab({super.key, required this.state});
   final AppState state;
 
-  @override
-  State<ActivityTab> createState() => _ActivityTabState();
-}
+  Widget _title(CaloriesPalette p, String title) => Padding(
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Text(title,
+            style: TextStyle(
+                color: p.text, fontSize: 16, fontWeight: FontWeight.w800)),
+      );
 
-class _ActivityTabState extends State<ActivityTab> {
-  bool _adding = false;
-
-  Widget _stat(String label, String value, Color color) => Padding(
+  Widget _stat(CaloriesPalette p, String label, String value, Color color) =>
+      Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(children: [
           CircleAvatar(radius: 5, backgroundColor: color),
           const SizedBox(width: 8),
-          Expanded(child: Text(label, style: TextStyle(color: kMuted))),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+          Expanded(child: Text(label, style: TextStyle(color: p.muted))),
+          Flexible(
+              child: Text(value,
+                  textAlign: TextAlign.end,
+                  style:
+                      TextStyle(color: p.text, fontWeight: FontWeight.w800))),
         ]),
       );
 
-  Widget _legend(Color c, String t) => Row(children: [
+  Widget _legend(CaloriesPalette p, Color c, String t) => Row(children: [
         CircleAvatar(radius: 4, backgroundColor: c),
         const SizedBox(width: 8),
-        Text(t, style: TextStyle(fontSize: 12, color: kMuted)),
+        Expanded(child: Text(t, style: TextStyle(fontSize: 12, color: p.text))),
       ]);
-
-  Widget _adjust(
-          String label, int now, int target, ValueChanged<int> onDelta) =>
-      Expanded(
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              color: kCard2, borderRadius: BorderRadius.circular(12)),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: TextStyle(fontSize: 11, color: kMuted)),
-            Text('(${fmt(now)} / $target)',
-                style:
-                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
-            const SizedBox(height: 6),
-            Row(children: [
-              Expanded(
-                  child: OutlinedButton(
-                      onPressed: () => onDelta(-100), child: const Text('−'))),
-              const SizedBox(width: 6),
-              Expanded(
-                  child: OutlinedButton(
-                      onPressed: () => onDelta(100), child: const Text('+'))),
-            ]),
-          ]),
-        ),
-      );
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.state,
+      listenable: state,
       builder: (context, _) {
-        final s = widget.state;
+        final s = state;
+        final p = CaloriesPalette(Theme.of(context));
         final t = s.totals;
-        final bal = s.calorieBalance;
         final outer = math.min(1.0, t.totalBurnedCalories / t.burnTarget);
-        final middle = t.calorieTarget > 0
-            ? math.min(1.0, t.totalMealCalories / t.calorieTarget)
-            : 0.0;
-        final inner = math.min(
-            1.0, (t.cardioBurnCalories + t.mobilityBurnCalories) / 600);
+        final middle = math.min(1.0, t.strengthBurnCalories / t.burnTarget);
+        final inner = math.min(1.0, t.cardioBurnCalories / t.burnTarget);
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           children: [
-            sectionTitle('Activity Rings & Workouts'),
-            Row(children: [
-              Expanded(
-                  child: Text('Food intake synced with Food Log',
-                      style: TextStyle(fontSize: 12, color: kMuted))),
-              const SizedBox(width: 6),
-              roundIcon(Icons.add, () => setState(() => _adding = !_adding),
-                  tip: 'Log meal or burn'),
-            ]),
+            _title(p, 'Activity Rings & Workouts'),
+            Text('Track workouts and calories burned',
+                style: TextStyle(fontSize: 12, color: p.muted)),
             const SizedBox(height: 10),
-            toastBanner(s.recentActionToast),
-            _activityStatus(s),
-            if (_adding)
-              _AddForm(
-                  state: s, onClose: () => setState(() => _adding = false)),
-            Panel(
-              child: Column(children: [
+            _activityStatus(s, p),
+            _activityCard(
+              p,
+              Column(children: [
                 SizedBox(
                   width: 200,
                   height: 200,
@@ -481,92 +462,67 @@ class _ActivityTabState extends State<ActivityTab> {
                         painter: RingsPainter(outer, middle, inner)),
                     Column(mainAxisSize: MainAxisSize.min, children: [
                       Text('Burned',
-                          style: TextStyle(fontSize: 11, color: kMuted)),
+                          style: TextStyle(fontSize: 11, color: p.muted)),
                       Text(fmt(t.totalBurnedCalories),
-                          style: const TextStyle(
-                              fontSize: 28, fontWeight: FontWeight.w800)),
+                          style: TextStyle(
+                              color: p.text,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800)),
                       Text('/ ${t.burnTarget} kcal target',
-                          style: TextStyle(fontSize: 10, color: kMuted)),
+                          style: TextStyle(fontSize: 10, color: p.muted)),
                     ]),
                   ]),
                 ),
+                Text('Daily burn goal • total includes mobility',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: p.muted)),
+                Text('Each ring uses the daily burn goal.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: p.muted)),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _legend(kRed, 'Move Burn (${t.totalBurnedCalories})'),
+                        _legend(p, kRed,
+                            'Total burn (${t.totalBurnedCalories} kcal)'),
                         const SizedBox(height: 4),
-                        _legend(kGold, 'Food Intake (${t.totalMealCalories})'),
+                        _legend(p, kGold,
+                            'Strength burn (${t.strengthBurnCalories} kcal)'),
                         const SizedBox(height: 4),
-                        _legend(
-                            kCyan, 'Sports & Cardio (${t.cardioBurnCalories})'),
+                        _legend(p, kCyan,
+                            'Cardio burn (${t.cardioBurnCalories} kcal)'),
                       ]),
                 ),
                 const SizedBox(height: 12),
-                Row(children: [
-                  _adjust(
-                      'Calories Consumed',
-                      t.totalMealCalories,
-                      t.calorieTarget,
-                      (delta) => _runActivityAction(
-                          context, () => s.quickAdjustConsumed(delta))),
-                  const SizedBox(width: 8),
-                  _adjust(
-                      'Calories Burned',
-                      t.totalBurnedCalories,
-                      t.burnTarget,
-                      (delta) => _runActivityAction(
-                          context, () => s.quickAdjustBurned(delta))),
-                ]),
-                const SizedBox(height: 12),
-                if (t.calorieTarget > 0 &&
-                    t.totalMealCalories < (t.calorieTarget * 0.5).round())
-                  Row(children: [
-                    Icon(Icons.info_outline, size: 18, color: kMuted),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'You’re well below your daily target so far. Your intake can add up as you log meals today.',
-                        style: TextStyle(fontSize: 12, color: kMuted),
-                      ),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: p.accent,
+                      foregroundColor: p.onAccent,
+                      minimumSize: const Size(44, 48),
                     ),
-                  ])
-                else if (bal != null)
-                  Row(children: [
-                    Icon(Icons.swap_vert, size: 18, color: kMuted),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                          '${s.calorieTarget.isEstimate ? 'Legacy estimate' : 'Estimated balance'} (BMR ${bal.bmr} + logged workouts):',
-                          style: TextStyle(fontSize: 12, color: kMuted)),
-                    ),
-                    Text(
-                      '${bal.netDifference > 0 ? '+' : ''}${bal.netDifference} kcal',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: kMuted,
-                      ),
-                    ),
-                  ]),
+                    onPressed: () => showWorkoutLogger(context, s),
+                    icon: const Icon(Icons.fitness_center),
+                    label: const Text('Log workout'),
+                  ),
+                ),
               ]),
             ),
-            sectionTitle('Burn Stats'),
-            Panel(
-              child: Column(children: [
-                _stat('Strength Burn', '${t.strengthBurnCalories} kcal', kGold),
-                _stat('Cardio Burn', '${t.cardioBurnCalories} kcal', kCyan),
-                _stat(
-                    'Deficit Goal',
-                    '${((t.totalMealCalories / math.max(1, t.calorieTarget)) * 100).round()}% of calorie goal',
-                    kPurple),
+            _title(p, 'Burn Stats'),
+            _activityCard(
+              p,
+              Column(children: [
+                _stat(p, 'Strength Burn', '${t.strengthBurnCalories} kcal',
+                    kGold),
+                _stat(p, 'Cardio Burn', '${t.cardioBurnCalories} kcal', kCyan),
               ]),
             ),
-            sectionTitle('Workout Logs (${s.burns.length})'),
+            _title(p, 'Workout Logs (${s.burns.length})'),
             for (final b in s.burns)
-              _burnTile(b,
+              _burnTile(p, b,
                   onRemove: () =>
                       _runActivityAction(context, () => s.removeBurn(b.id))),
           ],

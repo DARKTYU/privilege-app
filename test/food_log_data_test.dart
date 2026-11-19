@@ -246,6 +246,31 @@ void main() {
     expect(before.calories, 344);
   });
 
+  test('workout logger uses the same AppState repository and refresh path',
+      () async {
+    final repo = _FakeActivityRepository();
+    final state = AppState(activityRepository: repo)..loggedIn = true;
+    addTearDown(state.dispose);
+    await state.loadActivity();
+    const workout = BurnItem(
+      id: '',
+      title: 'Running - 30 min',
+      time: 'now',
+      calories: 392,
+      type: BurnType.cardio,
+      durationMin: 30,
+      icon: '🏃',
+    );
+    await state.addBurn(workout);
+    expect(repo.workoutInsertCount, 1);
+    expect(state.burns.single.title, 'Running - 30 min');
+    expect(state.burns.single.type, BurnType.cardio);
+    expect(state.streak, 1);
+    expect(state.storePoints, 10);
+    await state.removeBurn('saved-workout');
+    expect(state.burns, isEmpty);
+  });
+
   test('missing or manual food cannot be edited', () async {
     final repo = _FakeActivityRepository();
     final state = AppState(activityRepository: repo)..loggedIn = true;
@@ -312,16 +337,30 @@ void main() {
 
 class _FakeActivityRepository extends ActivityRepository {
   final List<MealItem> meals = [];
+  final List<BurnItem> workouts = [];
   int insertCount = 0, updateCount = 0;
+  int workoutInsertCount = 0;
   bool failUpdate = false;
   @override
   Future<ActivitySnapshot> loadToday() async => ActivitySnapshot(
       meals: List.of(meals),
-      workouts: const [],
+      workouts: List.of(workouts),
       streak: 1,
       longestStreak: 1,
       lastActivityDate: null,
       storePoints: 10);
+
+  @override
+  Future<void> addWorkout(BurnItem workout) async {
+    workoutInsertCount++;
+    workouts.add(workout.copyWith(id: 'saved-workout'));
+  }
+
+  @override
+  Future<void> removeWorkout(String id) async {
+    workouts.removeWhere((workout) => workout.id == id);
+  }
+
   @override
   Future<void> addMeal(MealItem meal) async {
     insertCount++;

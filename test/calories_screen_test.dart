@@ -61,6 +61,16 @@ const _zeroBurn = BurnItem(
   icon: '⚡',
 );
 
+const _mobility = BurnItem(
+  id: 'mobility',
+  title: 'Mobility session',
+  time: 'now',
+  calories: 50,
+  type: BurnType.mobility,
+  durationMin: 20,
+  icon: '🧘',
+);
+
 const _snack = MealItem(
   id: 'snack',
   name: 'Last snack',
@@ -104,6 +114,19 @@ void main() {
     }
   });
 
+  testWidgets('a food-only day shows the empty workout state', (tester) async {
+    final state = _FakeState()..meals.add(_meal);
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: Scaffold(body: ActivityTab(state: state)),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('No workouts logged today yet.'), findsOneWidget);
+    expect(find.text('Test breakfast'), findsNothing);
+    expect(find.textContaining('meal'), findsNothing);
+  });
+
   testWidgets('food log opens first and Add food is above the quick links',
       (tester) async {
     tester.view.physicalSize = const Size(400, 800);
@@ -133,6 +156,7 @@ void main() {
             .tabs
             .map((tab) => (tab as Tab).text),
         ['Food Log', 'Activity']);
+    expect(find.text('Meals, macros & activity'), findsOneWidget);
     expect(find.text('Activity Rings & Workouts'), findsNothing);
     final button = find.text('Add food');
     final summary = find.text('DAILY ENERGY BALANCE');
@@ -193,11 +217,11 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('activity retains real burn data and food ring follows toggle',
+  testWidgets('activity shows only burn rings and retains workout data',
       (tester) async {
     final state = _FakeState()
       ..meals.add(_meal)
-      ..burns.addAll([_strength, _cardio, _zeroBurn]);
+      ..burns.addAll([_strength, _cardio, _zeroBurn, _mobility]);
     addTearDown(state.dispose);
     await tester.pumpWidget(MaterialApp(
       theme: buildTheme(),
@@ -220,15 +244,24 @@ void main() {
     await tester.tap(find.text('Activity'));
     await tester.pumpAndSettle();
     expect(find.text('Test breakfast'), findsNothing);
-    expect(find.text('Food Intake (0)'), findsOneWidget);
+    expect(find.text('Total burn (275 kcal)'), findsOneWidget);
+    expect(find.text('Strength burn (150 kcal)'), findsOneWidget);
+    expect(find.text('Cardio burn (75 kcal)'), findsOneWidget);
     var ring = tester
         .widgetList<CustomPaint>(find.byType(CustomPaint))
         .map((paint) => paint.painter)
         .whereType<RingsPainter>()
         .single;
-    expect(ring.middle, 0);
-    expect(find.text('Calories Consumed'), findsOneWidget);
-    expect(find.text('Calories Burned'), findsOneWidget);
+    expect(ring.outer, 275 / state.targetBurn);
+    expect(ring.middle, 150 / state.targetBurn);
+    expect(ring.inner, 75 / state.targetBurn);
+    expect(find.text('Calories Consumed'), findsNothing);
+    expect(find.textContaining('Food Intake'), findsNothing);
+    expect(find.textContaining('Balance vs BMR'), findsNothing);
+    expect(find.byTooltip('About the balance'), findsNothing);
+    expect(find.byTooltip('Log meal or burn'), findsNothing);
+    expect(find.textContaining('well below your daily target'), findsNothing);
+    expect(find.text('Log workout'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Strength Burn'), 250,
         scrollable: find
             .descendant(
@@ -237,7 +270,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Strength Burn'), findsOneWidget);
     expect(find.text('Cardio Burn'), findsOneWidget);
-    expect(find.text('Deficit Goal'), findsOneWidget);
+    expect(find.text('Deficit Goal'), findsNothing);
     expect(find.text('150 kcal'), findsOneWidget);
     expect(find.text('75 kcal'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Test cardio workout'), 250,
@@ -261,14 +294,58 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Activity'));
     await tester.pumpAndSettle();
-    expect(find.text('Food Intake (300)'), findsOneWidget);
+    expect(find.text('Total burn (275 kcal)'), findsOneWidget);
     ring = tester
         .widgetList<CustomPaint>(find.byType(CustomPaint))
         .map((paint) => paint.painter)
         .whereType<RingsPainter>()
         .single;
-    expect(ring.middle, 300 / state.targetCalories);
+    expect(ring.outer, 275 / state.targetBurn);
+    expect(ring.middle, 150 / state.targetBurn);
+    expect(ring.inner, 75 / state.targetBurn);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('burn cards and workout button render in every theme',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final previous = themeSettings.selected;
+    addTearDown(() => themeSettings.selected = previous);
+    final state = _FakeState()
+      ..meals.add(_meal)
+      ..burns.add(_strength);
+    addTearDown(state.dispose);
+    for (final preset in AppThemePreset.values) {
+      themeSettings.selected = preset;
+      for (final brightness in Brightness.values) {
+        final theme = brightness == Brightness.dark
+            ? buildTheme(preset)
+            : ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                    seedColor: preset.primary, brightness: brightness),
+              );
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(MaterialApp(
+          theme: theme,
+          home: Scaffold(body: ActivityTab(state: state)),
+        ));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('Daily burn goal'), findsOneWidget);
+        expect(
+            find.text('Each ring uses the daily burn goal.'), findsOneWidget);
+        expect(find.text('Strength burn (150 kcal)'), findsOneWidget);
+        expect(find.textContaining('Food Intake'), findsNothing);
+        expect(find.textContaining('Balance vs BMR'), findsNothing);
+        final button = find.widgetWithText(FilledButton, 'Log workout');
+        expect(button, findsOneWidget);
+        expect(tester.getSize(button).height, greaterThanOrEqualTo(44));
+        expect(tester.takeException(), isNull,
+            reason: '${preset.label} $brightness');
+      }
+    }
   });
 
   testWidgets('last food and workout entries scroll above the quick links',
