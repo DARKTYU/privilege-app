@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import 'logic/fitness_logic.dart';
+import 'logic/calorie_target.dart';
 import 'logic/food_nutrition.dart';
 import 'logic/user_profile.dart';
 import 'models/food_item.dart';
@@ -31,6 +32,7 @@ class AppState extends ChangeNotifier {
   // ───────── account: sign-in, session, onboarding, profile, subscription ─────────
   bool loggedIn = false;
   bool onboardingDone = false;
+  bool targetPromptDismissed = false;
   bool restoring =
       true; // true while the saved session is being checked at app start
   String?
@@ -104,13 +106,27 @@ class AppState extends ChangeNotifier {
       name: p['full_name'] as String? ?? '',
       weightKg: (p['weight_kg'] as num?)?.toDouble(),
       heightCm: (p['height_cm'] as num?)?.toDouble(),
-      targetGoal: p['training_goal'] as String?,
+      targetGoal: p['training_goal'] as String? ?? '',
       bio: p['bio'] as String?,
       dailyCalorieTarget: (p['daily_calorie_target'] as num?)?.toInt(),
+      hasWeight: p['weight_kg'] != null,
+      hasHeight: p['height_cm'] != null,
+      hasSavedTarget: p['daily_calorie_target'] != null,
+      birthDate: DateTime.tryParse(p['birth_date'] as String? ?? ''),
+      sex: TargetSex.values.where((v) => v.name == p['gender']).firstOrNull,
+      activity: TargetActivity.values
+          .where((v) => v.name == p['activity_level'])
+          .firstOrNull,
+      nutritionGoal:
+          NutritionGoal.values.where((v) => v.name == p['goal']).firstOrNull,
       onboardingCompleted: p['onboarding_completed'] == true,
     );
     onboardingDone = p['onboarding_completed'] == true;
-    targetCalories = profile.dailyCalorieTarget;
+    targetPromptDismissed = false;
+    targetCalories = targetForProfile(profile).target ?? 0;
+    if (targetCalories > 0) {
+      profile = profile.copyWith(dailyCalorieTarget: targetCalories);
+    }
     loggedIn = true;
   }
 
@@ -125,6 +141,7 @@ class AppState extends ChangeNotifier {
     authNotice = null;
     loggedIn = false;
     onboardingDone = false;
+    targetPromptDismissed = false;
     email = '';
     profile = defaultUserProfile;
     profilePhotoBase64 = null;
@@ -174,19 +191,27 @@ class AppState extends ChangeNotifier {
       throw AuthException(
           'invalid_session', 'Please log in again to finish setup.');
     }
+    final goal = resolveNutritionGoal(p.targetGoal, p.nutritionGoal);
+    final result = targetForProfile(
+        p.copyWith(nutritionGoal: goal, hasWeight: true, hasHeight: true));
     await SupabaseAuthService.saveProfile({
       'username': p.username,
       'full_name': p.name,
       'weight_kg': p.weightKg,
       'height_cm': p.heightCm,
       'training_goal': p.targetGoal,
-      'goal': _nutritionGoal(p.targetGoal),
+      'goal': goal.name,
       'bio': p.bio,
-      'daily_calorie_target': p.dailyCalorieTarget,
+      'daily_calorie_target': result.target,
       'onboarding_completed': true,
     });
-    profile = p;
-    targetCalories = p.dailyCalorieTarget;
+    profile = p.copyWith(
+        nutritionGoal: goal,
+        dailyCalorieTarget: result.target,
+        hasWeight: true,
+        hasHeight: true,
+        hasSavedTarget: result.target != null);
+    targetCalories = result.target ?? 0;
     onboardingDone = true;
     notifyListeners();
   }
@@ -195,26 +220,89 @@ class AppState extends ChangeNotifier {
     if (SupabaseAuthService.client.auth.currentSession == null) {
       throw AuthException('invalid_session', 'Please log in again.');
     }
+    final goal = resolveNutritionGoal(p.targetGoal, p.nutritionGoal);
+    final result = targetForProfile(p.copyWith(nutritionGoal: goal));
     await SupabaseAuthService.saveProfile({
       if (p.username != profile.username) 'username': p.username,
       'full_name': p.name,
-      'weight_kg': p.weightKg,
-      'height_cm': p.heightCm,
+      'weight_kg': p.hasWeight ? p.weightKg : null,
+      'height_cm': p.hasHeight ? p.heightCm : null,
       'training_goal': p.targetGoal,
-      'goal': _nutritionGoal(p.targetGoal),
+      'goal': goal.name,
       'bio': p.bio,
-      'daily_calorie_target': p.dailyCalorieTarget,
+      'daily_calorie_target': result.target,
       'onboarding_completed': onboardingDone,
     });
-    profile = p;
-    targetCalories = p.dailyCalorieTarget;
+    profile = p.copyWith(
+        nutritionGoal: goal,
+        dailyCalorieTarget: result.target,
+        hasSavedTarget: result.target != null);
+    targetCalories = result.target ?? 0;
     notifyListeners();
   }
 
-  String _nutritionGoal(String trainingGoal) {
-    if (trainingGoal == 'Metabolic Fat Loss & Calorie Deficit') return 'lose';
-    if (trainingGoal == 'Lean Muscle Mass Hypertrophy') return 'gain';
-    return 'maintain';
+  CalorieTarget targetForProfile(UserProfile p, {DateTime? today}) =>
+      CalorieTarget.calculate(
+        today: today ?? DateTime.now(),
+        weightKg: p.hasWeight ? p.weightKg : null,
+        heightCm: p.hasHeight ? p.heightCm : null,
+        birthDate: p.birthDate,
+        sex: p.sex,
+        activity: p.activity,
+        goal: p.nutritionGoal,
+        legacyTrainingGoal: p.targetGoal,
+        legacyTarget: p.hasSavedTarget ? p.dailyCalorieTarget : null,
+      );
+
+  CalorieTarget get calorieTarget => targetForProfile(profile);
+
+  void dismissTargetPrompt() {
+    targetPromptDismissed = true;
+    notifyListeners();
+  }
+
+  Future<void> saveTargetProfile({
+    required double weightKg,
+    required double heightCm,
+    required DateTime birthDate,
+    required TargetSex sex,
+    required TargetActivity activity,
+  }) async {
+    if (SupabaseAuthService.client.auth.currentSession == null) {
+      throw AuthException('invalid_session', 'Please log in again.');
+    }
+    final goal =
+        resolveNutritionGoal(profile.targetGoal, profile.nutritionGoal);
+    final candidate = profile.copyWith(
+        weightKg: weightKg,
+        heightCm: heightCm,
+        hasWeight: true,
+        hasHeight: true,
+        birthDate: birthDate,
+        sex: sex,
+        activity: activity,
+        nutritionGoal: goal);
+    final result = targetForProfile(candidate);
+    if (result.isEstimate || result.target == null) {
+      throw StateError('Enter valid profile details before saving.');
+    }
+    final date = '${birthDate.year.toString().padLeft(4, '0')}-'
+        '${birthDate.month.toString().padLeft(2, '0')}-'
+        '${birthDate.day.toString().padLeft(2, '0')}';
+    await SupabaseAuthService.saveProfile({
+      'weight_kg': weightKg,
+      'height_cm': heightCm,
+      'birth_date': date,
+      'gender': sex.name,
+      'activity_level': activity.name,
+      'goal': goal.name,
+      'daily_calorie_target': result.target,
+    });
+    profile = candidate.copyWith(
+        dailyCalorieTarget: result.target, hasSavedTarget: true);
+    targetCalories = result.target!;
+    targetPromptDismissed = false;
+    notifyListeners();
   }
 
   void setTier(SubscriptionTier t) {
@@ -225,7 +313,26 @@ class AppState extends ChangeNotifier {
   // ───────── calories: meals & burns ─────────
   final List<MealItem> meals = [];
   final List<BurnItem> burns = [];
-  int targetCalories = 2500;
+  int _targetCalories = 2500;
+  DateTime _targetDate = DateTime.now();
+  int get targetCalories {
+    final now = DateTime.now();
+    if (now.year != _targetDate.year ||
+        now.month != _targetDate.month ||
+        now.day != _targetDate.day) {
+      _targetDate = now;
+      if (loggedIn) {
+        _targetCalories = targetForProfile(profile, today: now).target ?? 0;
+      }
+    }
+    return _targetCalories;
+  }
+
+  set targetCalories(int value) {
+    _targetCalories = value;
+    _targetDate = DateTime.now();
+  }
+
   int targetBurn = 1250;
   String? recentActionToast;
   int streak = 0;
@@ -237,8 +344,11 @@ class AppState extends ChangeNotifier {
 
   MacroTotals get totals => calculateMacroTotals(meals, burns,
       calorieTarget: targetCalories, burnTarget: targetBurn);
-  CalorieBalance get calorieBalance => calculateCalorieBalance(
-      totals.totalMealCalories, totals.totalBurnedCalories);
+  CalorieBalance? get calorieBalance => calorieTarget.bmr == null
+      ? null
+      : calculateCalorieBalance(
+          totals.totalMealCalories, totals.totalBurnedCalories,
+          bmr: calorieTarget.bmr!);
 
   void showFeedback(String msg) {
     recentActionToast = msg;

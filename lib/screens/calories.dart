@@ -8,6 +8,7 @@ import '../state.dart';
 import '../ui.dart';
 import 'calories_food_explorer.dart';
 import 'calories_food_summary.dart';
+import 'calorie_profile_sheet.dart';
 
 class CaloriesSection extends StatelessWidget {
   const CaloriesSection({super.key, this.state, this.database});
@@ -40,6 +41,8 @@ class FoodLogTab extends StatelessWidget {
                 state: state,
                 database: database,
                 compact: constraints.maxHeight < 380,
+                onCompleteProfile: () =>
+                    showCalorieProfileSheet(context, state),
                 onEdit: (meal) => _editFood(context, meal),
                 onAdd: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (pageContext) => FoodExplorerPage(
@@ -159,13 +162,13 @@ Widget _burnTile(BurnItem b, {VoidCallback? onRemove}) => Panel(
               tag(b.type.name, _burnColor(b.type)),
             ]),
             Text(b.time, style: TextStyle(fontSize: 11, color: kMuted)),
+            Text('${fmt(b.calories)} kcal burned',
+                style: TextStyle(
+                    color: _burnColor(b.type),
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12)),
           ]),
         ),
-        Text('-${fmt(b.calories)} kcal',
-            style: TextStyle(
-                color: _burnColor(b.type),
-                fontWeight: FontWeight.w800,
-                fontSize: 12)),
         if (onRemove != null)
           IconButton(
               tooltip: 'Delete ${b.title}',
@@ -444,7 +447,9 @@ class _ActivityTabState extends State<ActivityTab> {
         final t = s.totals;
         final bal = s.calorieBalance;
         final outer = math.min(1.0, t.totalBurnedCalories / t.burnTarget);
-        final middle = math.min(1.0, t.totalMealCalories / t.calorieTarget);
+        final middle = t.calorieTarget > 0
+            ? math.min(1.0, t.totalMealCalories / t.calorieTarget)
+            : 0.0;
         final inner = math.min(
             1.0, (t.cardioBurnCalories + t.mobilityBurnCalories) / 600);
         return ListView(
@@ -528,12 +533,13 @@ class _ActivityTabState extends State<ActivityTab> {
                       ),
                     ),
                   ])
-                else
+                else if (bal != null)
                   Row(children: [
                     Icon(Icons.swap_vert, size: 18, color: kMuted),
                     const SizedBox(width: 6),
                     Expanded(
-                      child: Text('Estimated balance (BMR 1800):',
+                      child: Text(
+                          '${s.calorieTarget.isEstimate ? 'Legacy estimate' : 'Estimated balance'} (BMR ${bal.bmr} + logged workouts):',
                           style: TextStyle(fontSize: 12, color: kMuted)),
                     ),
                     Text(

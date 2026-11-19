@@ -100,7 +100,7 @@ class SupabaseAuthService {
       final row = await SessionRecovery.forClient(client).request(() => client
           .from('profiles')
           .select(
-            'username, full_name, weight_kg, height_cm, training_goal, bio, daily_calorie_target, onboarding_completed',
+            'username, full_name, weight_kg, height_cm, birth_date, gender, activity_level, goal, training_goal, bio, daily_calorie_target, onboarding_completed',
           )
           .eq('id', user.id)
           .maybeSingle());

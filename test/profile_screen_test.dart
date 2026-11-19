@@ -39,4 +39,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Privilege Silver Member'), findsOneWidget);
   });
+
+  testWidgets('profile opens the calorie profile sheet', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: Scaffold(
+          body: ProfileScreen(progressionRepository: FakeProgression())),
+    ));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Complete your calorie profile'));
+    await tester.tap(find.text('Complete your calorie profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('Complete your profile'), findsOneWidget);
+    expect(find.text('Choose birth date'), findsOneWidget);
+  });
 }

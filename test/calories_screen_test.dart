@@ -51,6 +51,16 @@ const _cardio = BurnItem(
   icon: '⚡',
 );
 
+const _zeroBurn = BurnItem(
+  id: 'zero',
+  title: 'Zero workout',
+  time: 'now',
+  calories: 0,
+  type: BurnType.cardio,
+  durationMin: 1,
+  icon: '⚡',
+);
+
 const _snack = MealItem(
   id: 'snack',
   name: 'Last snack',
@@ -134,7 +144,8 @@ void main() {
     expect(
         tester.getBottomLeft(button).dy,
         lessThan(
-            tester.getTopLeft(find.byKey(const ValueKey('quick-links'))).dy));
+            tester.getTopLeft(find.byKey(const ValueKey('quick-links'))).dy -
+                8));
     await tester.tap(button);
     await tester.pumpAndSettle();
     expect(find.text('Add food'), findsWidgets);
@@ -174,9 +185,10 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(
-        tester.getBottomLeft(find.text('Add food')).dy,
+        tester.getBottomLeft(find.byKey(const ValueKey('add-food-button'))).dy,
         lessThan(
-            tester.getTopLeft(find.byKey(const ValueKey('quick-links'))).dy));
+            tester.getTopLeft(find.byKey(const ValueKey('quick-links'))).dy -
+                8));
     expect(find.text('Add food').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -185,7 +197,7 @@ void main() {
       (tester) async {
     final state = _FakeState()
       ..meals.add(_meal)
-      ..burns.addAll([_strength, _cardio]);
+      ..burns.addAll([_strength, _cardio, _zeroBurn]);
     addTearDown(state.dispose);
     await tester.pumpWidget(MaterialApp(
       theme: buildTheme(),
@@ -235,6 +247,10 @@ void main() {
             .first);
     await tester.pumpAndSettle();
     expect(find.text('Test cardio workout'), findsOneWidget);
+    expect(find.text('150 kcal burned'), findsOneWidget);
+    expect(find.text('75 kcal burned'), findsOneWidget);
+    expect(find.text('0 kcal burned'), findsOneWidget);
+    expect(find.text('-0 kcal'), findsNothing);
     expect(find.text('kcal Consumed'), findsNothing);
     expect(find.text('Active Meals & Burn Logs'), findsNothing);
     await tester.tap(find.text('Food Log'));

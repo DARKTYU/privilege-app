@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/user_profile.dart';
+import '../logic/calorie_target.dart';
 import '../logic/username.dart';
 import '../services/account_types.dart';
 import '../state.dart';
@@ -61,8 +62,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         heightCm > 230) {
       return null;
     }
-    return calculateRecommendedCalories(
-        weightKg.roundToDouble(), heightCm.roundToDouble(), goal);
+    return CalorieTarget.calculate(
+      today: DateTime.now(),
+      weightKg: weightKg.roundToDouble(),
+      heightCm: heightCm.roundToDouble(),
+      goal: nutritionGoalFromTraining(goal),
+      legacyTrainingGoal: goal,
+    ).target;
   }
 
   void _toggleUnit() {
@@ -325,7 +331,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Icon(Icons.auto_awesome, size: 16, color: kGold),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text('Calculated Calorie Target:',
+                          child: Text('Estimated Calorie Target:',
                               style: TextStyle(fontSize: 12, color: kMuted)),
                         ),
                         Text(

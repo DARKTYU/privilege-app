@@ -10,6 +10,7 @@ import '../services/progression_repository.dart';
 import '../state.dart';
 import '../ui.dart';
 import 'progression.dart';
+import 'calorie_profile_sheet.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.progressionRepository});
@@ -54,8 +55,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     final p = appState.profile;
     _name = TextEditingController(text: p.name);
     _username = TextEditingController(text: p.username);
-    _weight = TextEditingController(text: p.weightKg.round().toString());
-    _height = TextEditingController(text: p.heightCm.round().toString());
+    _weight = TextEditingController(
+        text: p.hasWeight ? p.weightKg.round().toString() : '');
+    _height = TextEditingController(
+        text: p.hasHeight ? p.heightCm.round().toString() : '');
     _bio = TextEditingController(text: p.bio);
     _goal = p.targetGoal;
   }
@@ -91,9 +94,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         username: username,
         weightKg: w,
         heightCm: h,
+        hasWeight: double.tryParse(_weight.text) != null || p.hasWeight,
+        hasHeight: double.tryParse(_height.text) != null || p.hasHeight,
         targetGoal: _goal,
         bio: _bio.text,
-        dailyCalorieTarget: calculateRecommendedCalories(w, h, _goal),
       ));
     } on AuthException catch (error) {
       if (mounted) {
@@ -186,8 +190,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                             final profile = appState.profile;
                             _name.text = profile.name;
                             _username.text = profile.username;
-                            _weight.text = profile.weightKg.round().toString();
-                            _height.text = profile.heightCm.round().toString();
+                            _weight.text = profile.hasWeight
+                                ? profile.weightKg.round().toString()
+                                : '';
+                            _height.text = profile.hasHeight
+                                ? profile.heightCm.round().toString()
+                                : '';
                             _bio.text = profile.bio;
                             _goal = profile.targetGoal;
                           }
@@ -248,7 +256,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                           style: TextStyle(fontSize: 11, color: kMuted)),
                       DropdownButton<String>(
                         isExpanded: true,
-                        value: _goal,
+                        value: goals.contains(_goal) ? _goal : null,
+                        hint: const Text('Choose a target goal'),
                         dropdownColor: kCard2,
                         items: [
                           for (final g in goals)
@@ -322,15 +331,36 @@ class _ProfileScreenState extends State<ProfileScreen>
                         crossAxisSpacing: 8,
                         childAspectRatio: 2.2,
                         children: [
-                          _stat(Icons.monitor_weight_outlined, 'Current Weight',
-                              '${p.weightKg.round()} kg', kRed),
-                          _stat(Icons.straighten, 'Height',
-                              '${p.heightCm.round()} cm', kCyan),
-                          _stat(Icons.local_fire_department, 'Calorie Goal',
-                              '${fmt(p.dailyCalorieTarget)} kcal', kOrange),
+                          _stat(
+                              Icons.monitor_weight_outlined,
+                              'Current Weight',
+                              p.hasWeight
+                                  ? '${p.weightKg.round()} kg'
+                                  : 'Not set',
+                              kRed),
+                          _stat(
+                              Icons.straighten,
+                              'Height',
+                              p.hasHeight
+                                  ? '${p.heightCm.round()} cm'
+                                  : 'Not set',
+                              kCyan),
+                          _stat(
+                              Icons.local_fire_department,
+                              'Calorie Goal',
+                              appState.targetCalories > 0
+                                  ? '${fmt(appState.targetCalories)} kcal${appState.calorieTarget.isEstimate ? ' • Estimated' : ''}'
+                                  : 'Not set',
+                              kOrange),
                           _stat(Icons.workspace_premium, 'Body Fat %',
                               '${p.bodyFatPercent}%', kGold),
                         ],
+                      ),
+                      TextButton.icon(
+                        onPressed: () =>
+                            showCalorieProfileSheet(context, appState),
+                        icon: const Icon(Icons.monitor_heart_outlined),
+                        label: const Text('Complete your calorie profile'),
                       ),
                     ]),
               ),
@@ -357,7 +387,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         children: [
                           Text('Active Target:',
                               style: TextStyle(fontSize: 11, color: kMuted)),
-                          Text(p.targetGoal,
+                          Text(p.targetGoal.isEmpty ? 'Not set' : p.targetGoal,
                               style: const TextStyle(
                                   fontWeight: FontWeight.w700, fontSize: 13)),
                         ]),

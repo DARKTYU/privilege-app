@@ -5,11 +5,8 @@ import '../logic/food_nutrition.dart';
 import '../models/food_item.dart';
 import '../services/food_database.dart';
 import '../state.dart';
+import 'calories_display_format.dart';
 import 'calories_food_summary.dart';
-
-String _grams(double grams) => grams == grams.roundToDouble()
-    ? grams.toStringAsFixed(0)
-    : grams.toStringAsFixed(1);
 
 class FoodExplorerPage extends StatefulWidget {
   const FoodExplorerPage({
@@ -210,7 +207,9 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text('${food.categoryGroup} • ${food.cuisineOrBrand}',
+                  Text(
+                      formatCaloriesCategory(
+                          food.categoryGroup, food.cuisineOrBrand),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: p.accentText, fontSize: 10)),
@@ -232,10 +231,11 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                         'Per 100 g: ${food.per100g.kcal.toStringAsFixed(0)} kcal',
                         style: TextStyle(color: p.muted, fontSize: 10)),
                     _macroDot(p, CaloriesPalette.protein,
-                        '${food.per100g.proteinG} P'),
-                    _macroDot(
-                        p, CaloriesPalette.carbs, '${food.per100g.carbsG} C'),
-                    _macroDot(p, CaloriesPalette.fat, '${food.per100g.fatG} F'),
+                        '${formatCaloriesGrams(food.per100g.proteinG)} P'),
+                    _macroDot(p, CaloriesPalette.carbs,
+                        '${formatCaloriesGrams(food.per100g.carbsG)} C'),
+                    _macroDot(p, CaloriesPalette.fat,
+                        '${formatCaloriesGrams(food.per100g.fatG)} F'),
                   ]),
                 ])),
             const SizedBox(width: 8),
@@ -245,7 +245,8 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                   Text('${portion.kcal} kcal',
                       style: TextStyle(
                           color: p.accentText, fontWeight: FontWeight.bold)),
-                  Text('${serving.nameEn} (${_grams(serving.grams)} g)',
+                  Text(
+                      '${serving.nameEn} (${formatCaloriesGrams(serving.grams)} g)',
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -306,7 +307,7 @@ class _PortionSheetState extends State<_PortionSheet> {
         grams: 100),
   ];
   late final TextEditingController weight = TextEditingController(
-      text: _grams(widget.log?.grams ?? servings.first.grams));
+      text: formatCaloriesGrams(widget.log?.grams ?? servings.first.grams));
   late MealCategory meal = widget.log?.category ??
       (widget.food.tags.contains('breakfast')
           ? MealCategory.breakfast
@@ -325,7 +326,7 @@ class _PortionSheetState extends State<_PortionSheet> {
   }
 
   void setWeight(double value) {
-    weight.text = _grams(value);
+    weight.text = formatCaloriesGrams(value);
     setState(() => error = null);
   }
 
@@ -358,8 +359,8 @@ class _PortionSheetState extends State<_PortionSheet> {
           }
         }
         final label = selected == null
-            ? '${_grams(g)}g custom'
-            : '${selected.nameEn} (${_grams(g)}g)';
+            ? '${formatCaloriesGrams(g)}g custom'
+            : '${selected.nameEn} (${formatCaloriesGrams(g)}g)';
         await widget.state
             .logFood(widget.food, portion, meal, servingLabel: label);
       }
@@ -395,7 +396,8 @@ class _PortionSheetState extends State<_PortionSheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                      '${widget.food.categoryGroup} • ${widget.food.cuisineOrBrand}',
+                      formatCaloriesCategory(widget.food.categoryGroup,
+                          widget.food.cuisineOrBrand),
                       style: TextStyle(color: p.muted)),
                   Text(widget.food.nameEn,
                       style: TextStyle(
@@ -439,7 +441,7 @@ class _PortionSheetState extends State<_PortionSheet> {
                                   overflow: TextOverflow.ellipsis,
                                   style:
                                       TextStyle(color: p.muted, fontSize: 11)),
-                              Text('${_grams(s.grams)} g',
+                              Text('${formatCaloriesGrams(s.grams)} g',
                                   style:
                                       TextStyle(color: p.muted, fontSize: 11)),
                             ]),
@@ -480,24 +482,33 @@ class _PortionSheetState extends State<_PortionSheet> {
                     _preview(
                         p,
                         'Protein',
-                        portion == null ? '—' : '${portion.proteinG} g',
+                        portion == null
+                            ? '—'
+                            : '${formatCaloriesGrams(portion.proteinG)} g',
                         CaloriesPalette.protein),
                     _preview(
                         p,
                         'Carbs',
-                        portion == null ? '—' : '${portion.carbsG} g',
+                        portion == null
+                            ? '—'
+                            : '${formatCaloriesGrams(portion.carbsG)} g',
                         CaloriesPalette.carbs),
                     _preview(
                         p,
                         'Fat',
-                        portion == null ? '—' : '${portion.fatG} g',
+                        portion == null
+                            ? '—'
+                            : '${formatCaloriesGrams(portion.fatG)} g',
                         CaloriesPalette.fat),
                   ]),
                   const SizedBox(height: 12),
                   Wrap(spacing: 12, runSpacing: 4, children: [
-                    Text('Fiber: ${portion?.fiberG ?? '—'} g'),
-                    Text('Sugar: ${portion?.sugarG ?? '—'} g'),
-                    Text('Sodium: ${portion?.sodiumMg ?? '—'} mg'),
+                    Text(
+                        'Fiber: ${portion == null ? '—' : formatCaloriesGrams(portion.fiberG)} g'),
+                    Text(
+                        'Sugar: ${portion == null ? '—' : formatCaloriesGrams(portion.sugarG)} g'),
+                    Text(
+                        'Sodium: ${portion?.sodiumMg.toStringAsFixed(0) ?? '—'} mg'),
                   ]),
                   const SizedBox(height: 16),
                   const Text('Log to Meal'),

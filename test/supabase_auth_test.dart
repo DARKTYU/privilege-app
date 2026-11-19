@@ -5,6 +5,9 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:privilege/services/account_types.dart' show AuthException;
 import 'package:privilege/services/supabase_auth_service.dart';
+import 'package:privilege/logic/calorie_target.dart';
+import 'package:privilege/logic/user_profile.dart';
+import 'package:privilege/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
 
@@ -29,6 +32,8 @@ void main() {
   var signUpWithSession = false;
   var userJwtExpired = false;
   var refreshFails = false;
+  var profileSaveFails = false;
+  Map<String, dynamic>? savedProfile;
   final mock = MockClient((request) async {
     final path = request.url.path;
     if (path.endsWith('/signup')) {
@@ -71,6 +76,16 @@ void main() {
       return http.Response('', 204);
     }
     if (path.endsWith('/profiles')) {
+      if (request.method == 'PATCH') {
+        savedProfile = jsonDecode(request.body) as Map<String, dynamic>;
+        if (profileSaveFails) {
+          return http.Response(
+              jsonEncode({'code': '23514', 'message': 'invalid profile'}), 400,
+              request: request);
+        }
+        return http.Response(jsonEncode({'id': user['id']}), 200,
+            request: request);
+      }
       if (profileMissing) return http.Response('[]', 200, request: request);
       return http.Response(
         jsonEncode([
@@ -127,6 +142,45 @@ void main() {
     await SupabaseAuthService.logout();
     expect(SupabaseAuthService.client.auth.currentSession, isNull);
     expect(await SupabaseAuthService.restore(), isNull);
+  });
+
+  test('personal target saves profile fields atomically', () async {
+    await SupabaseAuthService.login('test@example.com', 'Password1');
+    final state = AppState()
+      ..profile = defaultUserProfile.copyWith(
+        targetGoal: 'Metabolic Fat Loss & Calorie Deficit',
+        nutritionGoal: NutritionGoal.maintain,
+      );
+    addTearDown(state.dispose);
+    final oldProfile = state.profile;
+    profileSaveFails = true;
+    await expectLater(
+      state.saveTargetProfile(
+        weightKg: 80,
+        heightCm: 180,
+        birthDate: DateTime(1996, 1, 2),
+        sex: TargetSex.male,
+        activity: TargetActivity.moderate,
+      ),
+      throwsA(isA<AuthException>()),
+    );
+    expect(state.profile, same(oldProfile));
+    profileSaveFails = false;
+    await state.saveTargetProfile(
+      weightKg: 80,
+      heightCm: 180,
+      birthDate: DateTime(1996, 1, 2),
+      sex: TargetSex.male,
+      activity: TargetActivity.moderate,
+    );
+    expect(savedProfile!['birth_date'], '1996-01-02');
+    expect(savedProfile!['gender'], 'male');
+    expect(savedProfile!['activity_level'], 'moderate');
+    expect(savedProfile!['goal'], 'lose');
+    expect(savedProfile!['daily_calorie_target'], state.targetCalories);
+    expect(state.calorieTarget.goal, NutritionGoal.lose);
+    expect(state.profile.weightKg, 80);
+    await SupabaseAuthService.logout();
   });
 
   test('invalid credentials and missing profile are surfaced', () async {

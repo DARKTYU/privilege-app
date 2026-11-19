@@ -32,6 +32,11 @@ class _FakeState extends AppState {
   Future<void> updateFoodPortion(MealItem log, double grams) async {
     edited = log;
     newGrams = grams;
+    final index = meals.indexWhere((item) => item.id == log.id);
+    if (index >= 0) {
+      meals[index] = log.copyWith(grams: grams, clearServingLabel: true);
+      notifyListeners();
+    }
   }
 }
 
@@ -91,8 +96,14 @@ void main() {
         find.byKey(const ValueKey('food-search')), 'koshary');
     await tester.pumpAndSettle();
     final food = FoodDatabase().search('koshary').first;
+    expect(food.categoryGroup, food.cuisineOrBrand);
+    expect(find.text('${food.categoryGroup} • ${food.cuisineOrBrand}'),
+        findsNothing);
     await tester.tap(find.text(food.nameEn).first);
     await tester.pumpAndSettle();
+    expect(find.text('${food.categoryGroup} • ${food.cuisineOrBrand}'),
+        findsNothing);
+    expect(find.text(food.categoryGroup), findsWidgets);
     final input = find.byKey(const ValueKey('portion-grams'));
     expect(
         tester.widget<TextField>(input).controller!.text,
@@ -112,7 +123,12 @@ void main() {
         200);
     final expected = calculateFoodPortion(food.per100g, 200);
     expect(find.text('${expected.kcal}'), findsOneWidget);
-    expect(find.text('${expected.proteinG} g'), findsOneWidget);
+    final protein = expected.proteinG == expected.proteinG.roundToDouble()
+        ? expected.proteinG.toStringAsFixed(0)
+        : expected.proteinG.toStringAsFixed(1);
+    expect(find.text('$protein g'), findsOneWidget);
+    expect(find.text('Sodium: ${expected.sodiumMg.toStringAsFixed(0)} mg'),
+        findsOneWidget);
     final slider = find.byKey(const ValueKey('portion-slider'));
     await tester.ensureVisible(slider);
     await tester.pumpAndSettle();
@@ -169,7 +185,7 @@ void main() {
                 state: state,
                 database: CaloriesTestDatabase(FoodDatabase())))));
     await tester.pumpAndSettle();
-    final row = find.text(food.nameEn);
+    final row = find.byTooltip('Edit portion ${food.nameEn}');
     await tester.ensureVisible(row);
     await tester.pumpAndSettle();
     await tester.tap(row);
@@ -182,14 +198,19 @@ void main() {
     final input = find.byKey(const ValueKey('portion-grams'));
     await tester.ensureVisible(input);
     await tester.pumpAndSettle();
-    await tester.enterText(input, '150');
+    await tester.enterText(input, '250');
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Save changes'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save changes'));
     await tester.pumpAndSettle();
     expect(state.edited, same(log));
-    expect(state.newGrams, 150);
+    expect(state.newGrams, 250);
+    expect(find.text('250 g custom'), findsOneWidget);
+    await tester.ensureVisible(find.text(food.nameEn));
+    await tester.tap(find.text(food.nameEn));
+    await tester.pumpAndSettle();
+    expect(find.text('Save changes'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

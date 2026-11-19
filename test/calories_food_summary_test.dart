@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/models/food_item.dart';
 import 'package:privilege/screens/calories_food_summary.dart';
+import 'package:privilege/screens/calories_display_format.dart';
 import 'package:privilege/services/food_database.dart';
 import 'package:privilege/state.dart';
 import 'package:privilege/theme_settings.dart';
@@ -98,9 +99,21 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async => FoodDatabase().load());
 
+  test('display formatting preserves fractional grams and distinct brands', () {
+    expect(formatCaloriesGrams(200), '200');
+    expect(formatCaloriesGrams(200.5), '200.5');
+    expect(formatCaloriesServingLabel('Bowl (200.0g)'), 'Bowl (200 g)');
+    expect(formatCaloriesServingLabel('200.5g custom'), '200.5 g custom');
+    expect(formatCaloriesCategory('Egyptian', 'Egyptian'), 'Egyptian');
+    expect(formatCaloriesCategory('Dairy', 'Brand'), 'Dairy • Brand');
+  });
+
   Future<void> showSummary(WidgetTester tester, FakeCaloriesState state,
-      {Brightness brightness = Brightness.dark, VoidCallback? onAdd}) async {
-    tester.view.physicalSize = const Size(400, 900);
+      {Brightness brightness = Brightness.dark,
+      VoidCallback? onAdd,
+      ValueChanged<MealItem>? onEdit,
+      double width = 400}) async {
+    tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -112,6 +125,7 @@ void main() {
             state: state,
             database: FakeFoodDatabase(FoodDatabase().foods),
             onAdd: onAdd ?? () {},
+            onEdit: onEdit,
           ),
         ),
       ),
@@ -137,13 +151,50 @@ void main() {
     await showSummary(tester, state);
     expect(find.text('644'), findsOneWidget);
     expect(find.text('Sugar 4.2 g'), findsOneWidget);
-    expect(find.text('Sodium 100.5 mg'), findsOneWidget);
+    expect(find.text('Sodium 101 mg'), findsOneWidget);
     expect(find.text('Manual breakfast'), findsOneWidget);
     expect(find.text('Saved koshary'), findsOneWidget);
     final name =
         FoodDatabase().foods.firstWhere((f) => f.id == foodMeal.foodId).nameAr;
     final text = tester.widget<Text>(find.text(name));
     expect(text.textDirection, TextDirection.rtl);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sodium is displayed in whole milligrams', (tester) async {
+    final state = FakeCaloriesState()
+      ..meals.add(foodMeal.copyWith(sodiumMg: 3600));
+    addTearDown(state.dispose);
+    await showSummary(tester, state);
+    expect(find.text('Sodium 3600 mg'), findsOneWidget);
+    expect(find.text('Sodium 3600.0 mg'), findsNothing);
+  });
+
+  testWidgets('portion labels format grams and edit action fits narrow rows',
+      (tester) async {
+    final state = FakeCaloriesState()
+      ..meals.addAll([
+        manual().copyWith(grams: 200),
+        foodMeal.copyWith(clearServingLabel: true),
+        foodMeal.copyWith(
+            id: 'decimal', grams: 125.5, servingLabel: 'Bowl (125.5g)'),
+        foodMeal.copyWith(id: 'saved-label', servingLabel: '200.0g custom'),
+      ]);
+    addTearDown(state.dispose);
+    MealItem? edited;
+    await showSummary(tester, state,
+        width: 320, onEdit: (meal) => edited = meal);
+    expect(find.text('200 g custom'), findsNWidgets(2));
+    expect(find.text('200 g'), findsOneWidget);
+    expect(find.text('Bowl (125.5 g)'), findsOneWidget);
+    expect(find.byTooltip('Edit portion Manual breakfast'), findsNothing);
+    final edit = find.byTooltip('Edit portion Saved koshary').first;
+    await tester.ensureVisible(edit);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(edit).width, greaterThanOrEqualTo(40));
+    expect(tester.getSize(edit).height, greaterThanOrEqualTo(40));
+    await tester.tap(edit);
+    expect(edited!.id, 'food');
     expect(tester.takeException(), isNull);
   });
 

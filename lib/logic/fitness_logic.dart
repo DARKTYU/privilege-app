@@ -89,7 +89,7 @@ class CalorieBalance {
 }
 
 CalorieBalance calculateCalorieBalance(int consumed, int burned,
-    {int bmr = 1800}) {
+    {required int bmr}) {
   final totalBurned = burned + bmr;
   final net = consumed - totalBurned;
   return CalorieBalance(

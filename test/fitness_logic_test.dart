@@ -1,7 +1,6 @@
 import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/logic/fitness_logic.dart';
-import 'package:privilege/logic/user_profile.dart';
 
 // Port of src/utils/fitnessLogic.test.ts
 void main() {
@@ -47,17 +46,6 @@ void main() {
     expect(score.eligible, true);
     expect(score.scorePercent >= 85, true);
     expect(score.statusNotes.contains('100% Natural Status Verified'), true);
-  });
-
-  test('calculateEstimatedBmr and recommended calories adjust based on goal',
-      () {
-    final bmr = calculateEstimatedBmr(78, 182, age: 26);
-    expect(bmr > 1600 && bmr < 2000, true);
-    final cut = calculateRecommendedCalories(
-        78, 182, 'Natural Championship Qualification');
-    final bulk =
-        calculateRecommendedCalories(78, 182, 'Lean Muscle Mass Hypertrophy');
-    expect(cut < bulk, true);
   });
 
   test('mergeWorkoutWithSport combines calories and recovery targets', () {
