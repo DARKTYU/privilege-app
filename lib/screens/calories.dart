@@ -3,20 +3,90 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../logic/fitness_logic.dart';
+import '../services/food_database.dart';
 import '../state.dart';
 import '../ui.dart';
+import 'calories_food_explorer.dart';
+import 'calories_food_summary.dart';
 
-/// Calories section: "Activity Rings" and "Progress & Meals" share the same live state.
 class CaloriesSection extends StatelessWidget {
-  const CaloriesSection({super.key});
+  const CaloriesSection({super.key, this.state, this.database});
+  final AppState? state;
+  final FoodDatabase? database;
 
   @override
   Widget build(BuildContext context) => TabbedPage(
         title: 'Calories',
         subtitle: 'Rings, macros & meal logs',
-        labels: ['Activity Rings', 'Progress & Meals'],
-        children: [RingsTab(), ProgressTab()],
+        labels: ['Food Log', 'Activity'],
+        children: [
+          FoodLogTab(state: state ?? appState, database: database),
+          ActivityTab(state: state ?? appState),
+        ],
       );
+}
+
+class FoodLogTab extends StatelessWidget {
+  const FoodLogTab({super.key, required this.state, this.database});
+  final AppState state;
+  final FoodDatabase? database;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+      builder: (context, constraints) => ListView(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+            children: [
+              CaloriesFoodSummary(
+                state: state,
+                database: database,
+                compact: constraints.maxHeight < 380,
+                onEdit: (meal) => _editFood(context, meal),
+                onAdd: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                  builder: (pageContext) => FoodExplorerPage(
+                    state: state,
+                    database: database,
+                    onManual: () => _manualForm(pageContext),
+                  ),
+                )),
+              ),
+            ],
+          ));
+
+  void _manualForm(BuildContext context) => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (sheetContext) => Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(sheetContext).bottom),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: _AddForm(
+                state: state, onClose: () => Navigator.pop(sheetContext)),
+          ),
+        ),
+      );
+
+  Future<void> _editFood(BuildContext context, MealItem meal) async {
+    try {
+      final foods = database ?? FoodDatabase();
+      await foods.load();
+      final matches = foods.foods.where((food) => food.id == meal.foodId);
+      if (!context.mounted) return;
+      if (matches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'This food is no longer available in the food database. The meal was not changed.'),
+        ));
+        return;
+      }
+      await showFoodPortionSheet(context, state, matches.first, log: meal);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not open food: $error')));
+      }
+    }
+  }
 }
 
 // ───────────────────────── painters ─────────────────────────
@@ -63,67 +133,7 @@ class RingsPainter extends CustomPainter {
       o.outer != outer || o.middle != middle || o.inner != inner;
 }
 
-/// 7 colour-coded macro / burn segments around one circle.
-class SegmentsPainter extends CustomPainter {
-  SegmentsPainter(this.result, this.highlight);
-  final RadialResult result;
-  final String? highlight;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(size.width / 160);
-    const c = Offset(80, 80);
-    final r = result.radius;
-    canvas.drawCircle(
-        c,
-        r,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 11
-          ..color = kCard2);
-    for (final s in result.segments) {
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r),
-        -math.pi / 2 + s.startOffset / r,
-        s.arcLength / r,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = s.id == highlight ? 14 : 11
-          ..strokeCap = StrokeCap.round
-          ..color = s.color,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(SegmentsPainter o) => true;
-}
-
 // ───────────────────────── shared pieces ─────────────────────────
-
-Widget _check(BuildContext context, bool on, VoidCallback onTap) => InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: on ? kGreen : Colors.transparent,
-          border: Border.all(color: on ? kGreen : kMuted),
-        ),
-        child: on
-            ? Icon(
-                Icons.check,
-                size: 14,
-                color: Theme.of(context).brightness == Brightness.light
-                    ? Colors.white
-                    : Colors.black,
-              )
-            : null,
-      ),
-    );
 
 Color _burnColor(BurnType t) =>
     t == BurnType.strength ? kGold : (t == BurnType.cardio ? kCyan : kGreen);
@@ -158,59 +168,11 @@ Widget _burnTile(BurnItem b, {VoidCallback? onRemove}) => Panel(
                 fontSize: 12)),
         if (onRemove != null)
           IconButton(
+              tooltip: 'Delete ${b.title}',
               icon: const Icon(Icons.delete_outline, size: 18),
               onPressed: onRemove),
       ]),
     );
-
-Widget _mealTile(BuildContext context, MealItem m,
-    {required bool colored,
-    required VoidCallback onToggle,
-    required VoidCallback onRemove}) {
-  final style = TextStyle(
-      fontSize: 11, color: m.consumed ? kMuted : kMuted.withAlpha(120));
-  return Panel(
-    margin: const EdgeInsets.only(bottom: 8),
-    padding: const EdgeInsets.all(10),
-    child: Row(children: [
-      _check(context, m.consumed, onToggle),
-      const SizedBox(width: 10),
-      Text(m.icon, style: const TextStyle(fontSize: 22)),
-      const SizedBox(width: 10),
-      Expanded(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(m.name,
-              maxLines: 2,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-                color: m.consumed ? kCream : kMuted,
-                decoration: m.consumed ? null : TextDecoration.lineThrough,
-              )),
-          if (colored)
-            Wrap(spacing: 8, children: [
-              Text('🔴 ${m.proteinGrams}g P', style: style),
-              Text('🔵 ${m.carbsGrams}g C', style: style),
-              Text('🟠 ${m.fatGrams}g F', style: style),
-              Text('🟢 ${m.fiberGrams}g Fib', style: style),
-            ])
-          else
-            Text(
-                '${m.time} • P:${m.proteinGrams}g C:${m.carbsGrams}g F:${m.fatGrams}g',
-                style: style),
-        ]),
-      ),
-      Text('+${fmt(m.calories)}',
-          style: TextStyle(
-              color: m.consumed ? kGold : kMuted,
-              fontWeight: FontWeight.w800,
-              fontSize: 12)),
-      IconButton(
-          icon: const Icon(Icons.delete_outline, size: 18),
-          onPressed: onRemove),
-    ]),
-  );
-}
 
 Widget _activityStatus(AppState state) {
   if (state.activityLoading && state.meals.isEmpty && state.burns.isEmpty) {
@@ -257,11 +219,9 @@ Future<void> _runActivityAction(
   }
 }
 
-/// "Log nutrition / workout burn" form used by both tabs.
 class _AddForm extends StatefulWidget {
-  const _AddForm({required this.detailed, required this.onClose});
-  final bool
-      detailed; // true = Activity Rings form (colour focus), false = Progress form
+  const _AddForm({required this.state, required this.onClose});
+  final AppState state;
   final VoidCallback onClose;
 
   @override
@@ -270,8 +230,7 @@ class _AddForm extends StatefulWidget {
 
 class _AddFormState extends State<_AddForm> {
   final _name = TextEditingController();
-  late final TextEditingController _cals =
-      TextEditingController(text: widget.detailed ? '450' : '420');
+  final _cals = TextEditingController(text: '450');
   bool _meal = true;
   String _macro = 'protein';
   BurnType _burn = BurnType.strength;
@@ -298,11 +257,9 @@ class _AddFormState extends State<_AddForm> {
     });
     try {
       if (_meal) {
-        final title = typed.isNotEmpty
-            ? typed
-            : (widget.detailed ? 'High-Protein Fuel' : 'Lean Nutrition Meal');
-        final type = widget.detailed ? _macro : 'snack';
-        await appState.addMeal(MealItem(
+        final title = typed.isNotEmpty ? typed : 'High-Protein Fuel';
+        final type = _macro;
+        await widget.state.addMeal(MealItem(
           id: '',
           name: title,
           time: 'Just now',
@@ -316,22 +273,18 @@ class _AddFormState extends State<_AddForm> {
           category: _mealCategory(type),
         ));
       } else {
-        final title = typed.isNotEmpty
-            ? typed
-            : (widget.detailed ? 'Athletic Training' : 'Cardio Agility Drill');
-        final type = widget.detailed ? _burn : BurnType.cardio;
-        await appState.addBurn(BurnItem(
+        final title = typed.isNotEmpty ? typed : 'Athletic Training';
+        final type = _burn;
+        await widget.state.addBurn(BurnItem(
           id: '',
           title: title,
           time: 'Just now',
           calories: cals,
           type: type,
-          durationMin: widget.detailed ? math.max(1, (cals / 8).round()) : 30,
-          icon: widget.detailed
-              ? (type == BurnType.strength
-                  ? '🏋️'
-                  : (type == BurnType.cardio ? '⚡' : '🧘'))
-              : '⚡',
+          durationMin: math.max(1, (cals / 8).round()),
+          icon: type == BurnType.strength
+              ? '🏋️'
+              : (type == BurnType.cardio ? '⚡' : '🧘'),
         ));
       }
       if (mounted) widget.onClose();
@@ -364,30 +317,24 @@ class _AddFormState extends State<_AddForm> {
     return Panel(
       borderColor: kGold.withAlpha(110),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(
-            widget.detailed
-                ? 'Log Nutrition or Workout Burn'
-                : 'Add to Progress & Activity Rings',
+        Text('Log Nutrition or Workout Burn',
             style: const TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Wrap(spacing: 8, children: [
-          appChip(widget.detailed ? 'Food Intake (+)' : '+ Meal', _meal,
-              () => setState(() => _meal = true)),
-          appChip(widget.detailed ? 'Workout Burn (+)' : '+ Workout Burn',
-              !_meal, () => setState(() => _meal = false)),
+          appChip('Food Intake (+)', _meal, () => setState(() => _meal = true)),
+          appChip(
+              'Workout Burn (+)', !_meal, () => setState(() => _meal = false)),
         ]),
         if (_error != null) ...[
           const SizedBox(height: 8),
-          Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+          Text(_error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error)),
         ],
         const SizedBox(height: 10),
         TextField(
           controller: _name,
-          decoration: fieldDecoration(_meal
-              ? (widget.detailed
-                  ? 'e.g. Grass-fed Steak'
-                  : 'e.g. Avocado Toast & Eggs')
-              : (widget.detailed ? 'e.g. Olympic Lifts' : 'e.g. HIIT Sprints')),
+          decoration: fieldDecoration(
+              _meal ? 'e.g. Grass-fed Steak' : 'e.g. Olympic Lifts'),
         ),
         const SizedBox(height: 8),
         TextField(
@@ -395,29 +342,27 @@ class _AddFormState extends State<_AddForm> {
           keyboardType: TextInputType.number,
           decoration: fieldDecoration('Calories (kcal)'),
         ),
-        if (widget.detailed) ...[
-          const SizedBox(height: 8),
-          if (_meal)
-            Wrap(spacing: 8, children: [
-              appChip('🔴 Protein', _macro == 'protein',
-                  () => setState(() => _macro = 'protein')),
-              appChip('🔵 Carbs', _macro == 'carbs',
-                  () => setState(() => _macro = 'carbs')),
-              appChip('🟠 Fats', _macro == 'fats',
-                  () => setState(() => _macro = 'fats')),
-              appChip('🟢 Greens', _macro == 'greens',
-                  () => setState(() => _macro = 'greens')),
-            ])
-          else
-            Wrap(spacing: 8, children: [
-              appChip('🟡 Strength / Gym', _burn == BurnType.strength,
-                  () => setState(() => _burn = BurnType.strength)),
-              appChip('🔷 Cardio / Sports', _burn == BurnType.cardio,
-                  () => setState(() => _burn = BurnType.cardio)),
-              appChip('🟢 Mobility / Stage', _burn == BurnType.mobility,
-                  () => setState(() => _burn = BurnType.mobility)),
-            ]),
-        ],
+        const SizedBox(height: 8),
+        if (_meal)
+          Wrap(spacing: 8, children: [
+            appChip('🔴 Protein', _macro == 'protein',
+                () => setState(() => _macro = 'protein')),
+            appChip('🔵 Carbs', _macro == 'carbs',
+                () => setState(() => _macro = 'carbs')),
+            appChip('🟠 Fats', _macro == 'fats',
+                () => setState(() => _macro = 'fats')),
+            appChip('🟢 Greens', _macro == 'greens',
+                () => setState(() => _macro = 'greens')),
+          ])
+        else
+          Wrap(spacing: 8, children: [
+            appChip('🟡 Strength / Gym', _burn == BurnType.strength,
+                () => setState(() => _burn = BurnType.strength)),
+            appChip('🔷 Cardio / Sports', _burn == BurnType.cardio,
+                () => setState(() => _burn = BurnType.cardio)),
+            appChip('🟢 Mobility / Stage', _burn == BurnType.mobility,
+                () => setState(() => _burn = BurnType.mobility)),
+          ]),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
@@ -425,11 +370,8 @@ class _AddFormState extends State<_AddForm> {
                   onPressed: widget.onClose, child: const Text('Cancel'))),
           const SizedBox(width: 8),
           Expanded(
-            child: PrimaryButton(
-                widget.detailed ? 'Sync to Activity Rings' : 'Sync Live',
-                gold: true,
-                expand: false,
-                onPressed: _saving ? null : _submit),
+            child: PrimaryButton('Save activity',
+                gold: true, expand: false, onPressed: _saving ? null : _submit),
           ),
         ]),
       ]),
@@ -439,15 +381,26 @@ class _AddFormState extends State<_AddForm> {
 
 // ───────────────────────── Activity Rings ─────────────────────────
 
-class RingsTab extends StatefulWidget {
-  const RingsTab({super.key});
+class ActivityTab extends StatefulWidget {
+  const ActivityTab({super.key, required this.state});
+  final AppState state;
 
   @override
-  State<RingsTab> createState() => _RingsTabState();
+  State<ActivityTab> createState() => _ActivityTabState();
 }
 
-class _RingsTabState extends State<RingsTab> {
+class _ActivityTabState extends State<ActivityTab> {
   bool _adding = false;
+
+  Widget _stat(String label, String value, Color color) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(children: [
+          CircleAvatar(radius: 5, backgroundColor: color),
+          const SizedBox(width: 8),
+          Expanded(child: Text(label, style: TextStyle(color: kMuted))),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+        ]),
+      );
 
   Widget _legend(Color c, String t) => Row(children: [
         CircleAvatar(radius: 4, backgroundColor: c),
@@ -485,9 +438,9 @@ class _RingsTabState extends State<RingsTab> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: appState,
+      listenable: widget.state,
       builder: (context, _) {
-        final s = appState;
+        final s = widget.state;
         final t = s.totals;
         final bal = s.calorieBalance;
         final outer = math.min(1.0, t.totalBurnedCalories / t.burnTarget);
@@ -497,9 +450,10 @@ class _RingsTabState extends State<RingsTab> {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           children: [
+            sectionTitle('Activity Rings & Workouts'),
             Row(children: [
               Expanded(
-                  child: Text('Synced in real-time with Progress & Meals',
+                  child: Text('Food intake synced with Food Log',
                       style: TextStyle(fontSize: 12, color: kMuted))),
               const SizedBox(width: 6),
               roundIcon(Icons.add, () => setState(() => _adding = !_adding),
@@ -510,8 +464,7 @@ class _RingsTabState extends State<RingsTab> {
             _activityStatus(s),
             if (_adding)
               _AddForm(
-                  detailed: true,
-                  onClose: () => setState(() => _adding = false)),
+                  state: s, onClose: () => setState(() => _adding = false)),
             Panel(
               child: Column(children: [
                 SizedBox(
@@ -594,155 +547,22 @@ class _RingsTabState extends State<RingsTab> {
                   ]),
               ]),
             ),
-            sectionTitle('Active Logs (${s.meals.length + s.burns.length})'),
+            sectionTitle('Burn Stats'),
+            Panel(
+              child: Column(children: [
+                _stat('Strength Burn', '${t.strengthBurnCalories} kcal', kGold),
+                _stat('Cardio Burn', '${t.cardioBurnCalories} kcal', kCyan),
+                _stat(
+                    'Deficit Goal',
+                    '${((t.totalMealCalories / math.max(1, t.calorieTarget)) * 100).round()}% of calorie goal',
+                    kPurple),
+              ]),
+            ),
+            sectionTitle('Workout Logs (${s.burns.length})'),
             for (final b in s.burns)
               _burnTile(b,
                   onRemove: () =>
                       _runActivityAction(context, () => s.removeBurn(b.id))),
-            for (final m in s.meals)
-              _mealTile(context, m,
-                  colored: false,
-                  onToggle: () =>
-                      _runActivityAction(context, () => s.toggleMeal(m.id)),
-                  onRemove: () =>
-                      _runActivityAction(context, () => s.removeMeal(m.id))),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// ───────────────────────── Progress & Meals ─────────────────────────
-
-class ProgressTab extends StatefulWidget {
-  const ProgressTab({super.key});
-
-  @override
-  State<ProgressTab> createState() => _ProgressTabState();
-}
-
-class _ProgressTabState extends State<ProgressTab> {
-  bool _adding = false;
-  String? _highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: appState,
-      builder: (context, _) {
-        final s = appState;
-        final t = s.totals;
-        final radial = calculateRadialSegments(
-          t,
-          proteinColor: kRed,
-          carbsColor: kBlue,
-          fatsColor: kOrange,
-          fiberColor: kGreen,
-          strengthColor: kGold,
-          cardioColor: kCyan,
-          targetColor: kPurple,
-        );
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
-          children: [
-            Row(children: [
-              Expanded(
-                  child: Text(
-                      'All 7 colors matched to macros & burned calories',
-                      style: TextStyle(fontSize: 12, color: kMuted))),
-              roundIcon(Icons.add, () => setState(() => _adding = !_adding),
-                  tip: 'Quick add meal or burn'),
-              TextButton.icon(
-                onPressed: () => DefaultTabController.of(context).animateTo(0),
-                icon: const Icon(Icons.show_chart, size: 16),
-                label: const Text('Rings →'),
-              ),
-            ]),
-            const SizedBox(height: 10),
-            toastBanner(s.recentActionToast),
-            _activityStatus(s),
-            if (_adding)
-              _AddForm(
-                  detailed: false,
-                  onClose: () => setState(() => _adding = false)),
-            Panel(
-              child: Column(children: [
-                SizedBox(
-                  width: 190,
-                  height: 190,
-                  child: Stack(alignment: Alignment.center, children: [
-                    CustomPaint(
-                        size: const Size(190, 190),
-                        painter: SegmentsPainter(radial, _highlight)),
-                    Column(mainAxisSize: MainAxisSize.min, children: [
-                      Text(fmt(t.totalMealCalories),
-                          style: const TextStyle(
-                              fontSize: 28, fontWeight: FontWeight.w800)),
-                      Text('kcal Consumed',
-                          style: TextStyle(fontSize: 11, color: kMuted)),
-                      Text(
-                          '${t.activeMealCount} Meals • ${t.totalBurnedCalories} kcal Burned',
-                          style: TextStyle(fontSize: 9, color: kMuted)),
-                    ]),
-                  ]),
-                ),
-                const SizedBox(height: 12),
-                Wrap(spacing: 8, runSpacing: 8, children: [
-                  for (final seg in radial.segments)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () => setState(() =>
-                          _highlight = _highlight == seg.id ? null : seg.id),
-                      child: Container(
-                        width: 140,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _highlight == seg.id
-                              ? kCard2
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: _highlight == seg.id ? seg.color : kLine),
-                        ),
-                        child: Row(children: [
-                          CircleAvatar(radius: 5, backgroundColor: seg.color),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(seg.label,
-                                      style: TextStyle(
-                                          fontSize: 11, color: kMuted)),
-                                  Text(seg.gramsOrMin,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w800)),
-                                ]),
-                          ),
-                        ]),
-                      ),
-                    ),
-                ]),
-              ]),
-            ),
-            Row(children: [
-              Expanded(
-                  child: Text('Active Meals & Burn Logs',
-                      style: TextStyle(fontWeight: FontWeight.w800))),
-              Text('Tap checkbox to sync rings',
-                  style: TextStyle(fontSize: 11, color: kMuted)),
-            ]),
-            const SizedBox(height: 8),
-            for (final b in s.burns) _burnTile(b),
-            for (final m in s.meals)
-              _mealTile(context, m,
-                  colored: true,
-                  onToggle: () =>
-                      _runActivityAction(context, () => s.toggleMeal(m.id)),
-                  onRemove: () =>
-                      _runActivityAction(context, () => s.removeMeal(m.id))),
           ],
         );
       },

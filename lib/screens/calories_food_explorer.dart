@@ -1,0 +1,568 @@
+import 'package:flutter/material.dart';
+
+import '../logic/fitness_logic.dart';
+import '../logic/food_nutrition.dart';
+import '../models/food_item.dart';
+import '../services/food_database.dart';
+import '../state.dart';
+import 'calories_food_summary.dart';
+
+String _grams(double grams) => grams == grams.roundToDouble()
+    ? grams.toStringAsFixed(0)
+    : grams.toStringAsFixed(1);
+
+class FoodExplorerPage extends StatefulWidget {
+  const FoodExplorerPage({
+    super.key,
+    required this.state,
+    required this.onManual,
+    this.database,
+  });
+  final AppState state;
+  final VoidCallback onManual;
+  final FoodDatabase? database;
+
+  @override
+  State<FoodExplorerPage> createState() => _FoodExplorerPageState();
+}
+
+class _FoodExplorerPageState extends State<FoodExplorerPage> {
+  late final database = widget.database ?? FoodDatabase();
+  late Future<void> loading = database.load();
+  final query = TextEditingController();
+  final tags = <String>{};
+  String? category;
+
+  @override
+  void dispose() {
+    query.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = CaloriesPalette(Theme.of(context));
+    return Scaffold(
+      backgroundColor: p.background,
+      appBar: AppBar(title: const Text('Add food')),
+      body: SafeArea(
+        child: FutureBuilder<void>(
+          future: loading,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text('Could not load the food database.'),
+                TextButton(
+                    onPressed: () => setState(() => loading = database.load()),
+                    child: const Text('Retry')),
+                TextButton(
+                    onPressed: widget.onManual,
+                    child: const Text("Can't find it? Quick add manually")),
+              ]));
+            }
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final results = database.search(query.text,
+                categoryGroup: category, tags: tags);
+            final availableTags =
+                database.foods.expand((food) => food.tags).toSet();
+            const choices = [
+              ('high-protein', 'High Protein'),
+              ('fitness-staple', 'Fitness Staple'),
+              ('breakfast', 'Breakfast'),
+              ('street-food', 'Street Food'),
+              ('vegan', 'Vegan'),
+              ('keto-friendly', 'Keto Friendly'),
+              ('low-carb', 'Low Carb'),
+              ('cooking-oil', 'Oils'),
+              ('topping', 'Toppings'),
+              ('snack', 'Snacks'),
+              ('dessert', 'Desserts'),
+              ('raw', 'Raw'),
+              ('cooked', 'Cooked'),
+            ];
+            return Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: TextField(
+                  key: const ValueKey('food-search'),
+                  controller: query,
+                  textDirection: foodNameDirection(query.text),
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText:
+                        'Search English or Arabic... e.g. Koshary, كشري, Ful, فول',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      tooltip: 'Clear search',
+                      onPressed: () => setState(query.clear),
+                      icon: const Icon(Icons.clear),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                  height: 52,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _filter(p, 'All', category == null,
+                          () => setState(() => category = null)),
+                      for (final group in database.categoryGroups)
+                        _filter(p, group, category == group,
+                            () => setState(() => category = group)),
+                    ],
+                  )),
+              SizedBox(
+                  height: 52,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (final choice in choices)
+                        if (availableTags.contains(choice.$1))
+                          _filter(
+                              p,
+                              choice.$2,
+                              tags.contains(choice.$1),
+                              () => setState(() {
+                                    if (!tags.add(choice.$1)) {
+                                      tags.remove(choice.$1);
+                                    }
+                                  })),
+                    ],
+                  )),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                        'Showing ${results.length} of ${database.foods.length}',
+                        style: TextStyle(color: p.muted))),
+              ),
+              Expanded(
+                child: results.isEmpty
+                    ? Center(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                        Text('No matching foods found',
+                            style: TextStyle(color: p.text)),
+                        Text('Try another search or remove a filter.',
+                            style: TextStyle(color: p.muted)),
+                      ]))
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        itemCount: results.length,
+                        itemBuilder: (context, index) =>
+                            _foodCard(context, p, results[index]),
+                      ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+                child: Column(children: [
+                  Text(foodNutritionDisclaimer,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: p.muted, fontSize: 11)),
+                  TextButton(
+                    onPressed: widget.onManual,
+                    child: const Text("Can't find it? Quick add manually"),
+                  ),
+                ]),
+              ),
+            ]);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _filter(
+          CaloriesPalette p, String label, bool selected, VoidCallback onTap) =>
+      Padding(
+        padding: const EdgeInsets.only(right: 6),
+        child: FilterChip(
+          label: Text(label),
+          selected: selected,
+          selectedColor: p.accent.withAlpha(55),
+          checkmarkColor: p.accentText,
+          onSelected: (_) => onTap(),
+        ),
+      );
+
+  Widget _foodCard(BuildContext context, CaloriesPalette p, FoodItem food) {
+    final serving = food.servings.isEmpty
+        ? const FoodServing(nameEn: 'Standard', nameAr: '', grams: 100)
+        : food.servings.first;
+    final portion = calculateFoodPortion(food.per100g, serving.grams);
+    return Card(
+      color: p.card,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showFoodPortionSheet(context, widget.state, food),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(children: [
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text('${food.categoryGroup} • ${food.cuisineOrBrand}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: p.accentText, fontSize: 10)),
+                  Text(food.nameEn,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: p.text, fontWeight: FontWeight.bold)),
+                  Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(food.nameAr,
+                          textDirection: TextDirection.rtl,
+                          textAlign: TextAlign.right,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.muted, fontSize: 12))),
+                  Wrap(spacing: 5, children: [
+                    Text(
+                        'Per 100 g: ${food.per100g.kcal.toStringAsFixed(0)} kcal',
+                        style: TextStyle(color: p.muted, fontSize: 10)),
+                    _macroDot(p, CaloriesPalette.protein,
+                        '${food.per100g.proteinG} P'),
+                    _macroDot(
+                        p, CaloriesPalette.carbs, '${food.per100g.carbsG} C'),
+                    _macroDot(p, CaloriesPalette.fat, '${food.per100g.fatG} F'),
+                  ]),
+                ])),
+            const SizedBox(width: 8),
+            SizedBox(
+                width: 100,
+                child: Column(children: [
+                  Text('${portion.kcal} kcal',
+                      style: TextStyle(
+                          color: p.accentText, fontWeight: FontWeight.bold)),
+                  Text('${serving.nameEn} (${_grams(serving.grams)} g)',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: p.muted, fontSize: 10)),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                        minimumSize: const Size(40, 40),
+                        foregroundColor: p.accentText),
+                    onPressed: () =>
+                        showFoodPortionSheet(context, widget.state, food),
+                    child: const Text('+ Log'),
+                  ),
+                ])),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+Widget _macroDot(CaloriesPalette p, Color color, String value) =>
+    Row(mainAxisSize: MainAxisSize.min, children: [
+      CircleAvatar(radius: 3, backgroundColor: color),
+      const SizedBox(width: 3),
+      Text(value, style: TextStyle(color: p.text, fontSize: 10)),
+    ]);
+
+Future<void> showFoodPortionSheet(
+    BuildContext context, AppState state, FoodItem food,
+    {MealItem? log}) async {
+  final message = await showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => _PortionSheet(state: state, food: food, log: log),
+  );
+  if (!context.mounted || message == null) return;
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
+}
+
+class _PortionSheet extends StatefulWidget {
+  const _PortionSheet({required this.state, required this.food, this.log});
+  final AppState state;
+  final FoodItem food;
+  final MealItem? log;
+  @override
+  State<_PortionSheet> createState() => _PortionSheetState();
+}
+
+class _PortionSheetState extends State<_PortionSheet> {
+  late final List<FoodServing> servings = [
+    ...widget.food.servings,
+    const FoodServing(
+        nameEn: '100 g standard reference',
+        nameAr: 'الكمية القياسية',
+        grams: 100),
+  ];
+  late final TextEditingController weight = TextEditingController(
+      text: _grams(widget.log?.grams ?? servings.first.grams));
+  late MealCategory meal = widget.log?.category ??
+      (widget.food.tags.contains('breakfast')
+          ? MealCategory.breakfast
+          : widget.food.tags.any((tag) => tag == 'snack' || tag == 'dessert')
+              ? MealCategory.snack
+              : MealCategory.lunch);
+  bool saving = false;
+  String? error;
+
+  double? get grams {
+    final value = double.tryParse(weight.text.trim());
+    if (value == null || !value.isFinite || value < 1 || value > 3000) {
+      return null;
+    }
+    return (value * 10).round() / 10;
+  }
+
+  void setWeight(double value) {
+    weight.text = _grams(value);
+    setState(() => error = null);
+  }
+
+  @override
+  void dispose() {
+    weight.dispose();
+    super.dispose();
+  }
+
+  Future<void> save() async {
+    final g = grams;
+    if (g == null) {
+      setState(() => error = 'Enter a weight between 1 and 3000 g.');
+      return;
+    }
+    setState(() {
+      saving = true;
+      error = null;
+    });
+    final portion = calculateFoodPortion(widget.food.per100g, g);
+    try {
+      if (widget.log != null) {
+        await widget.state.updateFoodPortion(widget.log!, g);
+      } else {
+        FoodServing? selected;
+        for (final serving in servings) {
+          if (serving.grams == g) {
+            selected = serving;
+            break;
+          }
+        }
+        final label = selected == null
+            ? '${_grams(g)}g custom'
+            : '${selected.nameEn} (${_grams(g)}g)';
+        await widget.state
+            .logFood(widget.food, portion, meal, servingLabel: label);
+      }
+      if (!mounted) return;
+      final message = widget.state.activityError != null
+          ? 'Saved, but the activity list could not be refreshed. Please retry.'
+          : widget.log != null
+              ? 'Updated ${widget.food.nameEn}.'
+              : 'Logged ${widget.food.nameEn} (${portion.kcal} kcal)';
+      Navigator.pop(context, message);
+    } catch (e) {
+      if (mounted) setState(() => error = 'Could not save food: $e');
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = CaloriesPalette(Theme.of(context));
+    final g = grams;
+    final portion =
+        g == null ? null : calculateFoodPortion(widget.food.per100g, g);
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: FractionallySizedBox(
+        heightFactor: .9,
+        child: Material(
+          color: p.card,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                      '${widget.food.categoryGroup} • ${widget.food.cuisineOrBrand}',
+                      style: TextStyle(color: p.muted)),
+                  Text(widget.food.nameEn,
+                      style: TextStyle(
+                          color: p.text,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
+                  Text(widget.food.nameAr,
+                      textDirection: TextDirection.rtl,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(color: p.accentText)),
+                  const SizedBox(height: 16),
+                  const Text('Quick Household & Restaurant Portions'),
+                  const SizedBox(height: 8),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: servings.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisExtent: 82,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8),
+                    itemBuilder: (context, index) {
+                      final s = servings[index];
+                      return OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                              color: g == s.grams ? p.accent : p.border),
+                          padding: const EdgeInsets.all(6),
+                        ),
+                        onPressed: () => setWeight(s.grams),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(s.nameEn,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text(s.nameAr,
+                                  textDirection: TextDirection.rtl,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      TextStyle(color: p.muted, fontSize: 11)),
+                              Text('${_grams(s.grams)} g',
+                                  style:
+                                      TextStyle(color: p.muted, fontSize: 11)),
+                            ]),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    key: const ValueKey('portion-grams'),
+                    controller: weight,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    onChanged: (_) => setState(() => error = null),
+                    decoration: const InputDecoration(
+                        labelText: 'Exact Weight (Grams)', suffixText: 'g'),
+                  ),
+                  Slider(
+                    key: const ValueKey('portion-slider'),
+                    value: (g ?? 5).clamp(5, 800).toDouble(),
+                    min: 5,
+                    max: 800,
+                    divisions: 159,
+                    activeColor: p.accent,
+                    onChanged: (value) => setWeight(value),
+                  ),
+                  const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('5 g'),
+                        Text('250 g'),
+                        Text('500 g'),
+                        Text('800 g'),
+                      ]),
+                  const SizedBox(height: 16),
+                  Wrap(spacing: 8, runSpacing: 8, children: [
+                    _preview(p, 'Calories', portion?.kcal.toString() ?? '—',
+                        p.accent),
+                    _preview(
+                        p,
+                        'Protein',
+                        portion == null ? '—' : '${portion.proteinG} g',
+                        CaloriesPalette.protein),
+                    _preview(
+                        p,
+                        'Carbs',
+                        portion == null ? '—' : '${portion.carbsG} g',
+                        CaloriesPalette.carbs),
+                    _preview(
+                        p,
+                        'Fat',
+                        portion == null ? '—' : '${portion.fatG} g',
+                        CaloriesPalette.fat),
+                  ]),
+                  const SizedBox(height: 12),
+                  Wrap(spacing: 12, runSpacing: 4, children: [
+                    Text('Fiber: ${portion?.fiberG ?? '—'} g'),
+                    Text('Sugar: ${portion?.sugarG ?? '—'} g'),
+                    Text('Sodium: ${portion?.sodiumMg ?? '—'} mg'),
+                  ]),
+                  const SizedBox(height: 16),
+                  const Text('Log to Meal'),
+                  Wrap(spacing: 6, children: [
+                    for (final choice in [
+                      MealCategory.breakfast,
+                      MealCategory.lunch,
+                      MealCategory.dinner,
+                      MealCategory.snack
+                    ])
+                      ChoiceChip(
+                        label: Text(
+                            '${choice.name[0].toUpperCase()}${choice.name.substring(1)}'),
+                        selected: meal == choice,
+                        selectedColor: p.accent.withAlpha(55),
+                        onSelected: widget.log != null
+                            ? null
+                            : (_) => setState(() => meal = choice),
+                      ),
+                  ]),
+                  if (error != null)
+                    Text(error!,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error)),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    Expanded(
+                        child: TextButton(
+                            onPressed:
+                                saving ? null : () => Navigator.pop(context),
+                            child: const Text('Cancel'))),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: FilledButton(
+                      style: FilledButton.styleFrom(
+                          backgroundColor: p.accent,
+                          foregroundColor: p.onAccent),
+                      onPressed: saving ? null : save,
+                      child: Text(widget.log == null
+                          ? '+ Add to Daily Log'
+                          : 'Save changes'),
+                    )),
+                  ]),
+                ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _preview(CaloriesPalette p, String label, String value, Color color) =>
+      Container(
+        width: 76,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+            color: p.inner,
+            border: Border.all(color: p.border),
+            borderRadius: BorderRadius.circular(12)),
+        child: Column(children: [
+          CircleAvatar(radius: 4, backgroundColor: color),
+          Text(value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: p.text, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(color: p.muted, fontSize: 10)),
+        ]),
+      );
+}
