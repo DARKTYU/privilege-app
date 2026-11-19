@@ -204,6 +204,31 @@ void main() {
     expect(inserted['grams'], isNull);
   });
 
+  test('recipe label persists through the existing manual meal columns',
+      () async {
+    final repo = ActivityRepository();
+    await repo.addMeal(const MealItem(
+      id: '',
+      name: 'Recipe meal',
+      time: 'now',
+      calories: 200,
+      proteinGrams: 10,
+      carbsGrams: 20,
+      fatGrams: 5,
+      fiberGrams: 2,
+      icon: '',
+      consumed: true,
+      category: MealCategory.lunch,
+      servingLabel: 'Recipe',
+    ));
+    expect(rows.single['source'], 'manual');
+    expect(rows.single['serving_label'], 'Recipe');
+    final loaded = (await repo.loadToday()).meals.single;
+    expect(loaded.source, 'manual');
+    expect(loaded.servingLabel, 'Recipe');
+    expect(loaded.copyWith(id: '').servingLabel, 'Recipe');
+  });
+
   test('AppState logs and edits through its existing activity path', () async {
     final database = FoodDatabase();
     await database.load();

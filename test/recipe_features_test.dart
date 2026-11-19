@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/data.dart';
 import 'package:privilege/logic/calorie_target.dart';
@@ -18,6 +19,24 @@ import 'calories_test_database.dart';
 
 Widget _app(Widget child) =>
     MaterialApp(theme: buildTheme(), home: Scaffold(body: child));
+
+class _PhotoBundle extends CachingAssetBundle {
+  _PhotoBundle(this.photoPath);
+  final String photoPath;
+
+  @override
+  Future<ByteData> load(String key) async {
+    if (key == 'AssetManifest.bin') {
+      return const StandardMessageCodec().encodeMessage({
+        photoPath: [
+          {'asset': photoPath}
+        ]
+      })!;
+    }
+    if (key == photoPath) return rootBundle.load('assets/images/logo.png');
+    return rootBundle.load(key);
+  }
+}
 
 void main() {
   setUpAll(() async => FoodDatabase().load());
@@ -73,6 +92,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(logged!.name, recipe.name);
       expect(logged!.source, 'manual');
+      expect(logged!.servingLabel, 'Recipe');
       expect(logged!.calories, expected.kcal);
       expect(logged!.proteinGrams, expected.proteinG.round());
       expect(logged!.carbsGrams, expected.carbsG.round());
@@ -221,7 +241,7 @@ void main() {
         findsOneWidget);
     expect(find.text('Fits today'), findsWidgets);
 
-    await tester.tap(find.text('High protein'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'High protein'));
     await tester.pumpAndSettle();
     expect(find.text('Greek Yogurt and Banana'), findsNothing);
     expect(find.text('Chicken and Rice Bowl'), findsOneWidget);
@@ -270,13 +290,146 @@ void main() {
         find.descendant(
             of: find.byType(Panel), matching: find.text('Fits today')),
         findsNothing);
-    await tester.tap(find.text('Fits today'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Fits today'));
     await tester.pumpAndSettle();
     expect(find.text('No recipes match this filter.'), findsNothing);
     appState.activityError = 'error';
     appState.notifyListeners();
     await tester.pumpAndSettle();
     expect(find.text('Today’s activity is unavailable.'), findsOneWidget);
+  });
+
+  testWidgets('card and details use bundled photo and ordered steps',
+      (tester) async {
+    final recipe = recipes.firstWhere((r) => r.id == 'chicken_rice');
+    final path = recipePhotoPath(recipe.id);
+    final bundle = _PhotoBundle(path);
+    MealItem? logged;
+    await tester.pumpWidget(DefaultAssetBundle(
+      bundle: bundle,
+      child: _app(RecipesScreen(
+        accountId: () => 'a',
+        database: CaloriesTestDatabase(FoodDatabase()),
+        recipeList: [recipe],
+        saveMeal: (meal) async => logged = meal,
+      )),
+    ));
+    await tester.pumpAndSettle();
+    final image = tester.widget<Image>(find.byType(Image));
+    expect(image.image, isA<ResizeImage>());
+    expect((image.image as ResizeImage).width, greaterThan(0));
+    await tester.runAsync(() async {
+      await precacheImage(image.image, tester.element(find.byType(Image)));
+    });
+    await tester.pumpAndSettle();
+    expect(tester.widget<AspectRatio>(find.byType(AspectRatio)).aspectRatio,
+        16 / 9);
+    final card = find.byType(Panel);
+    expect(find.descendant(of: card, matching: find.text('High protein')),
+        findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('Light')),
+        findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('Quick')),
+        findsOneWidget);
+    expect(find.descendant(of: card, matching: find.text('High fiber')),
+        findsNothing);
+    await tester.ensureVisible(find.text(recipe.name));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(recipe.name));
+    await tester.pumpAndSettle();
+    expect(find.text('Photo is for illustration'), findsOneWidget);
+    final detailScroll = find
+        .descendant(
+            of: find.byType(ListView).last, matching: find.byType(Scrollable))
+        .first;
+    await tester.scrollUntilVisible(find.text('Ingredients'), 300,
+        scrollable: detailScroll);
+    final nutrition = calculateRecipeNutrition(recipe, FoodDatabase().foods)!;
+    expect(find.text('${nutrition.portion.kcal} kcal'), findsOneWidget);
+    expect(find.textContaining('Protein ${nutrition.portion.proteinG} g'),
+        findsOneWidget);
+    expect(find.textContaining('Fiber '), findsOneWidget);
+    expect(find.textContaining('Sugar '), findsOneWidget);
+    expect(find.textContaining('Sodium '), findsOneWidget);
+    expect(find.text('Ingredients'), findsOneWidget);
+    expect(find.text(recipe.description), findsOneWidget);
+    for (final (food, grams) in nutrition.ingredients) {
+      final ingredient =
+          find.text('${food.nameEn}: ${grams.toStringAsFixed(0)} g');
+      await tester.scrollUntilVisible(ingredient, 200,
+          scrollable: detailScroll);
+      expect(ingredient, findsOneWidget);
+    }
+    await tester.scrollUntilVisible(find.text('How to cook'), 300,
+        scrollable: detailScroll);
+    expect(find.text('How to cook'), findsOneWidget);
+    for (var i = 0; i < recipe.steps.length; i++) {
+      expect(find.text('${i + 1}. ${recipe.steps[i]}'), findsOneWidget);
+      if (i > 0) {
+        expect(
+            tester.getTopLeft(find.text('${i + 1}. ${recipe.steps[i]}')).dy,
+            greaterThan(
+                tester.getTopLeft(find.text('$i. ${recipe.steps[i - 1]}')).dy));
+      }
+    }
+    final stepWidgets = find.byWidgetPredicate(
+        (w) => w is Text && RegExp(r'^[1-3]\. ').hasMatch(w.data ?? ''));
+    expect(stepWidgets, findsNWidgets(recipe.steps.length));
+    await tester.scrollUntilVisible(find.text('Log'), 200,
+        scrollable: detailScroll);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log'));
+    await tester.pumpAndSettle();
+    expect(logged!.servingLabel, 'Recipe');
+    expect(logged!.calories,
+        calculateRecipeNutrition(recipe, FoodDatabase().foods)!.portion.kcal);
+  });
+
+  testWidgets('missing bundled photo uses icon without an illustration label',
+      (tester) async {
+    final recipe = recipes.first;
+    await tester.pumpWidget(_app(RecipesScreen(
+      accountId: () => 'a',
+      database: CaloriesTestDatabase(FoodDatabase()),
+      recipeList: [recipe],
+    )));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.restaurant), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+    await tester.tap(find.text(recipe.name));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.restaurant), findsOneWidget);
+    expect(find.text('Photo is for illustration'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('high fiber tag is based on calculated ingredient totals',
+      (tester) async {
+    const recipe = Recipe(
+      id: 'fiber_test',
+      name: 'Fiber test',
+      nameAr: 'اختبار',
+      minutes: 20,
+      difficulty: 'Easy',
+      description: 'Prepared ful.',
+      ingredients: [RecipeIngredient('eg_ful_medames_plain', 200)],
+      steps: ['One', 'Two', 'Three'],
+      emoji: '',
+      category: MealCategory.lunch,
+    );
+    await tester.pumpWidget(_app(RecipesScreen(
+      accountId: () => 'a',
+      database: CaloriesTestDatabase(FoodDatabase()),
+      recipeList: const [recipe],
+    )));
+    await tester.pumpAndSettle();
+    expect(find.text('High fiber'), findsOneWidget);
+    final card = find.byType(Panel);
+    expect(find.descendant(of: card, matching: find.text('High protein')),
+        findsNothing);
+    expect(find.text('Light'), findsOneWidget);
+    expect(
+        find.descendant(of: card, matching: find.text('Quick')), findsNothing);
   });
 
   for (final scale in [1.0, 1.5]) {
@@ -304,6 +457,22 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(tester.takeException(), isNull);
+      await tester.drag(find.byType(ListView).first, const Offset(0, 10000));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Chicken and Rice Bowl'), 300,
+          scrollable: find
+              .descendant(
+                  of: find.byType(ListView).first,
+                  matching: find.byType(Scrollable))
+              .first);
+      await tester.tap(find.text('Chicken and Rice Bowl'));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 6; i++) {
+        await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(scaled(const AcademyScreen()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Barbell Bench Press'));
@@ -314,6 +483,47 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('photo card and details fit 360x640 at text scale 1.5',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final recipe = recipes.first;
+    await tester.pumpWidget(DefaultAssetBundle(
+      bundle: _PhotoBundle(recipePhotoPath(recipe.id)),
+      child: MaterialApp(
+        theme: buildTheme(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.5)),
+          child: child!,
+        ),
+        home: Scaffold(
+            body: RecipesScreen(
+          accountId: () => 'a',
+          database: CaloriesTestDatabase(FoodDatabase()),
+          recipeList: [recipe],
+        )),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final image = tester.widget<Image>(find.byType(Image));
+    await tester.runAsync(() async {
+      await precacheImage(image.image, tester.element(find.byType(Image)));
+    });
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text(recipe.name));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(recipe.name));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 6; i++) {
+      await tester.drag(find.byType(ListView).last, const Offset(0, -350));
+      await tester.pumpAndSettle();
+    }
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('missing ingredient disables logging', (tester) async {
     const missing = Recipe(
@@ -334,6 +544,17 @@ void main() {
         recipeList: const [missing])));
     await tester.pumpAndSettle();
     expect(find.text('Nutrition not available'), findsOneWidget);
+    expect(tester.widget<PrimaryButton>(find.byType(PrimaryButton)).onPressed,
+        isNull);
+    await tester.tap(find.text('Missing food'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nutrition not available'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Log'), 200,
+        scrollable: find
+            .descendant(
+                of: find.byType(ListView).last,
+                matching: find.byType(Scrollable))
+            .first);
     expect(tester.widget<PrimaryButton>(find.byType(PrimaryButton)).onPressed,
         isNull);
   });
@@ -401,5 +622,51 @@ void main() {
         find.text(
             'General information, not professional advice. Check with a qualified coach or doctor.'),
         findsOneWidget);
+  });
+
+  testWidgets('academy shows activity icons and approximate burn estimates',
+      (tester) async {
+    await tester.pumpWidget(_app(const AcademyScreen()));
+    expect(find.byIcon(Icons.fitness_center), findsWidgets);
+    expect(find.text('about 120 kcal / 15 mins'), findsOneWidget);
+    final scrollable = find
+        .descendant(
+            of: find.byType(ListView), matching: find.byType(Scrollable))
+        .first;
+    await tester.scrollUntilVisible(find.byIcon(Icons.sports_basketball), 300,
+        scrollable: scrollable);
+    expect(find.byIcon(Icons.sports_basketball), findsOneWidget);
+    await tester.scrollUntilVisible(find.byIcon(Icons.sports_mma), 300,
+        scrollable: scrollable);
+    expect(find.byIcon(Icons.sports_mma), findsOneWidget);
+    await tester.scrollUntilVisible(find.byIcon(Icons.directions_run), 300,
+        scrollable: scrollable);
+    expect(find.byIcon(Icons.directions_run), findsOneWidget);
+    expect(find.text('Lifetime Knowledge'), findsOneWidget);
+    await tester.drag(find.byType(ListView), const Offset(0, 3000));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Barbell Bench Press'));
+    await tester.pumpAndSettle();
+    final mastered = find.text('Mastered Cue');
+    await tester.scrollUntilVisible(mastered, 300,
+        scrollable: find
+            .descendant(
+                of: find.byType(DraggableScrollableSheet),
+                matching: find.byType(Scrollable))
+            .first);
+    await tester.ensureVisible(mastered);
+    await tester.pumpAndSettle();
+    await tester.tap(mastered);
+    await tester.pumpAndSettle();
+    expect(mastered, findsNothing);
+    await tester.tap(find.text('Barbell Bench Press'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(mastered, 300,
+        scrollable: find
+            .descendant(
+                of: find.byType(DraggableScrollableSheet),
+                matching: find.byType(Scrollable))
+            .first);
+    expect(mastered, findsOneWidget);
   });
 }

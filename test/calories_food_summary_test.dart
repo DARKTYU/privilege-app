@@ -145,6 +145,39 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+      'recipe labels survive duplication while manual entries stay manual',
+      (tester) async {
+    final state = FakeCaloriesState()
+      ..meals.addAll([
+        manual(),
+        const MealItem(
+          id: 'recipe',
+          name: 'Recipe meal',
+          time: 'now',
+          calories: 200,
+          proteinGrams: 10,
+          carbsGrams: 20,
+          fatGrams: 5,
+          fiberGrams: 2,
+          icon: '',
+          consumed: true,
+          category: MealCategory.breakfast,
+          servingLabel: 'Recipe',
+        ),
+      ]);
+    addTearDown(state.dispose);
+    await showSummary(tester, state);
+    expect(find.text('Manual entry'), findsOneWidget);
+    expect(find.text('Recipe'), findsOneWidget);
+    final copy = find.byTooltip('Duplicate Recipe meal');
+    await tester.ensureVisible(copy);
+    await tester.tap(copy);
+    await tester.pumpAndSettle();
+    expect(state.manualCopy!.servingLabel, 'Recipe');
+    expect(state.manualCopy!.source, 'manual');
+  });
+
   testWidgets('mixed meals use saved totals and Arabic is RTL', (tester) async {
     final state = FakeCaloriesState()..meals.addAll([manual(), foodMeal]);
     addTearDown(state.dispose);

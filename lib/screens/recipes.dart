@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,6 +12,12 @@ import '../services/food_database.dart';
 import '../state.dart';
 import '../ui.dart';
 import 'calories_display_format.dart';
+import 'calories_food_summary.dart' show CaloriesPalette;
+
+const Map<String, String> recipePhotoCredits = {};
+
+String recipePhotoPath(String recipeId) =>
+    'assets/images/recipes/$recipeId.jpg';
 
 class RecipesScreen extends StatefulWidget {
   const RecipesScreen({
@@ -39,6 +46,18 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String? error;
   String? loggingId;
   RecipeFilter filter = RecipeFilter.all;
+  AssetBundle? _assetBundle;
+  late Future<AssetManifest> _assetManifest;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bundle = DefaultAssetBundle.of(context);
+    if (_assetBundle != bundle) {
+      _assetBundle = bundle;
+      _assetManifest = AssetManifest.loadFromAssetBundle(bundle);
+    }
+  }
 
   String? _accountId() => widget.accountId != null
       ? widget.accountId!()
@@ -114,7 +133,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
     }
   }
 
-  Future<void> _log(Recipe recipe, RecipeNutrition nutrition) async {
+  Future<void> _log(Recipe recipe, RecipeNutrition nutrition,
+      BuildContext feedbackContext) async {
     final p = nutrition.portion;
     setState(() {
       loggingId = recipe.id;
@@ -135,10 +155,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
         icon: recipe.emoji,
         consumed: true,
         category: recipe.category,
+        servingLabel: 'Recipe',
       ));
-      if (mounted) toast(context, 'Logged ${recipe.name} (${p.kcal} kcal)');
+      if (feedbackContext.mounted) {
+        toast(feedbackContext, 'Logged ${recipe.name} (${p.kcal} kcal)');
+      }
     } catch (e) {
-      if (mounted) setState(() => error = 'Could not log recipe: $e');
+      if (feedbackContext.mounted) {
+        ScaffoldMessenger.of(feedbackContext).showSnackBar(
+          SnackBar(content: Text('Could not log recipe: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => loggingId = null);
     }
@@ -264,90 +291,299 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget _recipeCard(
       Recipe recipe, RecipeNutrition? nutrition, int? remaining) {
     final p = nutrition?.portion;
-    String g(double v) => formatCaloriesGrams(v);
     return Panel(
       padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            imagePlaceholder(context,
-                width: 56,
-                height: 56,
-                radius: BorderRadius.circular(12),
-                icon: Icons.restaurant),
-            const SizedBox(width: 10),
-            Expanded(
+      child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => _RecipeDetailPage(
+                      recipe: recipe,
+                      nutrition: nutrition,
+                      manifest: _assetManifest,
+                      onLog: _log,
+                    ),
+                  )),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text(recipe.name,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800)),
-                  Text(recipe.nameAr,
-                      textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.right),
-                ])),
-            IconButton(
-              tooltip: favorites.contains(recipe.id)
-                  ? 'Remove favorite'
-                  : 'Add favorite',
-              icon: Icon(favorites.contains(recipe.id)
-                  ? Icons.favorite
-                  : Icons.favorite_border),
-              onPressed: favoritesLoading || favoriteSaving || account == null
-                  ? null
-                  : () => _toggleFavorite(recipe.id),
-            ),
-          ]),
+                      _RecipePhoto(recipe: recipe, manifest: _assetManifest),
+                      const SizedBox(height: 8),
+                      Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                  Text(recipe.name,
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w800)),
+                                  Text(recipe.nameAr,
+                                      textDirection: TextDirection.rtl,
+                                      textAlign: TextAlign.right),
+                                ])),
+                            IconButton(
+                              tooltip: favorites.contains(recipe.id)
+                                  ? 'Remove favorite'
+                                  : 'Add favorite',
+                              icon: Icon(favorites.contains(recipe.id)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border),
+                              onPressed: favoritesLoading ||
+                                      favoriteSaving ||
+                                      account == null
+                                  ? null
+                                  : () => _toggleFavorite(recipe.id),
+                            ),
+                          ]),
+                      const SizedBox(height: 8),
+                      if (p != null)
+                        Wrap(spacing: 6, runSpacing: 6, children: [
+                          _recipePill(context, '${p.kcal} kcal',
+                              Theme.of(context).colorScheme.secondary),
+                          _recipePill(
+                              context,
+                              '${formatCaloriesGrams(p.proteinG)} g protein',
+                              CaloriesPalette.protein),
+                          _recipePill(
+                              context,
+                              '${formatCaloriesGrams(p.carbsG)} g carbs',
+                              CaloriesPalette.carbs),
+                          _recipePill(
+                              context,
+                              '${formatCaloriesGrams(p.fatG)} g fat',
+                              CaloriesPalette.fat),
+                        ]),
+                      const SizedBox(height: 8),
+                      Text(
+                          '${recipe.minutes} min · ${recipe.difficulty} · ${_mealLabel(recipe.category)}',
+                          style: Theme.of(context).textTheme.bodySmall),
+                      const SizedBox(height: 8),
+                      Text('Estimated from ingredients',
+                          style: Theme.of(context).textTheme.bodySmall),
+                      if (remaining != null && remaining > 0 && p != null)
+                        _recipePill(
+                            context,
+                            p.kcal <= remaining
+                                ? 'Fits today'
+                                : 'Over by ${p.kcal - remaining} kcal',
+                            Theme.of(context).colorScheme.secondary),
+                      if (nutrition == null)
+                        const Text('Nutrition not available'),
+                      const SizedBox(height: 8),
+                      _recipeTags(context, recipe, nutrition),
+                      const SizedBox(height: 12),
+                      PrimaryButton(
+                        loggingId == recipe.id ? 'Logging...' : 'Log',
+                        icon: Icons.add,
+                        onPressed: nutrition == null || loggingId != null
+                            ? null
+                            : () => _log(recipe, nutrition, context),
+                      ),
+                    ]),
+              ))),
+    );
+  }
+}
+
+String _mealLabel(MealCategory category) => category == MealCategory.shake
+    ? 'Snack'
+    : '${category.name[0].toUpperCase()}${category.name.substring(1)}';
+
+Widget _recipePill(BuildContext context, String label, Color color) =>
+    Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(35),
+        border: Border.all(color: color.withAlpha(150)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label, style: Theme.of(context).textTheme.labelSmall),
+    );
+
+Widget _recipeTags(
+    BuildContext context, Recipe recipe, RecipeNutrition? nutrition) {
+  final portion = nutrition?.portion;
+  final tags = [
+    if (portion != null && portion.proteinG >= 30) 'High protein',
+    if (portion != null && portion.fiberG >= 8) 'High fiber',
+    if (portion != null && portion.kcal < 400) 'Light',
+    if (recipe.minutes <= 10) 'Quick',
+  ];
+  return Wrap(
+    spacing: 6,
+    runSpacing: 6,
+    children: [
+      for (final tag in tags)
+        _recipePill(context, tag, Theme.of(context).colorScheme.outline),
+    ],
+  );
+}
+
+class _RecipePhoto extends StatelessWidget {
+  const _RecipePhoto(
+      {required this.recipe, required this.manifest, this.detail = false});
+
+  final Recipe recipe;
+  final Future<AssetManifest> manifest;
+  final bool detail;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget placeholder() => imagePlaceholder(context,
+        width: 56,
+        height: 56,
+        radius: BorderRadius.circular(12),
+        icon: Icons.restaurant);
+    return FutureBuilder<AssetManifest>(
+      future: manifest,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                placeholder(),
+                const Text('Could not load recipe photos.'),
+              ]);
+        }
+        final path = recipePhotoPath(recipe.id);
+        if (!snapshot.hasData || !snapshot.data!.listAssets().contains(path)) {
+          return placeholder();
+        }
+        final width = (MediaQuery.sizeOf(context).width *
+                MediaQuery.devicePixelRatioOf(context))
+            .round()
+            .clamp(1, 1600);
+        return Image.asset(
+          path,
+          cacheWidth: width,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint('Could not load recipe photo $path: $error');
+            return placeholder();
+          },
+          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+            if (frame == null && !wasSynchronouslyLoaded) return placeholder();
+            return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(aspectRatio: 16 / 9, child: child),
+                  ),
+                  if (detail) ...[
+                    const SizedBox(height: 4),
+                    Text('Photo is for illustration',
+                        style: Theme.of(context).textTheme.bodySmall),
+                    if (recipePhotoCredits[recipe.id] case final credit?)
+                      Text('Photo: $credit',
+                          style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ]);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _RecipeDetailPage extends StatefulWidget {
+  const _RecipeDetailPage({
+    required this.recipe,
+    required this.nutrition,
+    required this.manifest,
+    required this.onLog,
+  });
+  final Recipe recipe;
+  final RecipeNutrition? nutrition;
+  final Future<AssetManifest> manifest;
+  final Future<void> Function(Recipe, RecipeNutrition, BuildContext) onLog;
+
+  @override
+  State<_RecipeDetailPage> createState() => _RecipeDetailPageState();
+}
+
+class _RecipeDetailPageState extends State<_RecipeDetailPage> {
+  bool logging = false;
+
+  Future<void> _log() async {
+    setState(() => logging = true);
+    try {
+      await widget.onLog(widget.recipe, widget.nutrition!, context);
+    } finally {
+      if (mounted) setState(() => logging = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recipe = widget.recipe;
+    final nutrition = widget.nutrition;
+    final p = nutrition?.portion;
+    String g(double value) => formatCaloriesGrams(value);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Recipe details')),
+      body: SafeArea(
+        child: ListView(padding: const EdgeInsets.all(16), children: [
+          _RecipePhoto(recipe: recipe, manifest: widget.manifest, detail: true),
+          const SizedBox(height: 12),
+          Text(recipe.name, style: Theme.of(context).textTheme.titleLarge),
+          Text(recipe.nameAr,
+              textDirection: TextDirection.rtl, textAlign: TextAlign.right),
           const SizedBox(height: 8),
           Text(
-              '${recipe.minutes} min · ${recipe.difficulty} · ${recipe.category == MealCategory.shake ? 'Snack' : recipe.category.name[0].toUpperCase() + recipe.category.name.substring(1)}'),
+              '${recipe.minutes} min · ${recipe.difficulty} · ${_mealLabel(recipe.category)}'),
           const SizedBox(height: 8),
+          _recipeTags(context, recipe, nutrition),
+          const SizedBox(height: 16),
+          Text('Nutrition per serving',
+              style: Theme.of(context).textTheme.titleMedium),
           const Text('Estimated from ingredients'),
-          if (remaining != null && remaining > 0 && p != null)
-            Text(p.kcal <= remaining
-                ? 'Fits today'
-                : 'Over by ${p.kcal - remaining} kcal'),
-          if (nutrition == null)
+          if (p == null)
             const Text('Nutrition not available')
           else ...[
-            const Text('Per serving'),
+            Text('${p.kcal} kcal'),
             Text(
-                '${p!.kcal} kcal · Protein ${p.proteinG.round()} g · Carbs ${p.carbsG.round()} g · Fat ${p.fatG.round()} g'),
+                'Protein ${g(p.proteinG)} g · Carbs ${g(p.carbsG)} g · Fat ${g(p.fatG)} g'),
             Text(
-                'Fiber ${p.fiberG.round()} g · Sugar ${g(p.sugarG)} g · Sodium ${p.sodiumMg.toStringAsFixed(0)} mg'),
+                'Fiber ${g(p.fiberG)} g · Sugar ${g(p.sugarG)} g · Sodium ${p.sodiumMg.toStringAsFixed(0)} mg'),
           ],
-          Material(
-            color: Colors.transparent,
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: const Text('Ingredients and steps'),
-              children: [
-                Text(recipe.description),
-                if (nutrition != null)
-                  for (final (food, grams) in nutrition.ingredients)
-                    ListTile(
-                        dense: true,
-                        title: Text('${food.nameEn}: ${g(grams)} g'),
-                        subtitle: Text(food.nameAr,
-                            textDirection: TextDirection.rtl,
-                            textAlign: TextAlign.right)),
-                for (var i = 0; i < recipe.steps.length; i++)
-                  ListTile(
-                      dense: true, title: Text('${i + 1}. ${recipe.steps[i]}')),
-              ],
+          const SizedBox(height: 16),
+          Text('Ingredients', style: Theme.of(context).textTheme.titleMedium),
+          Text(recipe.description),
+          if (nutrition != null)
+            for (final (food, grams) in nutrition.ingredients)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${food.nameEn}: ${g(grams)} g'),
+                      Text(food.nameAr,
+                          textDirection: TextDirection.rtl,
+                          textAlign: TextAlign.right),
+                    ]),
+              )
+          else
+            const Text('Ingredient details unavailable.'),
+          const SizedBox(height: 16),
+          Text('How to cook', style: Theme.of(context).textTheme.titleMedium),
+          for (var i = 0; i < recipe.steps.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text('${i + 1}. ${recipe.steps[i]}'),
             ),
-          ),
-          const SizedBox(height: 12),
-          PrimaryButton(
-            loggingId == recipe.id ? 'Logging...' : 'Log',
-            icon: Icons.add,
-            onPressed: nutrition == null || loggingId != null
-                ? null
-                : () => _log(recipe, nutrition),
-          ),
+          const SizedBox(height: 16),
+          PrimaryButton(logging ? 'Logging...' : 'Log',
+              icon: Icons.add,
+              onPressed: nutrition == null || logging ? null : _log),
         ]),
       ),
     );

@@ -21,6 +21,13 @@ class _AcademyScreenState extends State<AcademyScreen> {
     ('foundation', 'Starter Rules'),
   ];
 
+  IconData _guideIcon(ExerciseGuide guide) {
+    if (guide.id == 'basketball') return Icons.sports_basketball;
+    if (guide.id == 'boxing') return Icons.sports_mma;
+    if (guide.category == 'gym') return Icons.fitness_center;
+    return Icons.directions_run;
+  }
+
   void _open(ExerciseGuide g) {
     showModalBottomSheet<void>(
       context: context,
@@ -41,7 +48,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   width: 56,
                   height: 56,
                   radius: BorderRadius.circular(12),
-                  icon: Icons.fitness_center),
+                  icon: _guideIcon(g)),
               const SizedBox(width: 12),
               Expanded(
                   child: Column(
@@ -157,7 +164,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                                 width: 56,
                                 height: 56,
                                 radius: BorderRadius.circular(12),
-                                icon: Icons.fitness_center),
+                                icon: _guideIcon(g)),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -185,7 +192,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
                                           size: 14, color: kOrange),
                                       const SizedBox(width: 4),
                                       Expanded(
-                                          child: Text(g.burnRate,
+                                          child: Text(
+                                              g.burnRate.contains('kcal')
+                                                  ? 'about ${g.burnRate}'
+                                                  : g.burnRate,
                                               style: const TextStyle(
                                                   fontSize: 12))),
                                       Text('Learn ',
