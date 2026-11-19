@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/data.dart';
+import 'package:privilege/logic/calorie_target.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/food_nutrition.dart';
 import 'package:privilege/logic/recipe_nutrition.dart';
+import 'package:privilege/logic/recipe_fit.dart';
 import 'package:privilege/screens/academy.dart';
 import 'package:privilege/screens/recipes.dart';
 import 'package:privilege/services/food_database.dart';
@@ -53,6 +55,14 @@ void main() {
     }
     expect(find.text('Estimated from ingredients'), findsWidgets);
     for (final recipe in recipes) {
+      await tester.pumpWidget(_app(RecipesScreen(
+        key: ValueKey(recipe.id),
+        accountId: () => 'a',
+        database: CaloriesTestDatabase(db),
+        recipeList: [recipe],
+        saveMeal: (meal) async => logged = meal,
+      )));
+      await tester.pumpAndSettle();
       final expected = calculateRecipeNutrition(recipe, db.foods)!.portion;
       final card = find
           .ancestor(of: find.text(recipe.name), matching: find.byType(Panel))
@@ -75,14 +85,246 @@ void main() {
     }
   });
 
+  test('catalog meets ingredient, nutrition and coverage requirements', () {
+    final foods = FoodDatabase().foods;
+    expect(recipes.length, 10);
+    expect(recipes.map((r) => r.id).toSet().length, 10);
+    expect(
+        recipes.map((r) => r.category).toSet(),
+        containsAll([
+          MealCategory.breakfast,
+          MealCategory.lunch,
+          MealCategory.dinner,
+          MealCategory.snack
+        ]));
+    for (final recipe in recipes) {
+      expect(recipe.nameAr, isNotEmpty);
+      expect(recipe.steps.length, inInclusiveRange(3, 5));
+      for (final ingredient in recipe.ingredients) {
+        expect(
+            foods.where((food) => food.id == ingredient.foodId), hasLength(1));
+      }
+    }
+    final portions = recipes
+        .map((r) => calculateRecipeNutrition(r, foods)!.portion)
+        .toList();
+    expect(portions.where((p) => p.proteinG >= 30).length,
+        greaterThanOrEqualTo(3));
+    expect(portions.where((p) => p.kcal < 400).length, greaterThanOrEqualTo(3));
+    expect(
+        recipes.where((r) => r.minutes <= 10).length, greaterThanOrEqualTo(3));
+  });
+
+  test('recipe names and notes identify ingredient preparation', () {
+    final byId = {for (final recipe in recipes) recipe.id: recipe};
+    final taameya = byId['taameya_areesh']!;
+    expect(taameya.name, 'Baked Taameya and Areesh Plate');
+    expect(taameya.nameAr, 'طعمية مخبوزة وجبنة قريش');
+    expect(taameya.description, 'Use prepared baked or air-fried taameya.');
+    final expectedNotes = <String, List<String>>{
+      'burger': ['before cooking'],
+      'shake': ['fresh peeled banana', 'roasted peanuts'],
+      'ful_egg': ['boiled ful', 'boiled eggs'],
+      'chicken_rice': ['grilled chicken', 'steamed or boiled rice'],
+      'chicken_molokhia': ['grilled chicken', 'molokhia cooked'],
+      'yogurt_banana': ['fresh peeled banana'],
+      'areesh_egg': ['boiled egg'],
+      'koshary_chicken': ['fried onions', 'grilled chicken'],
+    };
+    for (final entry in expectedNotes.entries) {
+      for (final phrase in entry.value) {
+        expect(byId[entry.key]!.description, contains(phrase));
+      }
+    }
+    final portion =
+        calculateRecipeNutrition(taameya, FoodDatabase().foods)!.portion;
+    expect(portion.kcal, 313);
+    expect(portion.proteinG, 30);
+    expect(portion.carbsG, 36.9);
+    expect(portion.fatG, 5.7);
+  });
+
+  test('fit sorting and filters use calories and protein contribution', () {
+    final foods = FoodDatabase().foods;
+    final entries = [
+      for (final recipe in recipes)
+        (recipe: recipe, nutrition: calculateRecipeNutrition(recipe, foods))
+    ];
+    List<RecipeEntry> select(RecipeFilter filter, int? kcal, int? protein) =>
+        selectRecipes(entries,
+            filter: filter, remainingCalories: kcal, remainingProtein: protein);
+    final all = select(RecipeFilter.all, 350, 50);
+    expect(all.length, 10);
+    final firstOver = all.indexWhere((e) => e.nutrition!.portion.kcal > 350);
+    expect(firstOver, greaterThan(0));
+    expect(all.take(firstOver).every((e) => e.nutrition!.portion.kcal <= 350),
+        isTrue);
+    expect(all.skip(firstOver).every((e) => e.nutrition!.portion.kcal > 350),
+        isTrue);
+    for (final group in [
+      all.take(firstOver).toList(),
+      all.skip(firstOver).toList()
+    ]) {
+      for (var i = 1; i < group.length; i++) {
+        final previous = group[i - 1].nutrition!.portion.proteinG.clamp(0, 50);
+        final current = group[i].nutrition!.portion.proteinG.clamp(0, 50);
+        expect(previous, greaterThanOrEqualTo(current));
+      }
+    }
+    expect(
+        select(RecipeFilter.fits, 350, 50)
+            .every((e) => e.nutrition!.portion.kcal <= 350),
+        isTrue);
+    expect(
+        select(RecipeFilter.highProtein, 350, 50)
+            .every((e) => e.nutrition!.portion.proteinG >= 30),
+        isTrue);
+    expect(
+        select(RecipeFilter.quick, 350, 50)
+            .every((e) => e.recipe.minutes <= 10),
+        isTrue);
+    expect(select(RecipeFilter.fits, null, null).length, 10);
+    expect(select(RecipeFilter.fits, 0, 50).length, 10);
+    expect(select(RecipeFilter.fits, -100, 50).length, 10);
+  });
+
+  testWidgets('remaining totals, filters and unavailable states update live',
+      (tester) async {
+    final oldTarget = appState.targetCalories;
+    final oldMeals = List<MealItem>.of(appState.meals);
+    final oldLoading = appState.activityLoading;
+    final oldError = appState.activityError;
+    addTearDown(() {
+      appState.targetCalories = oldTarget;
+      appState.meals
+        ..clear()
+        ..addAll(oldMeals);
+      appState.activityLoading = oldLoading;
+      appState.activityError = oldError;
+    });
+    appState.targetCalories = 1000;
+    appState.activityLoading = false;
+    appState.activityError = null;
+    appState.meals.clear();
+    await tester.pumpWidget(_app(RecipesScreen(
+      accountId: () => 'a',
+      database: CaloriesTestDatabase(FoodDatabase()),
+    )));
+    await tester.pumpAndSettle();
+    final initialProtein = CalorieTarget.calculateMacros(
+      1000,
+      appState.profile.hasWeight ? appState.profile.weightKg : null,
+      appState.calorieTarget.goal,
+      appState.calorieTarget.age,
+    ).protein;
+    expect(find.text('Remaining today: 1000 kcal · $initialProtein g protein'),
+        findsOneWidget);
+    expect(find.text('Fits today'), findsWidgets);
+
+    await tester.tap(find.text('High protein'));
+    await tester.pumpAndSettle();
+    expect(find.text('Greek Yogurt and Banana'), findsNothing);
+    expect(find.text('Chicken and Rice Bowl'), findsOneWidget);
+    await tester.tap(find.text('All'));
+    await tester.pumpAndSettle();
+    appState.targetCalories = 200;
+    appState.notifyListeners();
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Over by'), findsWidgets);
+    appState.meals.add(const MealItem(
+        id: 'm',
+        name: 'Meal',
+        time: '',
+        calories: 1000,
+        proteinGrams: 20,
+        carbsGrams: 0,
+        fatGrams: 0,
+        fiberGrams: 0,
+        icon: '',
+        consumed: true,
+        category: MealCategory.lunch));
+    appState.notifyListeners();
+    await tester.pumpAndSettle();
+    expect(find.text("You have reached today's target"), findsOneWidget);
+    final newProtein = CalorieTarget.calculateMacros(
+      200,
+      appState.profile.hasWeight ? appState.profile.weightKg : null,
+      appState.calorieTarget.goal,
+      appState.calorieTarget.age,
+    ).protein;
+    expect(
+        find.text(
+            'Remaining today: 0 kcal · ${newProtein > 20 ? newProtein - 20 : 0} g protein'),
+        findsOneWidget);
+    expect(find.textContaining('Over by'), findsNothing);
+    expect(
+        find.descendant(
+            of: find.byType(Panel), matching: find.text('Fits today')),
+        findsNothing);
+    appState.targetCalories = 0;
+    appState.notifyListeners();
+    await tester.pumpAndSettle();
+    expect(find.text('Daily target unavailable.'), findsOneWidget);
+    expect(find.text("You have reached today's target"), findsNothing);
+    expect(
+        find.descendant(
+            of: find.byType(Panel), matching: find.text('Fits today')),
+        findsNothing);
+    await tester.tap(find.text('Fits today'));
+    await tester.pumpAndSettle();
+    expect(find.text('No recipes match this filter.'), findsNothing);
+    appState.activityError = 'error';
+    appState.notifyListeners();
+    await tester.pumpAndSettle();
+    expect(find.text('Today’s activity is unavailable.'), findsOneWidget);
+  });
+
+  for (final scale in [1.0, 1.5]) {
+    testWidgets('compact recipes and academy fit 360x640 at scale $scale',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      Widget scaled(Widget child) => MaterialApp(
+            theme: buildTheme(),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(scale)),
+              child: child!,
+            ),
+            home: Scaffold(body: child),
+          );
+      await tester.pumpWidget(scaled(RecipesScreen(
+          accountId: () => 'a',
+          database: CaloriesTestDatabase(FoodDatabase()))));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 12; i++) {
+        await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+        await tester.pumpAndSettle();
+      }
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(scaled(const AcademyScreen()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Barbell Bench Press'));
+      await tester.pumpAndSettle();
+      expect(
+          find.textContaining('General information, not professional advice'),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('missing ingredient disables logging', (tester) async {
     const missing = Recipe(
       id: 'missing',
       name: 'Missing food',
-      prepTime: '1 min',
+      nameAr: 'طعام',
+      minutes: 1,
       difficulty: 'Easy',
       description: '',
       ingredients: [RecipeIngredient('does-not-exist', 100)],
+      steps: ['One', 'Two', 'Three'],
       emoji: '',
       category: MealCategory.lunch,
     );

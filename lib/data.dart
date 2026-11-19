@@ -6,15 +6,19 @@ class Recipe {
   const Recipe({
     required this.id,
     required this.name,
-    required this.prepTime,
+    required this.nameAr,
+    required this.minutes,
     required this.difficulty,
     required this.description,
     required this.ingredients,
+    required this.steps,
     required this.emoji,
     required this.category,
   });
-  final String id, name, prepTime, difficulty, description, emoji;
+  final String id, name, nameAr, difficulty, description, emoji;
+  final int minutes;
   final List<RecipeIngredient> ingredients;
+  final List<String> steps;
   final MealCategory category;
 }
 
@@ -28,7 +32,8 @@ const recipes = <Recipe>[
   Recipe(
     id: 'burger',
     name: 'Beef and Baladi Bread',
-    prepTime: '20 Mins',
+    nameAr: 'لحم مفروم مع خبز بلدي',
+    minutes: 20,
     difficulty: 'Easy / Medium',
     description:
         'Lean ground beef with baladi bread. Beef weight is before cooking.',
@@ -36,22 +41,188 @@ const recipes = <Recipe>[
       RecipeIngredient('raw_lean_ground_beef_90_10_raw', 150),
       RecipeIngredient('eg_baladi_bread_whole', 80),
     ],
+    steps: [
+      'Weigh the raw beef.',
+      'Cook the beef thoroughly.',
+      'Warm the bread and serve with the beef.'
+    ],
     emoji: '🍔',
     category: MealCategory.lunch,
   ),
   Recipe(
     id: 'shake',
     name: 'Banana Peanut Protein Shake',
-    prepTime: '5 Mins',
+    nameAr: 'مشروب البروتين بالموز وزبدة الفول السوداني',
+    minutes: 5,
     difficulty: 'Instant',
-    description: 'Blend the ingredients with water.',
+    description:
+        'Use fresh peeled banana and peanut butter made from roasted peanuts. Blend with water.',
     ingredients: [
       RecipeIngredient('raw_whey_protein_concentrate_powder', 30),
       RecipeIngredient('raw_banana_fresh_peeled', 100),
       RecipeIngredient('top_peanut_butter_natural', 15),
     ],
+    steps: [
+      'Peel and weigh the banana.',
+      'Add the whey, peanut butter and water.',
+      'Blend until smooth.'
+    ],
     emoji: '🥤',
     category: MealCategory.shake,
+  ),
+  Recipe(
+    id: 'areesh_bread',
+    name: 'Areesh Cheese and Baladi Bread',
+    nameAr: 'جبنة قريش مع خبز بلدي',
+    minutes: 5,
+    difficulty: 'Easy',
+    description: 'A quick Egyptian breakfast.',
+    ingredients: [
+      RecipeIngredient('eg_areesh_cheese', 200),
+      RecipeIngredient('eg_baladi_bread_whole', 50)
+    ],
+    steps: [
+      'Weigh the cheese.',
+      'Cut the bread.',
+      'Serve the cheese with the bread.'
+    ],
+    emoji: '🧀',
+    category: MealCategory.breakfast,
+  ),
+  Recipe(
+    id: 'ful_egg',
+    name: 'Ful and Boiled Eggs',
+    nameAr: 'فول وبيض مسلوق',
+    minutes: 10,
+    difficulty: 'Easy',
+    description: 'Use plain boiled ful without oil and already boiled eggs.',
+    ingredients: [
+      RecipeIngredient('eg_ful_medames_plain', 180),
+      RecipeIngredient('raw_whole_chicken_egg_boiled', 100)
+    ],
+    steps: [
+      'Weigh the prepared ful.',
+      'Heat the ful until steaming.',
+      'Peel and serve the boiled eggs alongside.'
+    ],
+    emoji: '🥚',
+    category: MealCategory.breakfast,
+  ),
+  Recipe(
+    id: 'chicken_rice',
+    name: 'Chicken and Rice Bowl',
+    nameAr: 'طبق دجاج وأرز',
+    minutes: 10,
+    difficulty: 'Easy',
+    description: 'Use cooked grilled chicken and plain steamed or boiled rice.',
+    ingredients: [
+      RecipeIngredient('raw_chicken_breast_grilled_cooked', 150),
+      RecipeIngredient('raw_white_rice_steamed_cooked', 100)
+    ],
+    steps: [
+      'Weigh the cooked chicken and rice.',
+      'Reheat until steaming hot.',
+      'Slice the chicken and serve over the rice.'
+    ],
+    emoji: '🍚',
+    category: MealCategory.lunch,
+  ),
+  Recipe(
+    id: 'chicken_molokhia',
+    name: 'Chicken and Molokhia',
+    nameAr: 'دجاج وملوخية',
+    minutes: 10,
+    difficulty: 'Easy',
+    description:
+        'Use cooked grilled chicken and molokhia cooked with chicken broth and garlic.',
+    ingredients: [
+      RecipeIngredient('raw_chicken_breast_grilled_cooked', 120),
+      RecipeIngredient('eg_molokhia_chicken_broth', 200)
+    ],
+    steps: [
+      'Weigh the cooked chicken and molokhia.',
+      'Reheat both until steaming hot.',
+      'Slice the chicken and serve with the molokhia.'
+    ],
+    emoji: '🍲',
+    category: MealCategory.dinner,
+  ),
+  Recipe(
+    id: 'yogurt_banana',
+    name: 'Greek Yogurt and Banana',
+    nameAr: 'زبادي يوناني وموز',
+    minutes: 5,
+    difficulty: 'Easy',
+    description: 'Use fresh peeled banana with chilled yogurt.',
+    ingredients: [
+      RecipeIngredient('snk_greek_yogurt_plain_lowfat', 200),
+      RecipeIngredient('raw_banana_fresh_peeled', 100)
+    ],
+    steps: [
+      'Weigh the yogurt.',
+      'Peel and slice the banana.',
+      'Serve the banana over the yogurt.'
+    ],
+    emoji: '🍌',
+    category: MealCategory.snack,
+  ),
+  Recipe(
+    id: 'areesh_egg',
+    name: 'Areesh Cheese and Egg Plate',
+    nameAr: 'طبق جبنة قريش وبيض',
+    minutes: 5,
+    difficulty: 'Easy',
+    description: 'Use an already boiled egg.',
+    ingredients: [
+      RecipeIngredient('eg_areesh_cheese', 150),
+      RecipeIngredient('raw_whole_chicken_egg_boiled', 50)
+    ],
+    steps: [
+      'Weigh the cheese.',
+      'Peel and weigh the boiled egg.',
+      'Slice the egg and serve with the cheese.'
+    ],
+    emoji: '🥚',
+    category: MealCategory.snack,
+  ),
+  Recipe(
+    id: 'taameya_areesh',
+    name: 'Baked Taameya and Areesh Plate',
+    nameAr: 'طعمية مخبوزة وجبنة قريش',
+    minutes: 10,
+    difficulty: 'Easy',
+    description: 'Use prepared baked or air-fried taameya.',
+    ingredients: [
+      RecipeIngredient('eg_taameya_airfried', 100),
+      RecipeIngredient('eg_areesh_cheese', 100)
+    ],
+    steps: [
+      'Weigh the prepared taameya.',
+      'Reheat the taameya until hot.',
+      'Serve with the cheese.'
+    ],
+    emoji: '🧆',
+    category: MealCategory.dinner,
+  ),
+  Recipe(
+    id: 'koshary_chicken',
+    name: 'Koshary and Grilled Chicken',
+    nameAr: 'كشري ودجاج مشوي',
+    minutes: 10,
+    difficulty: 'Easy',
+    description:
+        'Use prepared koshary with fried onions and sauce, and cooked grilled chicken.',
+    ingredients: [
+      RecipeIngredient('eg_koshary_traditional', 200),
+      RecipeIngredient('raw_chicken_breast_grilled_cooked', 100)
+    ],
+    steps: [
+      'Weigh the koshary and cooked chicken.',
+      'Reheat both until steaming hot.',
+      'Slice the chicken and serve with the koshary.'
+    ],
+    emoji: '🍽️',
+    category: MealCategory.lunch,
   ),
 ];
 

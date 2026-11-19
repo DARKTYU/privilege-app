@@ -36,26 +36,22 @@ class _AcademyScreenState extends State<AcademyScreen> {
           controller: controller,
           padding: const EdgeInsets.all(16),
           children: [
-            Stack(children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               imagePlaceholder(context,
-                  height: 180,
-                  radius: BorderRadius.circular(14),
+                  width: 56,
+                  height: 56,
+                  radius: BorderRadius.circular(12),
                   icon: Icons.fitness_center),
-              Positioned(
-                left: 12,
-                bottom: 10,
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      tag(g.subCategory, kGold),
-                      const SizedBox(height: 4),
-                      Text(g.title,
-                          style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              shadows: [Shadow(blurRadius: 6)])),
-                    ]),
-              ),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(g.title,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w800)),
+                    Text(g.subCategory),
+                  ])),
             ]),
             const SizedBox(height: 12),
             const Text(
@@ -146,56 +142,63 @@ class _AcademyScreenState extends State<AcademyScreen> {
           ),
         for (final g in filtered)
           InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _open(g),
-            child: Panel(
-              padding: EdgeInsets.zero,
-              margin: const EdgeInsets.only(bottom: 14),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(children: [
-                      imagePlaceholder(context,
-                          height: 150,
-                          radius: const BorderRadius.vertical(
-                              top: Radius.circular(16)),
-                          icon: Icons.fitness_center),
-                      Positioned(
-                          right: 10, top: 10, child: tag(g.difficulty, kGold)),
-                    ]),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _open(g),
+              child: Panel(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 14),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(g.subCategory.toUpperCase(),
-                                style: TextStyle(
-                                    fontSize: 10,
-                                    color: kGold,
-                                    fontWeight: FontWeight.w800)),
-                            Text(g.title,
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 4),
-                            Text('Muscles: ${g.muscles.join(', ')}',
-                                style: TextStyle(fontSize: 12, color: kMuted)),
-                            const SizedBox(height: 8),
-                            Row(children: [
-                              Icon(Icons.local_fire_department,
-                                  size: 14, color: kOrange),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                  child: Text(g.burnRate,
-                                      style: const TextStyle(fontSize: 12))),
-                              Text('Learn ',
-                                  style: TextStyle(fontSize: 12, color: kGold)),
-                              Icon(Icons.chevron_right, size: 16, color: kGold),
-                            ]),
+                            imagePlaceholder(context,
+                                width: 56,
+                                height: 56,
+                                radius: BorderRadius.circular(12),
+                                icon: Icons.fitness_center),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(g.subCategory.toUpperCase(),
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: kGold,
+                                            fontWeight: FontWeight.w800)),
+                                    Text(g.title,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800)),
+                                    Text(g.difficulty,
+                                        style: TextStyle(
+                                            color: kMuted, fontSize: 11)),
+                                    const SizedBox(height: 4),
+                                    Text('Muscles: ${g.muscles.join(', ')}',
+                                        style: TextStyle(
+                                            fontSize: 12, color: kMuted)),
+                                    const SizedBox(height: 8),
+                                    Row(children: [
+                                      Icon(Icons.local_fire_department,
+                                          size: 14, color: kOrange),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                          child: Text(g.burnRate,
+                                              style: const TextStyle(
+                                                  fontSize: 12))),
+                                      Text('Learn ',
+                                          style: TextStyle(
+                                              fontSize: 12, color: kGold)),
+                                      Icon(Icons.chevron_right,
+                                          size: 16, color: kGold),
+                                    ]),
+                                  ]),
+                            ),
                           ]),
-                    ),
-                  ]),
-            ),
-          ),
+                    ]),
+              )),
       ],
     );
   }

@@ -313,11 +313,12 @@ Widget toastBanner(String? msg) => msg == null
 
 Widget imagePlaceholder(BuildContext context,
         {required double height,
+        double? width,
         BorderRadius? radius,
         IconData icon = Icons.image_outlined}) =>
     Container(
       height: height,
-      width: double.infinity,
+      width: width ?? double.infinity,
       decoration: BoxDecoration(
         borderRadius: radius,
         gradient: LinearGradient(colors: [
