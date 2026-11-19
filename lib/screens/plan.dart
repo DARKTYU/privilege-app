@@ -154,7 +154,7 @@ class _PlanScreenState extends State<PlanScreen> {
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
-          childAspectRatio: 1.05,
+          childAspectRatio: 1.05 / MediaQuery.textScalerOf(context).scale(1),
           children: [
             for (var i = 0; i < 5; i++)
               InkWell(

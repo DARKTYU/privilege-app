@@ -311,44 +311,23 @@ Widget toastBanner(String? msg) => msg == null
         ]),
       );
 
-Widget netImage(String url,
-    {double? width,
-    double? height,
-    BorderRadius? radius,
-    IconData icon = Icons.image_outlined}) {
-  final fallback = Container(
-    width: width,
-    height: height,
-    color: kCard2,
-    alignment: Alignment.center,
-    child: Icon(icon, color: kMuted),
-  );
-  return ClipRRect(
-    borderRadius: radius ?? BorderRadius.zero,
-    child: Image.network(
-      url,
-      width: width,
+Widget imagePlaceholder(BuildContext context,
+        {required double height,
+        BorderRadius? radius,
+        IconData icon = Icons.image_outlined}) =>
+    Container(
       height: height,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => fallback,
-      loadingBuilder: (_, child, p) => p == null ? child : fallback,
-    ),
-  );
-}
-
-Widget avatar(String url, double size) => ClipOval(
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Image.network(
-          url,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: kCard2,
-            child: Icon(Icons.person, color: kMuted, size: size * 0.6),
-          ),
-        ),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        gradient: LinearGradient(colors: [
+          Theme.of(context).colorScheme.surfaceContainerHighest,
+          Theme.of(context).colorScheme.surface,
+        ]),
       ),
+      alignment: Alignment.center,
+      child:
+          Icon(icon, size: 40, color: Theme.of(context).colorScheme.onSurface),
     );
 
 Widget tag(String text, Color color) => Container(

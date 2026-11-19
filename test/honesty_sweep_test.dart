@@ -11,9 +11,13 @@ import 'package:privilege/screens/settings.dart';
 import 'package:privilege/screens/splits.dart';
 import 'package:privilege/screens/subscription.dart';
 import 'package:privilege/state.dart';
+import 'package:privilege/services/progression_repository.dart';
+import 'package:privilege/services/food_database.dart';
 import 'package:privilege/ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'progression_fake.dart';
+import 'calories_test_database.dart';
 
 Widget _app(Widget child) =>
     MaterialApp(theme: buildTheme(), home: Scaffold(body: child));
@@ -26,9 +30,12 @@ void _tallScreen(WidgetTester tester) {
 }
 
 void main() {
+  setUpAll(() async => FoodDatabase().load());
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     appState.profile = defaultUserProfile.copyWith(name: 'Sam Lee');
     appState.streak = 4;
+    appState.longestStreak = 9;
     appState.activityLoading = false;
     appState.activityError = null;
     appState.meals.clear();
@@ -46,12 +53,13 @@ void main() {
         type: BurnType.cardio,
         durationMin: 20,
         icon: ''));
-    await tester.pumpWidget(
-        _app(ChampionScreen(progressionRepository: FakeProgression())));
+    await tester.pumpWidget(_app(ChampionScreen(
+        progressionRepository: FakeProgression()
+          ..counts = const ActivityCounts(meals: 27, workouts: 42))));
     await tester.pumpAndSettle();
-    expect(find.text('Tracked by the app · 4 days'), findsOneWidget);
-    expect(find.text('Tracked by the app · 1'), findsOneWidget);
-    expect(find.text('Tracked by the app · 0'), findsOneWidget);
+    expect(find.text('Tracked by the app · 9 days'), findsOneWidget);
+    expect(find.text('Tracked by the app · 42'), findsOneWidget);
+    expect(find.text('Tracked by the app · 27'), findsOneWidget);
     expect(find.text('Tracked by the app · Bronze'), findsOneWidget);
     for (final name in [
       'Foundation',
@@ -83,7 +91,7 @@ void main() {
     await tester.pumpWidget(
         _app(ChampionScreen(progressionRepository: FakeProgression())));
     await tester.pumpAndSettle();
-    expect(find.text('Tracked by the app · Unavailable'), findsNWidgets(3));
+    expect(find.text('Tracked by the app · Unavailable'), findsOneWidget);
   });
 
   for (final tier in ['Free', 'Silver', 'Gold']) {
@@ -195,14 +203,18 @@ void main() {
     expect(find.textContaining('Added'), findsNothing);
   });
 
-  testWidgets('recipe favorites are explicitly temporary', (tester) async {
-    await tester.pumpWidget(_app(const RecipesScreen()));
-    expect(find.textContaining('Favorites are not saved yet.'), findsOneWidget);
+  testWidgets('recipe favorites are saved on this device', (tester) async {
+    await tester.pumpWidget(_app(RecipesScreen(
+        accountId: () => 'user-a',
+        database: CaloriesTestDatabase(FoodDatabase()))));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Favorites are saved on this device.'),
+        findsOneWidget);
     expect(find.textContaining('million recipes'), findsNothing);
     expect(find.text('Saved'), findsNothing);
-    await tester.tap(find.text('Favorite').first);
-    await tester.pump();
-    expect(find.text('Favorited'), findsOneWidget);
+    await tester.tap(find.byTooltip('Add favorite').first);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Remove favorite'), findsOneWidget);
   });
 
   for (final screen in <String, Widget Function()>{
@@ -212,7 +224,9 @@ void main() {
     'splits': () => SplitsScreen(progressionRepository: FakeProgression()),
     'cheat meals': () => const CheatsScreen(),
     'planner': () => const PlanScreen(),
-    'recipes': () => const RecipesScreen(),
+    'recipes': () => RecipesScreen(
+        accountId: () => 'user-a',
+        database: CaloriesTestDatabase(FoodDatabase())),
   }.entries) {
     testWidgets('${screen.key} scrolls without overflow at 360 x 640',
         (tester) async {

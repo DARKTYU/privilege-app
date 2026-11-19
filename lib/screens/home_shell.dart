@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../ui.dart';
+import '../services/progression_repository.dart';
 import 'alerts.dart';
 import 'calories.dart';
 import 'plan.dart';
@@ -8,7 +9,9 @@ import 'profile.dart';
 import 'splits.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({super.key, this.alertBell, this.progressionRepository});
+  final Widget? alertBell;
+  final ProgressionDataSource? progressionRepository;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -34,11 +37,17 @@ class _HomeShellState extends State<HomeShell> {
       borderRadius: BorderRadius.circular(12),
       onTap: () => setState(() => _i = i),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, color: on ? kGold : kMuted),
-          Text(label,
-              style: TextStyle(fontSize: 11, color: on ? kGold : kMuted)),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label,
+                  maxLines: 1,
+                  style: TextStyle(fontSize: 11, color: on ? kGold : kMuted)),
+            ),
+          ),
         ]),
       ),
     );
@@ -73,29 +82,29 @@ class _HomeShellState extends State<HomeShell> {
       builder: () => Scaffold(
         body: SafeArea(
           child: Column(children: [
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
-              child: AlertBell(),
+              child: widget.alertBell ?? const AlertBell(),
             ),
             Expanded(
               child: IndexedStack(
                 index: _i,
                 children: [
-                  PlanScreen(),
-                  SplitsScreen(),
-                  CaloriesSection(),
-                  ProfileScreen(),
+                  const PlanScreen(),
+                  SplitsScreen(
+                      progressionRepository: widget.progressionRepository),
+                  const CaloriesSection(),
+                  ProfileScreen(
+                      progressionRepository: widget.progressionRepository),
                 ],
               ),
             ),
             SizedBox(
-              height: _i == 2 ? 80 : 44,
-              child: _i == 2
-                  ? Column(children: [
-                      _shortcutList(caloriesTab: true),
-                      const SizedBox(height: 28),
-                    ])
-                  : _shortcutList(caloriesTab: false),
+              height: 80,
+              child: Column(children: [
+                _shortcutList(caloriesTab: true),
+                const SizedBox(height: 28),
+              ]),
             ),
           ]),
         ),
@@ -113,13 +122,12 @@ class _HomeShellState extends State<HomeShell> {
           surfaceTintColor: Colors.transparent,
           shape: const CircularNotchedRectangle(),
           notchMargin: 8,
-          child:
-              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _nav(0, Icons.home_rounded, 'Home'),
-            _nav(1, Icons.shuffle, 'Splits'),
+          child: Row(children: [
+            Expanded(child: _nav(0, Icons.home_rounded, 'Home')),
+            Expanded(child: _nav(1, Icons.shuffle, 'Splits')),
             const SizedBox(width: 48),
-            _nav(2, Icons.local_fire_department, 'Calories'),
-            _nav(3, Icons.person, 'Profile'),
+            Expanded(child: _nav(2, Icons.local_fire_department, 'Calories')),
+            Expanded(child: _nav(3, Icons.person, 'Profile')),
           ]),
         ),
       ),

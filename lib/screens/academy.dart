@@ -37,10 +37,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Stack(children: [
-              netImage(g.image,
-                  width: double.infinity,
+              imagePlaceholder(context,
                   height: 180,
-                  radius: BorderRadius.circular(14)),
+                  radius: BorderRadius.circular(14),
+                  icon: Icons.fitness_center),
               Positioned(
                 left: 12,
                 bottom: 10,
@@ -57,6 +57,9 @@ class _AcademyScreenState extends State<AcademyScreen> {
                     ]),
               ),
             ]),
+            const SizedBox(height: 12),
+            const Text(
+                'General information, not professional advice. Check with a qualified coach or doctor.'),
             sectionTitle('Key Execution Cues'),
             for (final c in g.cues)
               Padding(
@@ -152,8 +155,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Stack(children: [
-                      netImage(g.image,
-                          width: double.infinity,
+                      imagePlaceholder(context,
                           height: 150,
                           radius: const BorderRadius.vertical(
                               top: Radius.circular(16)),

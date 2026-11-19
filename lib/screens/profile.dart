@@ -173,7 +173,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                         : snapshot.hasError
                             ? 'Membership unavailable'
                             : 'Privilege ${snapshot.data} Member',
-                    actions: [
+                  ),
+                  Wrap(
+                    children: [
                       IconButton(
                         tooltip: 'Settings',
                         onPressed: () =>
@@ -320,42 +322,51 @@ class _ProfileScreenState extends State<ProfileScreen>
                               color: kMuted,
                               fontStyle: FontStyle.italic)),
                       const SizedBox(height: 12),
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 2.2,
-                        children: [
-                          _stat(
-                              Icons.monitor_weight_outlined,
-                              'Current Weight',
-                              p.hasWeight
-                                  ? '${p.weightKg.round()} kg'
-                                  : 'Not set',
-                              kRed),
-                          _stat(
-                              Icons.straighten,
-                              'Height',
-                              p.hasHeight
-                                  ? '${p.heightCm.round()} cm'
-                                  : 'Not set',
-                              kCyan),
-                          _stat(
-                              Icons.local_fire_department,
-                              'Calorie Goal',
-                              appState.targetCalories > 0
-                                  ? '${fmt(appState.targetCalories)} kcal${appState.calorieTarget.isEstimate ? ' • Estimated' : ''}'
-                                  : 'Not set',
-                              kOrange),
-                        ],
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final width = (constraints.maxWidth - 8) / 2;
+                          return Wrap(spacing: 8, runSpacing: 8, children: [
+                            SizedBox(
+                                width: width,
+                                child: _stat(
+                                    Icons.monitor_weight_outlined,
+                                    'Current Weight',
+                                    p.hasWeight
+                                        ? '${p.weightKg.round()} kg'
+                                        : 'Not set',
+                                    kRed)),
+                            SizedBox(
+                                width: width,
+                                child: _stat(
+                                    Icons.straighten,
+                                    'Height',
+                                    p.hasHeight
+                                        ? '${p.heightCm.round()} cm'
+                                        : 'Not set',
+                                    kCyan)),
+                            SizedBox(
+                                width: width,
+                                child: _stat(
+                                    Icons.local_fire_department,
+                                    'Calorie Goal',
+                                    appState.targetCalories > 0
+                                        ? '${fmt(appState.targetCalories)} kcal${appState.calorieTarget.isEstimate ? ' • Estimated' : ''}'
+                                        : 'Not set',
+                                    kOrange)),
+                          ]);
+                        },
                       ),
                       TextButton.icon(
                         onPressed: () =>
                             showCalorieProfileSheet(context, appState),
                         icon: const Icon(Icons.monitor_heart_outlined),
-                        label: const Text('Complete your calorie profile'),
+                        label: Text(p.birthDate == null ||
+                                p.sex == null ||
+                                p.activity == null ||
+                                !p.hasWeight ||
+                                !p.hasHeight
+                            ? 'Complete your calorie profile'
+                            : 'Edit calorie profile'),
                       ),
                     ]),
               ),

@@ -6,60 +6,49 @@ class Recipe {
   const Recipe({
     required this.id,
     required this.name,
-    required this.image,
     required this.prepTime,
     required this.difficulty,
-    required this.protein,
-    required this.calories,
     required this.description,
     required this.ingredients,
     required this.emoji,
     required this.category,
   });
-  final String id, name, image, prepTime, difficulty, description, emoji;
-  final int protein, calories;
-  final List<String> ingredients;
+  final String id, name, prepTime, difficulty, description, emoji;
+  final List<RecipeIngredient> ingredients;
   final MealCategory category;
+}
+
+class RecipeIngredient {
+  const RecipeIngredient(this.foodId, this.grams);
+  final String foodId;
+  final double grams;
 }
 
 const recipes = <Recipe>[
   Recipe(
     id: 'burger',
-    name: 'High-Protein Burger',
-    image:
-        'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+    name: 'Beef and Baladi Bread',
     prepTime: '20 Mins',
     difficulty: 'Easy / Medium',
-    protein: 48,
-    calories: 520,
     description:
-        'Natural and high-protein with savory lean ground sirloin and fresh greens.',
+        'Lean ground beef with baladi bread. Beef weight is before cooking.',
     ingredients: [
-      '96% Lean Grass-fed Beef',
-      'Whole-grain seeded brioche',
-      'Aged low-fat sharp cheddar',
-      'Crisp romaine lettuce & tomato',
-      'Avocado olive oil spread',
+      RecipeIngredient('raw_lean_ground_beef_90_10_raw', 150),
+      RecipeIngredient('eg_baladi_bread_whole', 80),
     ],
     emoji: '🍔',
     category: MealCategory.lunch,
   ),
   Recipe(
     id: 'shake',
-    name: 'Anabolic Muscle Shake',
-    image:
-        'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&auto=format&fit=crop&q=80',
+    name: 'Banana Peanut Protein Shake',
     prepTime: '5 Mins',
     difficulty: 'Instant',
-    protein: 42,
-    calories: 380,
-    description:
-        'Rapid post-workout glycogen replenishment and whey isolate protein.',
+    description: 'Blend the ingredients with water.',
     ingredients: [
-      'Whey protein isolate',
-      'Almond milk & banana',
-      'Organic peanut butter',
-      'Creatine monohydrate 5g',
+      RecipeIngredient('raw_whey_protein_concentrate_powder', 30),
+      RecipeIngredient('raw_banana_fresh_peeled', 100),
+      RecipeIngredient('top_peanut_butter_natural', 15),
     ],
     emoji: '🥤',
     category: MealCategory.shake,
@@ -195,12 +184,11 @@ class ExerciseGuide {
     required this.subCategory,
     required this.difficulty,
     required this.muscles,
-    required this.image,
     required this.cues,
     required this.mistakes,
     required this.burnRate,
   });
-  final String id, title, category, subCategory, difficulty, image, burnRate;
+  final String id, title, category, subCategory, difficulty, burnRate;
   final List<String> muscles, cues, mistakes;
 }
 
@@ -212,8 +200,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Chest & Triceps Drive',
     difficulty: 'Beginner',
     muscles: ['Pectoralis Major', 'Anterior Deltoids', 'Triceps Brachii'],
-    image:
-        'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&auto=format&fit=crop&q=80',
     burnRate: '120 kcal / 15 mins',
     cues: [
       'Retract and depress scapulae firmly against the bench pad.',
@@ -234,8 +220,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Leg Hypertrophy & Power',
     difficulty: 'Intermediate',
     muscles: ['Quadriceps', 'Gluteus Maximus', 'Hamstrings', 'Erector Spinae'],
-    image:
-        'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=600&auto=format&fit=crop&q=80',
     burnRate: '180 kcal / 15 mins',
     cues: [
       'Set feet shoulder-width apart, toes angled out 15-30 degrees.',
@@ -256,8 +240,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Posterior Chain Dominance',
     difficulty: 'Intermediate',
     muscles: ['Hamstrings', 'Glutes', 'Lats', 'Trapezius', 'Core'],
-    image:
-        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
     burnRate: '200 kcal / 15 mins',
     cues: [
       'Bar directly over mid-foot with shins 1 inch away before setup.',
@@ -278,8 +260,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Agility & Vertical Power',
     difficulty: 'Beginner',
     muscles: ['Calves', 'Quadriceps', 'Hip Flexors', 'Cardiovascular Engine'],
-    image:
-        'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=80',
     burnRate: '250 kcal / 20 mins',
     cues: [
       'Maintain low athletic defensive stance with center of gravity centered.',
@@ -299,8 +279,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Rotational Power & Anaerobic HIIT',
     difficulty: 'Intermediate',
     muscles: ['Core Rotators', 'Shoulders', 'Lats', 'Calves'],
-    image:
-        'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=600&auto=format&fit=crop&q=80',
     burnRate: '280 kcal / 20 mins',
     cues: [
       'Bladed stance with knees soft, hands shielding chin, chin tucked.',
@@ -320,8 +298,6 @@ const guides = <ExerciseGuide>[
     subCategory: 'Nutrition, Overload & Recovery',
     difficulty: 'Beginner',
     muscles: ['Full Body Mindset', 'Metabolic Health'],
-    image:
-        'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&auto=format&fit=crop&q=80',
     burnRate: 'Lifetime Knowledge',
     cues: [
       'Target 1.6 - 2.2g of protein per kg of bodyweight to rebuild muscle.',
@@ -338,21 +314,6 @@ const guides = <ExerciseGuide>[
 
 // ───────────────────────── streak arena ─────────────────────────
 
-class Friend {
-  const Friend(this.name, this.streak, this.avatar);
-  final String name, avatar;
-  final int streak;
-}
-
-const arenaFriends = <Friend>[
-  Friend('Marcus L.', 42,
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop'),
-  Friend('Sarah K.', 28,
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop'),
-  Friend('David T.', 21,
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop'),
-];
-
 class Reward {
   const Reward(this.name, this.cost, this.icon);
   final String name;
@@ -366,8 +327,3 @@ const rewards = <Reward>[
   Reward('1 week of Privilege Pro', 800, '👑'),
   Reward('Championship badge', 1200, '🏆'),
 ];
-
-const avatarRival1 =
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop';
-const avatarRival2 =
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop';

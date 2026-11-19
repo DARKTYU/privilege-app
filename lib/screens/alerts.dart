@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/community_models.dart';
 import '../services/community_repository.dart';
 import '../services/groups_repository.dart';
+import '../services/storage_image.dart';
 import '../ui.dart';
 import 'community.dart';
 import 'groups.dart';
@@ -229,10 +230,7 @@ class _AlertsPageState extends State<AlertsPage> {
                                 isLabelVisible: !item.isRead,
                                 child: CircleAvatar(
                                   backgroundColor: kCard2,
-                                  foregroundImage: item.avatarUrl == null ||
-                                          item.avatarUrl!.isEmpty
-                                      ? null
-                                      : NetworkImage(item.avatarUrl!),
+                                  foregroundImage: storageImage(item.avatarUrl),
                                   child: Text(
                                       (item.fullName?.trim().isNotEmpty == true
                                               ? item.fullName!.trim()

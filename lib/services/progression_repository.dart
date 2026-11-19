@@ -53,6 +53,11 @@ class AchievementProgress {
   final int progress, threshold, xp;
 }
 
+class ActivityCounts {
+  const ActivityCounts({required this.meals, required this.workouts});
+  final int meals, workouts;
+}
+
 class StoreSnapshot {
   const StoreSnapshot(this.balance, this.tokens, this.rewards,
       {this.tier = 'Free'});
@@ -76,6 +81,7 @@ abstract interface class ProgressionDataSource {
   Future<StoreSnapshot> store();
   Future<List<BadgeProgress>> badges();
   Future<List<AchievementProgress>> achievements();
+  Future<ActivityCounts> activityCounts();
   Future<List<BadgeProgress>> publicBadges(String userId);
   Future<void> redeem(String rewardId, String requestId);
 }
@@ -246,6 +252,21 @@ class ProgressionRepository implements ProgressionDataSource {
               (row['xp_award'] as num).toInt(),
             ))
         .toList();
+  }
+
+  @override
+  Future<ActivityCounts> activityCounts() async {
+    final userId = _userId;
+    final meals = await _request(() => client
+        .from('meal_logs')
+        .count(CountOption.exact)
+        .eq('user_id', userId)
+        .eq('consumed', true));
+    final workouts = await _request(() => client
+        .from('workout_logs')
+        .count(CountOption.exact)
+        .eq('user_id', userId));
+    return ActivityCounts(meals: meals, workouts: workouts);
   }
 
   @override

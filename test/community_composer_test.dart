@@ -5,6 +5,7 @@ import 'package:privilege/models/community_models.dart';
 import 'package:privilege/models/community_post.dart';
 import 'package:privilege/screens/community.dart';
 import 'package:privilege/services/community_repository.dart';
+import 'package:privilege/supabase_config.dart';
 import 'package:privilege/ui.dart';
 import 'package:privilege/widgets/post_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -270,7 +271,7 @@ class _FakeCommunityRepository extends CommunityRepository {
 
   @override
   Future<String> signedImageUrl(String path) async =>
-      'https://example.com/image.png';
+      '${SupabaseConfig.url}/storage/v1/object/sign/posts/image.png';
 
   @override
   Future<List<CommunityPerson>> searchUsers(String query) async => people;

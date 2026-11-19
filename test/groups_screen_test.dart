@@ -6,6 +6,7 @@ import 'package:privilege/models/community_models.dart';
 import 'package:privilege/services/community_repository.dart';
 import 'package:privilege/services/groups_repository.dart';
 import 'package:privilege/widgets/post_image.dart';
+import 'package:privilege/supabase_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
@@ -130,7 +131,7 @@ void main() {
     expect(repo.lastParams?['p_avatar_url'], repo.avatarUrl);
   });
 
-  testWidgets('existing group avatar URL is displayed', (tester) async {
+  testWidgets('external group avatar URL is not loaded', (tester) async {
     final repo = _GroupsRepo(client)
       ..avatarUrl = 'https://example.com/group-avatar.png';
     await tester.pumpWidget(
@@ -138,12 +139,12 @@ void main() {
     await tester.pumpAndSettle();
     final avatar = tester.widget<CircleAvatar>(find.descendant(
         of: find.byType(GroupAvatar), matching: find.byType(CircleAvatar)));
-    expect(avatar.foregroundImage, NetworkImage(repo.avatarUrl!));
+    expect(avatar.foregroundImage, isNull);
     await tester.tap(find.text('Fitness friends'));
     await tester.pumpAndSettle();
     final pageAvatar = tester.widget<CircleAvatar>(find.descendant(
         of: find.byType(GroupAvatar), matching: find.byType(CircleAvatar)));
-    expect(pageAvatar.foregroundImage, NetworkImage(repo.avatarUrl!));
+    expect(pageAvatar.foregroundImage, isNull);
   });
 
   testWidgets('join failures show a clear message', (tester) async {
@@ -638,13 +639,15 @@ class _GroupsRepo extends GroupsRepository {
   @override
   Future<List<Map<String, dynamic>>> likes(String id) async => [];
   @override
-  Future<String> imageUrl(String path) async => 'https://example.com/image.png';
+  Future<String> imageUrl(String path) async =>
+      '${SupabaseConfig.url}/storage/v1/object/sign/posts/image.png';
   @override
   Future<Map<String, dynamic>?> profile(String id) async => showPost
       ? {
           'username': 'hossam',
           'full_name': 'Hossam Ahmed',
-          'avatar_url': 'https://example.com/avatar.png'
+          'avatar_url':
+              '${SupabaseConfig.url}/storage/v1/object/public/avatars/avatar.png'
         }
       : {'username': id};
   @override

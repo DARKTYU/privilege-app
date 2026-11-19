@@ -76,20 +76,28 @@ class _ChampionScreenState extends State<ChampionScreen> {
               const Text('Self-reported progress, not verified or certified'),
               const SizedBox(height: 12),
               _step('Foundation', [
-                _tracked(
-                    'Current streak', activity ?? '${appState.streak} days'),
+                _tracked('Longest streak (all time)',
+                    activity ?? '${appState.longestStreak} days'),
                 _selfReported('Set a personal training goal'),
                 _outside('Learn the basics of your chosen sport'),
               ]),
               _step('Novice', [
-                _tracked('Workouts logged today',
-                    activity ?? '${appState.burns.length}'),
+                LiveProgress<ActivityCounts>(
+                  repository: _progression,
+                  load: _progression.activityCounts,
+                  builder: (context, counts) => _tracked(
+                      'Workouts logged (all time)', '${counts.workouts}'),
+                ),
                 _selfReported('Practice a consistent routine'),
                 _outside('Ask a qualified coach for feedback'),
               ]),
               _step('Competitor-ready', [
-                _tracked('Meals logged today',
-                    activity ?? '${appState.meals.length}'),
+                LiveProgress<ActivityCounts>(
+                  repository: _progression,
+                  load: _progression.activityCounts,
+                  builder: (context, counts) => _tracked(
+                      'Consumed meals logged (all time)', '${counts.meals}'),
+                ),
                 _selfReported('Practice your event skills'),
                 _outside('Review an event organizer’s requirements'),
               ]),

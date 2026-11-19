@@ -9,6 +9,14 @@ class FakeProgression implements ProgressionDataSource {
   final List<String> requests = [];
   int redemptions = 0;
   String tier = 'Free';
+  ActivityCounts counts = const ActivityCounts(meals: 0, workouts: 0);
+  Object? countsError;
+  @override
+  Future<ActivityCounts> activityCounts() async {
+    if (countsError != null) throw countsError!;
+    return counts;
+  }
+
   List<StoreReward>? rewardList;
   List<BadgeProgress>? badgeList;
   List<AchievementProgress>? achievementList;

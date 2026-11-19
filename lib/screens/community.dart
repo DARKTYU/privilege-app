@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/community_models.dart';
 import '../models/community_post.dart';
 import '../services/community_repository.dart';
+import '../services/storage_image.dart';
 import '../services/progression_repository.dart';
 import '../services/groups_repository.dart';
 import '../ui.dart';
@@ -561,8 +562,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       child: Center(child: CircularProgressIndicator()),
                     );
                   }
+                  final image = storageImage(snapshot.data);
+                  if (image == null) {
+                    return const Text('Post image is unavailable.');
+                  }
                   return PostImage(
-                    image: NetworkImage(snapshot.data!),
+                    image: image,
                     onRetry: () => setState(() {
                       _imageUrls.remove(post.imagePath);
                     }),
@@ -785,7 +790,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     return CircleAvatar(
       radius: size / 2,
       backgroundColor: kCard2,
-      foregroundImage: url == null || url.isEmpty ? null : NetworkImage(url),
+      foregroundImage: storageImage(url),
       child: Text(initial),
     );
   }
@@ -1131,10 +1136,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     ListTile(
                       leading: CircleAvatar(
                         backgroundColor: kCard2,
-                        foregroundImage: person.avatarUrl == null ||
-                                person.avatarUrl!.isEmpty
-                            ? null
-                            : NetworkImage(person.avatarUrl!),
+                        foregroundImage: storageImage(person.avatarUrl),
                         child: Text(person.username.isEmpty
                             ? '?'
                             : person.username.characters.first.toUpperCase()),
@@ -1187,7 +1189,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           if (!snapshot.hasData) {
                             return const LinearProgressIndicator();
                           }
-                          return PostImage(image: NetworkImage(snapshot.data!), maxHeight: 100);
+                          final image = storageImage(snapshot.data);
+                          if (image == null) {
+                            return const Text('Post image is unavailable.');
+                          }
+                          return PostImage(image: image, maxHeight: 100);
                         },
                       ),
                   ],
@@ -1248,20 +1254,12 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                               CircleAvatar(
                                                 radius: 8,
                                                 backgroundColor: kCard2,
-                                                foregroundImage: comment
-                                                                .postAuthorAvatarUrl ==
-                                                            null ||
-                                                        comment
-                                                            .postAuthorAvatarUrl!
-                                                            .isEmpty
-                                                    ? null
-                                                    : NetworkImage(comment
-                                                        .postAuthorAvatarUrl!),
-                                                child: comment.postAuthorAvatarUrl ==
-                                                            null ||
-                                                        comment
-                                                            .postAuthorAvatarUrl!
-                                                            .isEmpty
+                                                foregroundImage: storageImage(
+                                                    comment
+                                                        .postAuthorAvatarUrl),
+                                                child: storageImage(comment
+                                                            .postAuthorAvatarUrl) ==
+                                                        null
                                                     ? const Icon(Icons.person,
                                                         size: 10)
                                                     : null,
@@ -1412,9 +1410,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                 CircleAvatar(
                   radius: 38,
                   backgroundColor: kCard2,
-                  foregroundImage: profile.avatarUrl == null
-                      ? null
-                      : NetworkImage(profile.avatarUrl!),
+                  foregroundImage: storageImage(profile.avatarUrl),
                   child: Text(name.characters.first.toUpperCase(),
                       style: const TextStyle(fontSize: 24)),
                 ),

@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/groups_repository.dart';
 import '../services/community_repository.dart';
+import '../services/storage_image.dart';
 import '../models/community_models.dart';
 import '../widgets/post_image.dart';
 
@@ -107,8 +108,8 @@ class _GroupAvatarState extends State<GroupAvatar> {
         ImageProvider? image;
         if (widget.preview != null) {
           image = MemoryImage(widget.preview!);
-        } else if (url != null && url.isNotEmpty) {
-          image = NetworkImage(url);
+        } else {
+          image = storageImage(url);
         }
         return CircleAvatar(
           backgroundColor: palette[hash % palette.length],
@@ -353,9 +354,10 @@ String _profileName(Map<String, dynamic>? profile) {
 Widget _personAvatar(Map<String, dynamic>? profile) {
   final name = _profileName(profile);
   final url = profile?['avatar_url'] as String?;
+  final image = storageImage(url);
   return CircleAvatar(
-    foregroundImage: url == null || url.isEmpty ? null : NetworkImage(url),
-    onForegroundImageError: url == null || url.isEmpty
+    foregroundImage: image,
+    onForegroundImageError: image == null
         ? null
         : (error, stack) => debugPrint('Could not load profile avatar: $error'),
     child: Text(name.characters.first.toUpperCase()),
@@ -1508,9 +1510,11 @@ class _GroupPostState extends State<_GroupPost> {
                       child: const Text('Image unavailable. Retry'));
                 }
                 if (!snapshot.hasData) return const LinearProgressIndicator();
-                return PostImage(
-                    image: NetworkImage(snapshot.data!),
-                    onRetry: () => setState(() {}));
+                final image = storageImage(snapshot.data);
+                if (image == null) {
+                  return const Text('Image unavailable.');
+                }
+                return PostImage(image: image, onRetry: () => setState(() {}));
               }),
         FutureBuilder(
             future: likes,

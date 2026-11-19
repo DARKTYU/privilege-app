@@ -7,6 +7,60 @@ import 'package:privilege/services/progression_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  test('activity totals use the same all-time rules as achievements', () async {
+    final requests = <http.Request>[];
+    final mock = MockClient((request) async {
+      requests.add(request);
+      if (request.url.path.endsWith('/token')) {
+        return http.Response(
+            jsonEncode({
+              'access_token': 'token',
+              'refresh_token': 'refresh',
+              'token_type': 'bearer',
+              'expires_in': 3600,
+              'user': {
+                'id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+                'aud': 'authenticated',
+                'created_at': '2026-01-01T00:00:00Z',
+              }
+            }),
+            200,
+            request: request,
+            headers: {'content-type': 'application/json'});
+      }
+      if (request.url.path.endsWith('/meal_logs') ||
+          request.url.path.endsWith('/workout_logs')) {
+        final count = request.url.path.endsWith('/meal_logs') ? 2450 : 1870;
+        return http.Response('', 200, request: request, headers: {
+          'content-range': '*/$count',
+          'content-type': 'application/json',
+        });
+      }
+      return http.Response('Unexpected request', 500);
+    });
+    final client = SupabaseClient('https://example.supabase.co', 'test-key',
+        httpClient: mock,
+        authOptions: const AuthClientOptions(autoRefreshToken: false));
+    await client.auth
+        .signInWithPassword(email: 'a@example.com', password: 'password');
+    final counts = await ProgressionRepository(client: client).activityCounts();
+    expect(counts.meals, 2450);
+    expect(counts.workouts, 1870);
+    final meals =
+        requests.singleWhere((r) => r.url.path.endsWith('/meal_logs'));
+    final workouts =
+        requests.singleWhere((r) => r.url.path.endsWith('/workout_logs'));
+    expect(meals.url.queryParameters['user_id'],
+        'eq.aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(workouts.url.queryParameters['user_id'],
+        'eq.aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(meals.url.queryParameters['consumed'], 'eq.true');
+    expect(workouts.url.queryParameters.containsKey('activity_date'), isFalse);
+    expect(meals.url.queryParameters.containsKey('logged_date'), isFalse);
+    expect(meals.headers['prefer'], contains('count=exact'));
+    await client.dispose();
+  });
+
   test('membership chooses highest current active plan or Free', () async {
     var subscriptions = <Map<String, dynamic>>[];
     final mock = MockClient((request) async {
