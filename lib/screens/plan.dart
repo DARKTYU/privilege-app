@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../ui.dart';
@@ -24,8 +22,6 @@ class _PlanScreenState extends State<PlanScreen> {
   late int _selected;
   double _duration = 60;
   double _intensity = 80;
-  String? _toast;
-  Timer? _timer;
 
   static const _cardNames = [
     'Push / Delts',
@@ -59,26 +55,11 @@ class _PlanScreenState extends State<PlanScreen> {
     _selected = now.weekday % 7;
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   void _toggle(int i) => setState(() {
         final d = _week[i];
         d.title = d.workout ? 'Rest Day' : 'Workout Day';
         d.workout = !d.workout;
       });
-
-  void _quickAdd() {
-    setState(() => _toast =
-        'Added ${_duration.round()}m session (${_intensity.round()}% intensity) to Day ${_week[_selected].date.day}!');
-    _timer?.cancel();
-    _timer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) setState(() => _toast = null);
-    });
-  }
 
   Widget _stepper(String label, String value, double v, double min, double max,
       int div, ValueChanged<double> onChanged, double step) {
@@ -213,7 +194,6 @@ class _PlanScreenState extends State<PlanScreen> {
               ),
             InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: () => _toggle(_selected),
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
@@ -232,6 +212,8 @@ class _PlanScreenState extends State<PlanScreen> {
           ],
         ),
         const SizedBox(height: 16),
+        Text('Not saved yet', style: TextStyle(color: kMuted, fontSize: 12)),
+        const SizedBox(height: 8),
         Panel(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -258,11 +240,7 @@ class _PlanScreenState extends State<PlanScreen> {
                 (v) => setState(() => _intensity = v),
                 10),
             const SizedBox(height: 4),
-            PrimaryButton('Quick Add', icon: Icons.add, onPressed: _quickAdd),
-            if (_toast != null) ...[
-              const SizedBox(height: 10),
-              toastBanner(_toast)
-            ],
+            const PrimaryButton('Quick Add', icon: Icons.add, onPressed: null),
           ]),
         ),
       ],

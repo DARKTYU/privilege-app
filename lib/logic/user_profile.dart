@@ -1,4 +1,3 @@
-import 'fitness_logic.dart';
 import 'calorie_target.dart';
 
 /// Port of src/types/user.ts
@@ -11,14 +10,8 @@ class UserProfile {
     required this.targetGoal,
     required this.experienceLevel,
     required this.bio,
-    required this.avatarUrl,
-    required this.bodyFatPercent,
-    required this.muscleMassKg,
-    required this.naturalVerified,
     required this.dailyCalorieTarget,
     required this.onboardingCompleted,
-    required this.subscriptionTier,
-    required this.subscriptionRenewalDate,
     this.birthDate,
     this.sex,
     this.activity,
@@ -28,17 +21,15 @@ class UserProfile {
     this.hasSavedTarget = true,
   });
 
-  final String name, username, targetGoal, experienceLevel, bio, avatarUrl;
-  final String subscriptionRenewalDate;
+  final String name, username, targetGoal, experienceLevel, bio;
   final double weightKg, heightCm;
-  final int bodyFatPercent, muscleMassKg, dailyCalorieTarget;
-  final bool naturalVerified, onboardingCompleted;
+  final int dailyCalorieTarget;
+  final bool onboardingCompleted;
   final DateTime? birthDate;
   final TargetSex? sex;
   final TargetActivity? activity;
   final NutritionGoal? nutritionGoal;
   final bool hasWeight, hasHeight, hasSavedTarget;
-  final SubscriptionTier subscriptionTier;
 
   UserProfile copyWith({
     String? name,
@@ -49,7 +40,6 @@ class UserProfile {
     String? bio,
     int? dailyCalorieTarget,
     bool? onboardingCompleted,
-    SubscriptionTier? subscriptionTier,
     DateTime? birthDate,
     TargetSex? sex,
     TargetActivity? activity,
@@ -66,14 +56,8 @@ class UserProfile {
         targetGoal: targetGoal ?? this.targetGoal,
         experienceLevel: experienceLevel,
         bio: bio ?? this.bio,
-        avatarUrl: avatarUrl,
-        bodyFatPercent: bodyFatPercent,
-        muscleMassKg: muscleMassKg,
-        naturalVerified: naturalVerified,
         dailyCalorieTarget: dailyCalorieTarget ?? this.dailyCalorieTarget,
         onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
-        subscriptionTier: subscriptionTier ?? this.subscriptionTier,
-        subscriptionRenewalDate: subscriptionRenewalDate,
         birthDate: birthDate ?? this.birthDate,
         sex: sex ?? this.sex,
         activity: activity ?? this.activity,
@@ -85,23 +69,15 @@ class UserProfile {
 }
 
 const defaultUserProfile = UserProfile(
-  name: 'Alex Johnson',
-  username: 'Alex_Athlete',
+  name: '',
+  username: '',
   weightKg: 78,
   heightCm: 182,
-  targetGoal: 'Natural Championship Qualification',
-  experienceLevel: 'Natural Athlete',
-  bio:
-      'Competitive natural physique athlete focused on strength splits and basketball crossover conditioning.',
-  avatarUrl:
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces',
-  bodyFatPercent: 11,
-  muscleMassKg: 42,
-  naturalVerified: true,
+  targetGoal: '',
+  experienceLevel: '',
+  bio: '',
   dailyCalorieTarget: 2600,
   onboardingCompleted: true,
-  subscriptionTier: SubscriptionTier.pro,
-  subscriptionRenewalDate: 'Nov 17, 2026',
 );
 
 const goals = <String>[

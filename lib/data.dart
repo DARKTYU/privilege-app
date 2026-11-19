@@ -336,74 +336,6 @@ const guides = <ExerciseGuide>[
   ),
 ];
 
-// ───────────────────────── subscription plans ─────────────────────────
-
-class PlanInfo {
-  const PlanInfo({
-    required this.tier,
-    required this.name,
-    required this.tagline,
-    required this.monthlyPrice,
-    required this.yearlyPrice,
-    required this.features,
-    this.badge,
-    this.popular = false,
-  });
-  final SubscriptionTier tier;
-  final String name, tagline, monthlyPrice, yearlyPrice;
-  final String? badge;
-  final bool popular;
-  final List<String> features;
-}
-
-const plans = <PlanInfo>[
-  PlanInfo(
-    tier: SubscriptionTier.free,
-    name: 'Free Athlete Tier',
-    tagline: 'Foundations for every athlete',
-    monthlyPrice: '\$0',
-    yearlyPrice: '\$0',
-    features: [
-      'Weekly Plan Organiser & Calendar',
-      'Daily Calorie tracking & meal history',
-      'Standard Community Streak Arena',
-      'Basic Privilege Bot fitness prompts',
-      'Access to Starter Academy guides',
-    ],
-  ),
-  PlanInfo(
-    tier: SubscriptionTier.pro,
-    name: 'Privilege Pro',
-    tagline: 'Ultimate athletic performance & intelligence',
-    monthlyPrice: '\$14.99 / mo',
-    yearlyPrice: '\$9.99 / mo',
-    badge: 'MOST POPULAR',
-    popular: true,
-    features: [
-      'Unlimited Gemini AI Bot with Photo & Voice analysis',
-      'Advanced Splits & Sports Merge with recovery hours calculation',
-      'All High-Protein Recipes & Instant Macro Logging',
-      'Smart Cheat Meals Optimizer & glycogen re-feed schedule',
-      'Custom Split Creator with unrestricted duration & volume',
-    ],
-  ),
-  PlanInfo(
-    tier: SubscriptionTier.elite,
-    name: 'Gold Olympian',
-    tagline: 'Championship show qualification & coaching',
-    monthlyPrice: '\$29.99 / mo',
-    yearlyPrice: '\$19.99 / mo',
-    badge: 'CHAMPIONSHIP PREP',
-    features: [
-      'Everything in Privilege Pro',
-      'Certified Drug-Tested WADA Contest Prep Coach',
-      'Stage Posing Routine Video Review',
-      'VIP Streak Arena tournaments with 5x P-Coins rewards',
-      'Official Natural Championship entry qualification voucher',
-    ],
-  ),
-];
-
 // ───────────────────────── streak arena ─────────────────────────
 
 class Friend {
@@ -435,10 +367,6 @@ const rewards = <Reward>[
   Reward('Championship badge', 1200, '🏆'),
 ];
 
-const avatarYou =
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop';
-const avatarPartner =
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop';
 const avatarRival1 =
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop';
 const avatarRival2 =

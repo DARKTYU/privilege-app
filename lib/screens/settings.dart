@@ -83,14 +83,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: 88,
         height: 88,
         child: encoded == null
-            ? avatar(appState.profile.avatarUrl, 88)
+            ? initialsAvatar(
+                appState.profile.name.isEmpty
+                    ? appState.profile.username
+                    : appState.profile.name,
+                88)
             : Image.memory(
                 base64Decode(encoded),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => ColoredBox(
-                  color: kCard2,
-                  child: Icon(Icons.person, color: kMuted, size: 52),
-                ),
+                errorBuilder: (_, __, ___) => initialsAvatar(
+                    appState.profile.name.isEmpty
+                        ? appState.profile.username
+                        : appState.profile.name,
+                    88),
               ),
       ),
     );

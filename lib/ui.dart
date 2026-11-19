@@ -458,10 +458,16 @@ class TabbedPage extends StatelessWidget {
 }
 
 /// Shows an upgrade message and returns false when the current tier cannot use [feature].
-bool requireTier(BuildContext context, bool allowed, String what) {
-  if (!allowed) {
-    toast(context,
-        '$what needs a higher plan. Open Subscription plans to upgrade.');
-  }
-  return allowed;
+Widget initialsAvatar(String name, double size) {
+  final words = name.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty);
+  final initials =
+      words.take(2).map((s) => s.characters.first.toUpperCase()).join();
+  return CircleAvatar(
+    radius: size / 2,
+    backgroundColor: kCard2,
+    child: initials.isEmpty
+        ? Icon(Icons.person, color: kMuted, size: size * 0.6)
+        : Text(initials,
+            style: TextStyle(color: kCream, fontSize: size * 0.32)),
+  );
 }

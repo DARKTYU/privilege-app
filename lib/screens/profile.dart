@@ -119,20 +119,16 @@ class _ProfileScreenState extends State<ProfileScreen>
     });
   }
 
-  Widget _profileAvatar(String fallbackUrl, double size) {
+  Widget _profileAvatar(String name, double size) {
     final encoded = appState.profilePhotoBase64;
-    if (encoded == null) return avatar(fallbackUrl, size);
+    if (encoded == null) return initialsAvatar(name, size);
     return ClipOval(
       child: Image.memory(
         base64Decode(encoded),
         width: size,
         height: size,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => CircleAvatar(
-          radius: size / 2,
-          backgroundColor: kCard2,
-          child: Icon(Icons.person, color: kMuted, size: size * 0.6),
-        ),
+        errorBuilder: (_, __, ___) => initialsAvatar(name, size),
       ),
     );
   }
@@ -285,7 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     children: [
                       Row(children: [
                         Stack(alignment: Alignment.bottomRight, children: [
-                          _profileAvatar(p.avatarUrl, 72),
+                          _profileAvatar(
+                              p.name.isEmpty ? p.username : p.name, 72),
                           InkWell(
                             onTap: () =>
                                 Navigator.pushNamed(context, '/settings'),
@@ -317,7 +314,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ]),
                       const SizedBox(height: 12),
-                      Text('“${p.bio}”',
+                      Text(p.bio.isEmpty ? 'Add a bio' : '“${p.bio}”',
                           style: TextStyle(
                               fontSize: 12,
                               color: kMuted,
@@ -352,8 +349,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                   ? '${fmt(appState.targetCalories)} kcal${appState.calorieTarget.isEstimate ? ' • Estimated' : ''}'
                                   : 'Not set',
                               kOrange),
-                          _stat(Icons.workspace_premium, 'Body Fat %',
-                              '${p.bodyFatPercent}%', kGold),
                         ],
                       ),
                       TextButton.icon(

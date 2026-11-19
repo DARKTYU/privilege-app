@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../data.dart';
 import '../logic/fitness_logic.dart';
-import '../state.dart';
+import '../services/progression_repository.dart';
 import '../ui.dart';
 
 class SplitsScreen extends StatefulWidget {
-  const SplitsScreen({super.key});
+  const SplitsScreen({super.key, this.progressionRepository});
+  final ProgressionDataSource? progressionRepository;
 
   @override
   State<SplitsScreen> createState() => _SplitsScreenState();
@@ -20,6 +21,9 @@ class _SplitsScreenState extends State<SplitsScreen> {
   MergeResult? _result;
   bool _merging = false;
   bool _openWorkout = false, _openSport = false;
+  late final _progression =
+      widget.progressionRepository ?? ProgressionRepository();
+  bool _checkingMembership = false;
 
   Future<void> _merge() async {
     setState(() => _merging = true);
@@ -38,8 +42,23 @@ class _SplitsScreenState extends State<SplitsScreen> {
   }
 
   Future<void> _addCustom() async {
-    if (!requireTier(context, appState.can(Feature.customSplits),
-        'The custom split creator')) return;
+    if (_checkingMembership) return;
+    setState(() => _checkingMembership = true);
+    try {
+      final accountId = _progression.accountId;
+      final membership = await _progression.subscriptionTier();
+      if (!mounted || accountId != _progression.accountId) return;
+      if (subscriptionTierRank(membership) < subscriptionTierRank('Silver')) {
+        toast(context,
+            'Custom splits require Silver or Gold membership. Paid upgrades are not available yet.');
+        return;
+      }
+    } catch (error) {
+      if (mounted) toast(context, 'Could not check membership: $error');
+      return;
+    } finally {
+      if (mounted) setState(() => _checkingMembership = false);
+    }
     var isSport = false;
     final name = TextEditingController();
     final duration = TextEditingController(text: '60');
@@ -114,7 +133,7 @@ class _SplitsScreenState extends State<SplitsScreen> {
                   ),
                 );
               },
-              child: const Text('Save & Select Split'),
+              child: const Text('Select (not saved)'),
             ),
           ],
         ),
@@ -156,7 +175,11 @@ class _SplitsScreenState extends State<SplitsScreen> {
                   style: TextStyle(fontSize: 11, color: kMuted)),
               const SizedBox(height: 6),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(change, style: TextStyle(fontSize: 10, color: kGold)),
+                Flexible(
+                  child: Text(change,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 10, color: kGold)),
+                ),
                 Icon(Icons.expand_more, size: 14, color: kGold),
               ]),
             ]),
@@ -203,24 +226,6 @@ class _SplitsScreenState extends State<SplitsScreen> {
             Text(v, style: const TextStyle(fontWeight: FontWeight.w800)),
           ]),
         ),
-      );
-
-  Widget _statusRow(String icon, String name, String sub, Widget trailing) =>
-      Panel(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(10),
-        child: Row(children: [
-          CircleAvatar(backgroundColor: kCard2, child: Text(icon)),
-          const SizedBox(width: 10),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
-              Text(sub, style: TextStyle(fontSize: 11, color: kMuted)),
-            ]),
-          ),
-          trailing,
-        ]),
       );
 
   @override
@@ -322,24 +327,12 @@ class _SplitsScreenState extends State<SplitsScreen> {
                     kBlue),
               ]),
               const SizedBox(height: 10),
+              Text('Estimates only, not medical or coaching advice.',
+                  style: TextStyle(fontSize: 12, color: kMuted)),
+              const SizedBox(height: 8),
               Text(r.advice, style: TextStyle(fontSize: 12, color: kMuted)),
             ]),
           ),
-        sectionTitle('Merge Status'),
-        _statusRow(_workout.icon, _workout.name, 'Merge Day Active',
-            Icon(Icons.check_circle, color: kGreen)),
-        _statusRow(
-          _sport.icon,
-          _sport.name,
-          'Merge Splits Synced',
-          Row(mainAxisSize: MainAxisSize.min, children: [
-            avatar(avatarYou, 24),
-            const SizedBox(width: 2),
-            avatar(avatarPartner, 24),
-            const SizedBox(width: 4),
-            tag('+2', kGold),
-          ]),
-        ),
       ],
     );
   }

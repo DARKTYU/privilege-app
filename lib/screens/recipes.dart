@@ -63,7 +63,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text('Natural and high-protein recipes from million recipes',
+        Text(
+            'A small collection of sample recipes. Favorites are not saved yet.',
             style: TextStyle(color: kMuted, fontSize: 12)),
         const SizedBox(height: 12),
         for (final r in recipes)
@@ -144,7 +145,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         Expanded(
                           child: PrimaryButton(
                               _loggingRecipeId == r.id
-                                  ? 'Saving...'
+                                  ? 'Logging...'
                                   : 'Quick-Action: Log',
                               icon: Icons.add,
                               gold: true,
@@ -156,8 +157,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         Expanded(
                           child: PrimaryButton(
                             _favorites.contains(r.id)
-                                ? 'Saved'
-                                : 'Quick-Action: Save',
+                                ? 'Favorited'
+                                : 'Favorite',
                             icon: Icons.menu_book,
                             onPressed: () => setState(() {
                               if (!_favorites.remove(r.id))

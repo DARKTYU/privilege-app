@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-import '../logic/fitness_logic.dart';
 import '../ui.dart';
 
 class CheatsScreen extends StatefulWidget {
@@ -13,8 +10,6 @@ class CheatsScreen extends StatefulWidget {
 }
 
 class _CheatsScreenState extends State<CheatsScreen> {
-  static const _allowedDays = [8, 20];
-  static const _dayNotes = {8: 'Post-Legs Re-feed', 20: 'Tournament Prep Fuel'};
   static const _months = [
     'January',
     'February',
@@ -31,17 +26,11 @@ class _CheatsScreenState extends State<CheatsScreen> {
   ];
 
   final _input = TextEditingController();
-  final List<String> _list = [
-    'Double Bacon Wagyu Burger (Day 8)',
-    'Wood-fired Truffle Pizza (Day 20)',
-  ];
-  int _selected = 8;
-  String? _note;
-  Timer? _timer;
+  final List<String> _list = [];
+  int _selected = DateTime.now().day;
 
   @override
   void dispose() {
-    _timer?.cancel();
     _input.dispose();
     super.dispose();
   }
@@ -51,12 +40,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
     if (v.isEmpty) return;
     setState(() {
       _list.insert(0, '$v (Day $_selected)');
-      _note = 'Scheduled "$v" on Day $_selected!';
       _input.clear();
-    });
-    _timer?.cancel();
-    _timer = Timer(const Duration(milliseconds: 2500), () {
-      if (mounted) setState(() => _note = null);
     });
   }
 
@@ -65,8 +49,6 @@ class _CheatsScreenState extends State<CheatsScreen> {
     final now = DateTime.now();
     final lead = DateTime(now.year, now.month, 1).weekday - 1;
     final count = DateTime(now.year, now.month + 1, 0).day;
-    final over = _list.length > 2;
-    final selAllowed = isDayAllowedForCheat(_selected, _allowedDays);
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -76,8 +58,9 @@ class _CheatsScreenState extends State<CheatsScreen> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ),
-          tag('2 Allowed / Month', kGold),
         ]),
+        const SizedBox(height: 12),
+        const Text('Not saved yet'),
         const SizedBox(height: 12),
         Panel(
           child: GridView.count(
@@ -101,9 +84,6 @@ class _CheatsScreenState extends State<CheatsScreen> {
                     decoration: BoxDecoration(
                       color: _selected == d ? kMaroon : kCard2,
                       borderRadius: BorderRadius.circular(10),
-                      border: isDayAllowedForCheat(d, _allowedDays)
-                          ? Border.all(color: kGold, width: 2)
-                          : null,
                     ),
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -115,27 +95,12 @@ class _CheatsScreenState extends State<CheatsScreen> {
                                   color: _selected == d
                                       ? Theme.of(context).colorScheme.onPrimary
                                       : kMuted)),
-                          if (isDayAllowedForCheat(d, _allowedDays))
-                            Icon(Icons.auto_awesome, size: 10, color: kGold),
                         ]),
                   ),
                 ),
             ],
           ),
         ),
-        if (selAllowed)
-          Panel(
-            borderColor: kGold.withAlpha(110),
-            child: Row(children: [
-              Icon(Icons.auto_awesome, size: 16, color: kGold),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                    'Day $_selected: Cheat Meal Allowed · ${_dayNotes[_selected]}',
-                    style: const TextStyle(fontSize: 12)),
-              ),
-            ]),
-          ),
         sectionTitle('Cheat Meal Stats'),
         Row(children: [
           Expanded(
@@ -153,25 +118,26 @@ class _CheatsScreenState extends State<CheatsScreen> {
           Expanded(
               child: Text('Cheat meal total:',
                   style: TextStyle(fontSize: 12, color: kMuted))),
-          Text('${_list.length} scheduled / 2 budgeted',
+          Text('${_list.length} on this screen',
               style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: over ? kRed : kGreen)),
+                  fontSize: 12, fontWeight: FontWeight.w800, color: kMuted)),
         ]),
         const SizedBox(height: 10),
-        toastBanner(_note),
+        if (_list.isEmpty) const Text('No meals added yet.'),
         for (var i = 0; i < _list.length; i++)
           Panel(
             padding: EdgeInsets.zero,
             margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              dense: true,
-              leading: Icon(Icons.cake, color: kGold),
-              title: Text(_list[i], style: const TextStyle(fontSize: 13)),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18),
-                onPressed: () => setState(() => _list.removeAt(i)),
+            child: Material(
+              color: Colors.transparent,
+              child: ListTile(
+                dense: true,
+                leading: Icon(Icons.cake, color: kGold),
+                title: Text(_list[i], style: const TextStyle(fontSize: 13)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  onPressed: () => setState(() => _list.removeAt(i)),
+                ),
               ),
             ),
           ),

@@ -42,9 +42,6 @@ class AppState extends ChangeNotifier {
   String? profilePhotoBase64;
   UserProfile profile = defaultUserProfile;
 
-  SubscriptionTier get tier => profile.subscriptionTier;
-  bool can(Feature f) => canAccessFeature(tier, f);
-
   Future<void> restoreSession() async {
     _authSubscription ??=
         SupabaseAuthService.client.auth.onAuthStateChange.listen(
@@ -107,7 +104,7 @@ class AppState extends ChangeNotifier {
       weightKg: (p['weight_kg'] as num?)?.toDouble(),
       heightCm: (p['height_cm'] as num?)?.toDouble(),
       targetGoal: p['training_goal'] as String? ?? '',
-      bio: p['bio'] as String?,
+      bio: p['bio'] as String? ?? '',
       dailyCalorieTarget: (p['daily_calorie_target'] as num?)?.toInt(),
       hasWeight: p['weight_kg'] != null,
       hasHeight: p['height_cm'] != null,
@@ -302,11 +299,6 @@ class AppState extends ChangeNotifier {
         dailyCalorieTarget: result.target, hasSavedTarget: true);
     targetCalories = result.target!;
     targetPromptDismissed = false;
-    notifyListeners();
-  }
-
-  void setTier(SubscriptionTier t) {
-    profile = profile.copyWith(subscriptionTier: t);
     notifyListeners();
   }
 

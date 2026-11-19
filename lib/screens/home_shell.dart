@@ -103,7 +103,7 @@ class _HomeShellState extends State<HomeShell> {
           backgroundColor: kMaroon,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           shape: const CircleBorder(),
-          tooltip: 'AI Privilege Bot',
+          tooltip: 'AI Privilege Bot - coming soon',
           onPressed: () => Navigator.pushNamed(context, '/chat'),
           child: const Icon(Icons.smart_toy_rounded),
         ),
