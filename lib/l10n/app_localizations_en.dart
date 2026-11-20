@@ -9,6 +9,90 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get communityHeading => 'Your community';
+
+  @override
+  String get communitySubtitle => 'Share progress and connect with others.';
+
+  @override
+  String get communityCreatePost => 'Create a post';
+
+  @override
+  String get communityFeed => 'Feed';
+
+  @override
+  String get communityPeople => 'People';
+
+  @override
+  String get communityGroups => 'Groups';
+
+  @override
+  String get communityFeedEmpty => 'No posts yet. Be the first to share!';
+
+  @override
+  String get communitySearchPeople => 'Search people';
+
+  @override
+  String get communityClearSearch => 'Clear search';
+
+  @override
+  String get communityFriendRequests => 'Friend requests';
+
+  @override
+  String get communityFriends => 'Friends';
+
+  @override
+  String get communityDiscoverPeople => 'People to discover';
+
+  @override
+  String get communityResults => 'Results';
+
+  @override
+  String get communityNoPeople =>
+      'No people found. Try a different name or username.';
+
+  @override
+  String get communityTimeNow => 'now';
+
+  @override
+  String communityMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityPostTime(String username, String time) {
+    return '@$username · $time';
+  }
+
+  @override
   String get coachTitle => 'Privilege Coach';
 
   @override

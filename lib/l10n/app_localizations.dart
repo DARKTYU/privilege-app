@@ -98,6 +98,120 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @communityHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Your community'**
+  String get communityHeading;
+
+  /// No description provided for @communitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share progress and connect with others.'**
+  String get communitySubtitle;
+
+  /// No description provided for @communityCreatePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a post'**
+  String get communityCreatePost;
+
+  /// No description provided for @communityFeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Feed'**
+  String get communityFeed;
+
+  /// No description provided for @communityPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get communityPeople;
+
+  /// No description provided for @communityGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get communityGroups;
+
+  /// No description provided for @communityFeedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet. Be the first to share!'**
+  String get communityFeedEmpty;
+
+  /// No description provided for @communitySearchPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get communitySearchPeople;
+
+  /// No description provided for @communityClearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get communityClearSearch;
+
+  /// No description provided for @communityFriendRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend requests'**
+  String get communityFriendRequests;
+
+  /// No description provided for @communityFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get communityFriends;
+
+  /// No description provided for @communityDiscoverPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People to discover'**
+  String get communityDiscoverPeople;
+
+  /// No description provided for @communityResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Results'**
+  String get communityResults;
+
+  /// No description provided for @communityNoPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'No people found. Try a different name or username.'**
+  String get communityNoPeople;
+
+  /// No description provided for @communityTimeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get communityTimeNow;
+
+  /// No description provided for @communityMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 minute ago} other{{count} minutes ago}}'**
+  String communityMinutesAgo(int count);
+
+  /// No description provided for @communityHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 hour ago} other{{count} hours ago}}'**
+  String communityHoursAgo(int count);
+
+  /// No description provided for @communityDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 day ago} other{{count} days ago}}'**
+  String communityDaysAgo(int count);
+
+  /// No description provided for @communityPostTime.
+  ///
+  /// In en, this message translates to:
+  /// **'@{username} · {time}'**
+  String communityPostTime(String username, String time);
+
   /// No description provided for @coachTitle.
   ///
   /// In en, this message translates to:

@@ -9,6 +9,72 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get communityHeading => 'مجتمعك';
+
+  @override
+  String get communitySubtitle => 'شارك تقدمك وتواصل مع الآخرين.';
+
+  @override
+  String get communityCreatePost => 'إنشاء منشور';
+
+  @override
+  String get communityFeed => 'المنشورات';
+
+  @override
+  String get communityPeople => 'الأشخاص';
+
+  @override
+  String get communityGroups => 'المجموعات';
+
+  @override
+  String get communityFeedEmpty => 'لا توجد منشورات بعد. كن أول من يشارك!';
+
+  @override
+  String get communitySearchPeople => 'البحث عن أشخاص';
+
+  @override
+  String get communityClearSearch => 'مسح البحث';
+
+  @override
+  String get communityFriendRequests => 'طلبات الصداقة';
+
+  @override
+  String get communityFriends => 'الأصدقاء';
+
+  @override
+  String get communityDiscoverPeople => 'اكتشف أشخاصاً';
+
+  @override
+  String get communityResults => 'النتائج';
+
+  @override
+  String get communityNoPeople =>
+      'لم نعثر على أشخاص. جرّب اسماً آخر أو اسم مستخدم مختلفاً.';
+
+  @override
+  String get communityTimeNow => 'الآن';
+
+  @override
+  String communityMinutesAgo(int count) {
+    return 'منذ $count دقيقة';
+  }
+
+  @override
+  String communityHoursAgo(int count) {
+    return 'منذ $count ساعة';
+  }
+
+  @override
+  String communityDaysAgo(int count) {
+    return 'منذ $count يوم';
+  }
+
+  @override
+  String communityPostTime(String username, String time) {
+    return '@$username · $time';
+  }
+
+  @override
   String get coachTitle => 'مدرب بريفيلج';
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/models/community_models.dart';
 import 'package:privilege/models/community_post.dart';
 import 'package:privilege/screens/community.dart';
@@ -17,6 +18,33 @@ void main() {
         authOptions: const AuthClientOptions(autoRefreshToken: false));
   });
   tearDownAll(() => client.dispose());
+  for (final language in ['en', 'ar']) {
+    testWidgets('community header and tabs at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repository = _FakeCommunityRepository(client);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        theme: buildTheme(),
+        home: Scaffold(body: CommunityScreen(repository: repository)),
+      ));
+      await tester.pumpAndSettle();
+      final l =
+          AppLocalizations.of(tester.element(find.byType(CommunityScreen)))!;
+      expect(find.text(l.communityHeading), findsOneWidget);
+      expect(find.text(l.communityFeedEmpty), findsOneWidget);
+      expect(find.text(l.communityGroups), findsOneWidget);
+      await tester.tap(find.text(l.communityPeople));
+      await tester.pumpAndSettle();
+      expect(find.text(l.communityNoPeople), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
   for (final count in [1, 3]) {
     testWidgets('composer posts $count time(s) while the keyboard is visible',
         (tester) async {

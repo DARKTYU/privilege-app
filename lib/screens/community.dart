@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
 import '../models/community_models.dart';
 import '../models/community_post.dart';
 import '../services/community_repository.dart';
@@ -353,16 +355,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Your community',
+                    Text(strings(context).communityHeading,
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 2),
-                    Text('Share progress and connect with others.',
+                    Text(strings(context).communitySubtitle,
                         style: Theme.of(context).textTheme.bodySmall),
                   ]),
             ),
             if (_tab == 0)
               IconButton.filledTonal(
-                tooltip: 'Create a post',
+                tooltip: strings(context).communityCreatePost,
                 onPressed: _posting ? null : _composePost,
                 icon: _posting
                     ? const SizedBox(
@@ -376,9 +378,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(children: [
-            _tabButton('Feed', Icons.dynamic_feed_outlined, 0),
-            _tabButton('People', Icons.people_outline, 1),
-            _tabButton('Groups', Icons.groups_outlined, 2),
+            _tabButton(
+                strings(context).communityFeed, Icons.dynamic_feed_outlined, 0),
+            _tabButton(
+                strings(context).communityPeople, Icons.people_outline, 1),
+            _tabButton(
+                strings(context).communityGroups, Icons.groups_outlined, 2),
           ]),
         ),
         const SizedBox(height: 8),
@@ -422,11 +427,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
     if (_posts.isEmpty) {
       return RefreshIndicator(
         onRefresh: _loadFeed,
-        child: ListView(children: const [
-          SizedBox(height: 110),
-          Icon(Icons.forum_outlined, size: 42),
-          SizedBox(height: 14),
-          Center(child: Text('No posts yet. Be the first to share!')),
+        child: ListView(children: [
+          const SizedBox(height: 110),
+          const Icon(Icons.forum_outlined, size: 42),
+          const SizedBox(height: 14),
+          Center(child: Text(strings(context).communityFeedEmpty)),
         ]),
       );
     }
@@ -471,7 +476,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       Text(title,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
                       Text(
-                          '@${post.username} · ${_relativeTime(post.createdAt)}',
+                          strings(context).communityPostTime(post.username,
+                              _relativeTime(context, post.createdAt)),
                           style: Theme.of(context).textTheme.bodySmall),
                     ]),
               ),
@@ -628,12 +634,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
             controller: _searchController,
             onChanged: _searchChanged,
             decoration: InputDecoration(
-              hintText: 'Search people',
+              hintText: strings(context).communitySearchPeople,
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _searchController.text.isEmpty
                   ? null
                   : IconButton(
-                      tooltip: 'Clear search',
+                      tooltip: strings(context).communityClearSearch,
                       onPressed: () {
                         _searchController.clear();
                         _searchChanged('');
@@ -644,24 +650,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ),
           if (_peopleError != null) _inlineError(_peopleError!, _loadPeople),
           if (_requests.isNotEmpty) ...[
-            _sectionTitle('Friend requests'),
+            _sectionTitle(strings(context).communityFriendRequests),
             for (final request in _requests)
               _personCard(request, request: true),
           ],
           if (_friends.isNotEmpty) ...[
-            _sectionTitle('Friends'),
+            _sectionTitle(strings(context).communityFriends),
             for (final friend in _friends) _personCard(friend, friend: true),
           ],
-          _sectionTitle(
-              _peopleQuery.isEmpty ? 'People to discover' : 'Results'),
+          _sectionTitle(_peopleQuery.isEmpty
+              ? strings(context).communityDiscoverPeople
+              : strings(context).communityResults),
           if (_peopleLoading && _searchResults.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             )
           else if (visiblePeople.isEmpty)
-            const Panel(
-              child: Text('No people found. Try a different name or username.'),
+            Panel(
+              child: Text(strings(context).communityNoPeople),
             )
           else
             for (final person in visiblePeople) _personCard(person),
@@ -1495,11 +1502,18 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
       ]);
 }
 
-String _relativeTime(DateTime time) {
+String _relativeTime(BuildContext context, DateTime time) {
   final difference = DateTime.now().difference(time.toLocal());
-  if (difference.isNegative || difference.inMinutes < 1) return 'now';
-  if (difference.inMinutes < 60) return '${difference.inMinutes}m';
-  if (difference.inHours < 24) return '${difference.inHours}h';
-  if (difference.inDays < 7) return '${difference.inDays}d';
-  return '${time.toLocal().month}/${time.toLocal().day}/${time.toLocal().year}';
+  final l = strings(context);
+  if (difference.isNegative || difference.inMinutes < 1) {
+    return l.communityTimeNow;
+  }
+  if (difference.inMinutes < 60) {
+    return l.communityMinutesAgo(difference.inMinutes);
+  }
+  if (difference.inHours < 24) return l.communityHoursAgo(difference.inHours);
+  if (difference.inDays < 7) return l.communityDaysAgo(difference.inDays);
+  final format = DateFormat.yMMMd(Localizations.localeOf(context).languageCode)
+    ..useNativeDigits = false;
+  return format.format(time.toLocal());
 }
