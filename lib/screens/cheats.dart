@@ -1,9 +1,41 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
+import '../l10n_strings.dart';
+import '../logic/localized_dates.dart';
 import '../services/cravings_repository.dart';
 import '../services/planner_repository.dart';
 import '../state.dart';
 import '../ui.dart';
+
+class _WesternArabicMaterialDelegate
+    extends LocalizationsDelegate<MaterialLocalizations> {
+  const _WesternArabicMaterialDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'ar';
+
+  @override
+  Future<MaterialLocalizations> load(Locale locale) {
+    DateFormat western(DateFormat format) => format..useNativeDigits = false;
+    return SynchronousFuture(MaterialLocalizationAr(
+      fullYearFormat: western(DateFormat.y('ar')),
+      compactDateFormat: western(DateFormat.yMd('ar')),
+      shortDateFormat: western(DateFormat.yMMMd('ar')),
+      mediumDateFormat: western(DateFormat.MMMEd('ar')),
+      longDateFormat: western(DateFormat.yMMMMEEEEd('ar')),
+      yearMonthFormat: western(DateFormat.yMMMM('ar')),
+      shortMonthDayFormat: western(DateFormat.MMMd('ar')),
+      decimalFormat: NumberFormat.decimalPattern('en'),
+      twoDigitZeroPaddedFormat: NumberFormat('00', 'en'),
+    ));
+  }
+
+  @override
+  bool shouldReload(_WesternArabicMaterialDelegate old) => false;
+}
 
 class CheatsScreen extends StatefulWidget {
   const CheatsScreen({super.key, this.state});
@@ -57,7 +89,13 @@ class _CheatsScreenState extends State<CheatsScreen> {
       error = null;
     });
     try {
-      if (user == null) throw StateError('Please log in again.');
+      if (user == null) {
+        setState(() {
+          loading = false;
+          error = strings(context).cravingLogin;
+        });
+        return;
+      }
       final today = parsePlannerDate(await state.plannerLocalToday());
       if (!mounted || token != generation || user != state.cravingsAccountId) {
         return;
@@ -105,9 +143,10 @@ class _CheatsScreenState extends State<CheatsScreen> {
 
   void _message(Object e) {
     final text = e.toString();
+    final l = strings(context);
     final message = text.toLowerCase().contains('cheat meal limit')
-        ? 'The selected month already has 2 cravings. $text'
-        : 'Could not save: $text';
+        ? l.cravingLimitError(text)
+        : l.cravingSaveError(text);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));
@@ -115,7 +154,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
 
   String? _validate(String value) {
     final length = value.trim().runes.length;
-    return length < 1 || length > 200 ? 'Enter 1 to 200 characters.' : null;
+    return length < 1 || length > 200 ? strings(context).cravingValidate : null;
   }
 
   Future<void> _add() async {
@@ -175,15 +214,15 @@ class _CheatsScreenState extends State<CheatsScreen> {
       final confirm = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Delete craving?'),
+          title: Text(strings(context).cravingDeleteTitle),
           content: Text(meal.notes),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel')),
+                child: Text(strings(context).plannerCancel)),
             TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Delete')),
+                child: Text(strings(context).plannerDelete)),
           ],
         ),
       );
@@ -218,14 +257,15 @@ class _CheatsScreenState extends State<CheatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = strings(context);
     if (month == null) {
       return Center(
           child: error == null
               ? const CircularProgressIndicator()
               : Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('Could not load cravings: $error'),
+                  Text(l.cravingLoadError(error!)),
                   TextButton(
-                      onPressed: _initialize, child: const Text('Retry')),
+                      onPressed: _initialize, child: Text(l.plannerRetry)),
                 ]));
     }
     final current = month!;
@@ -235,24 +275,29 @@ class _CheatsScreenState extends State<CheatsScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
       Row(children: [
         IconButton(
-            tooltip: 'Previous month',
+            tooltip: l.cravingPreviousMonth,
             onPressed: saving ? null : () => _move(-1),
-            icon: const Icon(Icons.chevron_left)),
+            icon: Icon(Directionality.of(context) == TextDirection.rtl
+                ? Icons.chevron_right
+                : Icons.chevron_left)),
         Expanded(
             child: Text(
-                MaterialLocalizations.of(context).formatMonthYear(current),
+                westernDigits(
+                    MaterialLocalizations.of(context).formatMonthYear(current)),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontWeight: FontWeight.bold, fontSize: 18))),
         IconButton(
-            tooltip: 'Next month',
+            tooltip: l.cravingNextMonth,
             onPressed: saving ? null : () => _move(1),
-            icon: const Icon(Icons.chevron_right)),
+            icon: Icon(Directionality.of(context) == TextDirection.rtl
+                ? Icons.chevron_left
+                : Icons.chevron_right)),
       ]),
       if (loading) const LinearProgressIndicator(),
       if (error != null) ...[
-        Text('Could not load cravings: $error'),
-        TextButton(onPressed: _load, child: const Text('Retry')),
+        Text(l.cravingLoadError(error!)),
+        TextButton(onPressed: _load, child: Text(l.plannerRetry)),
       ],
       Panel(
           child: GridView.count(
@@ -263,8 +308,16 @@ class _CheatsScreenState extends State<CheatsScreen> {
         crossAxisSpacing: 6,
         childAspectRatio: 0.7,
         children: [
-          for (final l in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
-            Center(child: Text(l, style: TextStyle(color: kMuted))),
+          for (final day in [
+            l.cravingMonday,
+            l.cravingTuesday,
+            l.cravingWednesday,
+            l.cravingThursday,
+            l.cravingFriday,
+            l.cravingSaturday,
+            l.cravingSunday
+          ])
+            Center(child: Text(day, style: TextStyle(color: kMuted))),
           for (var i = 0; i < lead; i++) const SizedBox(),
           for (var d = 1; d <= count; d++)
             InkWell(
@@ -280,7 +333,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('$d',
+                      Text(d.toString(),
                           maxLines: 1, style: const TextStyle(fontSize: 13)),
                       if (available &&
                           meals.any((m) =>
@@ -297,25 +350,23 @@ class _CheatsScreenState extends State<CheatsScreen> {
         ],
       )),
       if (available) ...[
-        Text('${meals.length} of 2 used this month'),
-        if (meals.length >= 2)
-          const Text(
-              'Monthly limit reached. Edit or delete an entry to make room.'),
+        Text(l.cravingUsed(meals.length.toString())),
+        if (meals.length >= 2) Text(l.cravingMonthlyLimit),
         const SizedBox(height: 12),
         TextField(
             controller: input,
             enabled: !saving && meals.length < 2,
             maxLength: 200,
             decoration: InputDecoration(
-                labelText: 'Craving for day ${selected!.day}',
-                helperText: '1 to 200 characters',
+                labelText: l.cravingDay(selected!.day.toString()),
+                helperText: l.cravingCharacters,
                 errorText: inputError)),
         Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: FilledButton(
                 onPressed: saving || meals.length >= 2 ? null : _add,
-                child: const Text('Add craving'))),
-        if (meals.isEmpty) const Text('No meals added yet.'),
+                child: Text(l.cravingAdd))),
+        if (meals.isEmpty) Text(l.cravingEmpty),
         for (final meal in meals)
           Panel(
               margin: const EdgeInsets.only(bottom: 8),
@@ -323,15 +374,15 @@ class _CheatsScreenState extends State<CheatsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(meal.notes),
-                    Text(MaterialLocalizations.of(context)
-                        .formatMediumDate(parsePlannerDate(meal.date))),
+                    Text(westernDigits(MaterialLocalizations.of(context)
+                        .formatMediumDate(parsePlannerDate(meal.date)))),
                     Wrap(children: [
                       TextButton(
                           onPressed: saving ? null : () => _edit(meal),
-                          child: const Text('Edit')),
+                          child: Text(l.cravingEdit)),
                       TextButton(
                           onPressed: saving ? null : () => _delete(meal),
-                          child: const Text('Delete')),
+                          child: Text(l.plannerDelete)),
                     ]),
                   ])),
       ],
@@ -358,15 +409,15 @@ class _EditCravingDialogState extends State<_EditCravingDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Edit craving'),
+        title: Text(strings(context).cravingEditTitle),
         content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
           TextField(
               controller: notes,
               maxLength: 200,
               decoration: InputDecoration(
-                  labelText: 'Notes',
-                  helperText: '1 to 200 characters',
+                  labelText: strings(context).cravingNotes,
+                  helperText: strings(context).cravingCharacters,
                   errorText: error)),
           TextButton(
               onPressed: () async {
@@ -374,26 +425,31 @@ class _EditCravingDialogState extends State<_EditCravingDialog> {
                     context: context,
                     initialDate: date,
                     firstDate: DateTime(1900),
-                    lastDate: DateTime(2100, 12, 31));
+                    lastDate: DateTime(2100, 12, 31),
+                    builder: (context, child) => Localizations.override(
+                          context: context,
+                          delegates: const [_WesternArabicMaterialDelegate()],
+                          child: child!,
+                        ));
                 if (chosen != null && mounted) setState(() => date = chosen);
               },
-              child: Text(
-                  'Date: ${MaterialLocalizations.of(context).formatMediumDate(date)}')),
+              child: Text(strings(context).cravingDate(westernDigits(
+                  MaterialLocalizations.of(context).formatMediumDate(date))))),
         ])),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(strings(context).plannerCancel)),
           TextButton(
               onPressed: () {
                 final text = notes.text.trim();
                 if (text.isEmpty || text.runes.length > 200) {
-                  setState(() => error = 'Enter 1 to 200 characters.');
+                  setState(() => error = strings(context).cravingValidate);
                   return;
                 }
                 Navigator.pop(context, (plannerDate(date), text));
               },
-              child: const Text('Save')),
+              child: Text(strings(context).plannerSave)),
         ],
       );
 }

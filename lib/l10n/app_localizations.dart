@@ -98,6 +98,246 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @cravingLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in again.'**
+  String get cravingLogin;
+
+  /// No description provided for @cravingLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load cravings: {error}'**
+  String cravingLoadError(String error);
+
+  /// No description provided for @cravingLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected month already has 2 cravings. {error}'**
+  String cravingLimitError(String error);
+
+  /// No description provided for @cravingSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save: {error}'**
+  String cravingSaveError(String error);
+
+  /// No description provided for @cravingValidate.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 1 to 200 characters.'**
+  String get cravingValidate;
+
+  /// No description provided for @cravingDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete craving?'**
+  String get cravingDeleteTitle;
+
+  /// No description provided for @cravingPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get cravingPreviousMonth;
+
+  /// No description provided for @cravingNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get cravingNextMonth;
+
+  /// No description provided for @cravingMonday.
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get cravingMonday;
+
+  /// No description provided for @cravingTuesday.
+  ///
+  /// In en, this message translates to:
+  /// **'T'**
+  String get cravingTuesday;
+
+  /// No description provided for @cravingWednesday.
+  ///
+  /// In en, this message translates to:
+  /// **'W'**
+  String get cravingWednesday;
+
+  /// No description provided for @cravingThursday.
+  ///
+  /// In en, this message translates to:
+  /// **'T'**
+  String get cravingThursday;
+
+  /// No description provided for @cravingFriday.
+  ///
+  /// In en, this message translates to:
+  /// **'F'**
+  String get cravingFriday;
+
+  /// No description provided for @cravingSaturday.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get cravingSaturday;
+
+  /// No description provided for @cravingSunday.
+  ///
+  /// In en, this message translates to:
+  /// **'S'**
+  String get cravingSunday;
+
+  /// No description provided for @cravingUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of 2 used this month'**
+  String cravingUsed(String count);
+
+  /// No description provided for @cravingMonthlyLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly limit reached. Edit or delete an entry to make room.'**
+  String get cravingMonthlyLimit;
+
+  /// No description provided for @cravingDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Craving for day {day}'**
+  String cravingDay(String day);
+
+  /// No description provided for @cravingCharacters.
+  ///
+  /// In en, this message translates to:
+  /// **'1 to 200 characters'**
+  String get cravingCharacters;
+
+  /// No description provided for @cravingAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add craving'**
+  String get cravingAdd;
+
+  /// No description provided for @cravingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No meals added yet.'**
+  String get cravingEmpty;
+
+  /// No description provided for @cravingEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cravingEdit;
+
+  /// No description provided for @cravingEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit craving'**
+  String get cravingEditTitle;
+
+  /// No description provided for @cravingNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get cravingNotes;
+
+  /// No description provided for @cravingDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: {date}'**
+  String cravingDate(String date);
+
+  /// No description provided for @academyAllGuides.
+  ///
+  /// In en, this message translates to:
+  /// **'All Guides'**
+  String get academyAllGuides;
+
+  /// No description provided for @academyGymLifts.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym Lifts'**
+  String get academyGymLifts;
+
+  /// No description provided for @academySportMechanics.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport Mechanics'**
+  String get academySportMechanics;
+
+  /// No description provided for @academyStarterRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter Rules'**
+  String get academyStarterRules;
+
+  /// No description provided for @academyDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'General information, not professional advice. Check with a qualified coach or doctor.'**
+  String get academyDisclaimer;
+
+  /// No description provided for @academyCues.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Execution Cues'**
+  String get academyCues;
+
+  /// No description provided for @academyMistakes.
+  ///
+  /// In en, this message translates to:
+  /// **'Common Mistakes to Avoid'**
+  String get academyMistakes;
+
+  /// No description provided for @academyMastered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastered Cue'**
+  String get academyMastered;
+
+  /// No description provided for @academySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Biomechanical masterclasses for gym lifts, sports conditioning & fitness foundations.'**
+  String get academySubtitle;
+
+  /// No description provided for @academySearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search bench, squats, basketball, nutrition...'**
+  String get academySearch;
+
+  /// No description provided for @academyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No guides match your search.'**
+  String get academyEmpty;
+
+  /// No description provided for @academyMuscles.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscles: {muscles}'**
+  String academyMuscles(String muscles);
+
+  /// No description provided for @academyBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'about {kcal} kcal / {minutes} mins'**
+  String academyBurn(String kcal, String minutes);
+
+  /// No description provided for @academyLifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime Knowledge'**
+  String get academyLifetime;
+
+  /// No description provided for @academyLearn.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn'**
+  String get academyLearn;
+
   /// No description provided for @plannerTitle.
   ///
   /// In en, this message translates to:

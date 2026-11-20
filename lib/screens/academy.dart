@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data.dart';
+import '../l10n_strings.dart';
 import '../ui.dart';
 
 class AcademyScreen extends StatefulWidget {
@@ -14,12 +15,22 @@ class _AcademyScreenState extends State<AcademyScreen> {
   String _category = 'all';
   String _query = '';
 
-  static const _tabs = [
-    ('all', 'All Guides'),
-    ('gym', 'Gym Lifts'),
-    ('sport', 'Sport Mechanics'),
-    ('foundation', 'Starter Rules'),
-  ];
+  String _difficulty(BuildContext context, String value) {
+    final l = strings(context);
+    return switch (value) {
+      'Beginner' => l.levelBeginner,
+      'Intermediate' => l.levelIntermediate,
+      'Pro' => l.levelPro,
+      _ => value,
+    };
+  }
+
+  String _burnRate(BuildContext context, String value) {
+    final l = strings(context);
+    if (value == 'Lifetime Knowledge') return l.academyLifetime;
+    final match = RegExp(r'^(\d+) kcal / (\d+) mins$').firstMatch(value);
+    return match == null ? value : l.academyBurn(match[1]!, match[2]!);
+  }
 
   IconData _guideIcon(ExerciseGuide guide) {
     if (guide.id == 'basketball') return Icons.sports_basketball;
@@ -61,9 +72,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   ])),
             ]),
             const SizedBox(height: 12),
-            const Text(
-                'General information, not professional advice. Check with a qualified coach or doctor.'),
-            sectionTitle('Key Execution Cues'),
+            Text(strings(ctx).academyDisclaimer),
+            sectionTitle(strings(ctx).academyCues),
             for (final c in g.cues)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -79,7 +89,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                           child: Text(c, style: const TextStyle(fontSize: 13))),
                     ]),
               ),
-            sectionTitle('Common Mistakes to Avoid'),
+            sectionTitle(strings(ctx).academyMistakes),
             for (final m in g.mistakes)
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
@@ -96,7 +106,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
                     ]),
               ),
             const SizedBox(height: 8),
-            PrimaryButton('Mastered Cue', onPressed: () => Navigator.pop(ctx)),
+            PrimaryButton(strings(ctx).academyMastered,
+                onPressed: () => Navigator.pop(ctx)),
           ],
         ),
       ),
@@ -105,6 +116,13 @@ class _AcademyScreenState extends State<AcademyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = strings(context);
+    final tabs = [
+      ('all', l.academyAllGuides),
+      ('gym', l.academyGymLifts),
+      ('sport', l.academySportMechanics),
+      ('foundation', l.academyStarterRules),
+    ];
     final q = _query.toLowerCase();
     final filtered = guides.where((g) {
       final cat = _category == 'all' || g.category == _category;
@@ -117,23 +135,19 @@ class _AcademyScreenState extends State<AcademyScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(
-            'Biomechanical masterclasses for gym lifts, sports conditioning & fitness foundations.',
-            style: TextStyle(color: kMuted, fontSize: 12)),
+        Text(l.academySubtitle, style: TextStyle(color: kMuted, fontSize: 12)),
         const SizedBox(height: 12),
         TextField(
           onChanged: (v) => setState(() => _query = v),
-          decoration: fieldDecoration(
-              'Search bench, squats, basketball, nutrition...',
-              icon: Icons.search),
+          decoration: fieldDecoration(l.academySearch, icon: Icons.search),
         ),
         const SizedBox(height: 10),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(children: [
-            for (final t in _tabs)
+            for (final t in tabs)
               Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsetsDirectional.only(end: 8),
                 child: appChip(t.$2, _category == t.$1,
                     () => setState(() => _category = t.$1)),
               ),
@@ -142,10 +156,9 @@ class _AcademyScreenState extends State<AcademyScreen> {
         const SizedBox(height: 12),
         if (filtered.isEmpty)
           Padding(
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Center(
-                child: Text('No guides match your search.',
-                    style: TextStyle(color: kMuted))),
+                child: Text(l.academyEmpty, style: TextStyle(color: kMuted))),
           ),
         for (final g in filtered)
           InkWell(
@@ -179,11 +192,11 @@ class _AcademyScreenState extends State<AcademyScreen> {
                                         style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800)),
-                                    Text(g.difficulty,
+                                    Text(_difficulty(context, g.difficulty),
                                         style: TextStyle(
                                             color: kMuted, fontSize: 11)),
                                     const SizedBox(height: 4),
-                                    Text('Muscles: ${g.muscles.join(', ')}',
+                                    Text(l.academyMuscles(g.muscles.join(', ')),
                                         style: TextStyle(
                                             fontSize: 12, color: kMuted)),
                                     const SizedBox(height: 8),
@@ -193,12 +206,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
                                       const SizedBox(width: 4),
                                       Expanded(
                                           child: Text(
-                                              g.burnRate.contains('kcal')
-                                                  ? 'about ${g.burnRate}'
-                                                  : g.burnRate,
+                                              _burnRate(context, g.burnRate),
                                               style: const TextStyle(
                                                   fontSize: 12))),
-                                      Text('Learn ',
+                                      Text(l.academyLearn,
                                           style: TextStyle(
                                               fontSize: 12, color: kGold)),
                                       Icon(Icons.chevron_right,

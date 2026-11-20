@@ -9,6 +9,145 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get cravingLogin => 'Please log in again.';
+
+  @override
+  String cravingLoadError(String error) {
+    return 'Could not load cravings: $error';
+  }
+
+  @override
+  String cravingLimitError(String error) {
+    return 'The selected month already has 2 cravings. $error';
+  }
+
+  @override
+  String cravingSaveError(String error) {
+    return 'Could not save: $error';
+  }
+
+  @override
+  String get cravingValidate => 'Enter 1 to 200 characters.';
+
+  @override
+  String get cravingDeleteTitle => 'Delete craving?';
+
+  @override
+  String get cravingPreviousMonth => 'Previous month';
+
+  @override
+  String get cravingNextMonth => 'Next month';
+
+  @override
+  String get cravingMonday => 'M';
+
+  @override
+  String get cravingTuesday => 'T';
+
+  @override
+  String get cravingWednesday => 'W';
+
+  @override
+  String get cravingThursday => 'T';
+
+  @override
+  String get cravingFriday => 'F';
+
+  @override
+  String get cravingSaturday => 'S';
+
+  @override
+  String get cravingSunday => 'S';
+
+  @override
+  String cravingUsed(String count) {
+    return '$count of 2 used this month';
+  }
+
+  @override
+  String get cravingMonthlyLimit =>
+      'Monthly limit reached. Edit or delete an entry to make room.';
+
+  @override
+  String cravingDay(String day) {
+    return 'Craving for day $day';
+  }
+
+  @override
+  String get cravingCharacters => '1 to 200 characters';
+
+  @override
+  String get cravingAdd => 'Add craving';
+
+  @override
+  String get cravingEmpty => 'No meals added yet.';
+
+  @override
+  String get cravingEdit => 'Edit';
+
+  @override
+  String get cravingEditTitle => 'Edit craving';
+
+  @override
+  String get cravingNotes => 'Notes';
+
+  @override
+  String cravingDate(String date) {
+    return 'Date: $date';
+  }
+
+  @override
+  String get academyAllGuides => 'All Guides';
+
+  @override
+  String get academyGymLifts => 'Gym Lifts';
+
+  @override
+  String get academySportMechanics => 'Sport Mechanics';
+
+  @override
+  String get academyStarterRules => 'Starter Rules';
+
+  @override
+  String get academyDisclaimer =>
+      'General information, not professional advice. Check with a qualified coach or doctor.';
+
+  @override
+  String get academyCues => 'Key Execution Cues';
+
+  @override
+  String get academyMistakes => 'Common Mistakes to Avoid';
+
+  @override
+  String get academyMastered => 'Mastered Cue';
+
+  @override
+  String get academySubtitle =>
+      'Biomechanical masterclasses for gym lifts, sports conditioning & fitness foundations.';
+
+  @override
+  String get academySearch => 'Search bench, squats, basketball, nutrition...';
+
+  @override
+  String get academyEmpty => 'No guides match your search.';
+
+  @override
+  String academyMuscles(String muscles) {
+    return 'Muscles: $muscles';
+  }
+
+  @override
+  String academyBurn(String kcal, String minutes) {
+    return 'about $kcal kcal / $minutes mins';
+  }
+
+  @override
+  String get academyLifetime => 'Lifetime Knowledge';
+
+  @override
+  String get academyLearn => 'Learn';
+
+  @override
   String get plannerTitle => 'Plan Organiser';
 
   @override

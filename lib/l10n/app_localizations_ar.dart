@@ -9,6 +9,146 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get cravingLogin => 'يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String cravingLoadError(String error) {
+    return 'تعذر تحميل الرغبات: $error';
+  }
+
+  @override
+  String cravingLimitError(String error) {
+    return 'يحتوي الشهر المحدد بالفعل على رغبتين. $error';
+  }
+
+  @override
+  String cravingSaveError(String error) {
+    return 'تعذر الحفظ: $error';
+  }
+
+  @override
+  String get cravingValidate => 'أدخل من 1 إلى 200 حرف.';
+
+  @override
+  String get cravingDeleteTitle => 'حذف الرغبة؟';
+
+  @override
+  String get cravingPreviousMonth => 'الشهر السابق';
+
+  @override
+  String get cravingNextMonth => 'الشهر التالي';
+
+  @override
+  String get cravingMonday => 'ن';
+
+  @override
+  String get cravingTuesday => 'ث';
+
+  @override
+  String get cravingWednesday => 'ر';
+
+  @override
+  String get cravingThursday => 'خ';
+
+  @override
+  String get cravingFriday => 'ج';
+
+  @override
+  String get cravingSaturday => 'س';
+
+  @override
+  String get cravingSunday => 'ح';
+
+  @override
+  String cravingUsed(String count) {
+    return 'استخدمت $count من 2 هذا الشهر';
+  }
+
+  @override
+  String get cravingMonthlyLimit =>
+      'بلغت الحد الشهري. عدّل أو احذف إدخالاً لإضافة آخر.';
+
+  @override
+  String cravingDay(String day) {
+    return 'رغبة يوم $day';
+  }
+
+  @override
+  String get cravingCharacters => 'من 1 إلى 200 حرف';
+
+  @override
+  String get cravingAdd => 'إضافة رغبة';
+
+  @override
+  String get cravingEmpty => 'لم تضف أي وجبات بعد.';
+
+  @override
+  String get cravingEdit => 'تعديل';
+
+  @override
+  String get cravingEditTitle => 'تعديل الرغبة';
+
+  @override
+  String get cravingNotes => 'ملاحظات';
+
+  @override
+  String cravingDate(String date) {
+    return 'التاريخ: $date';
+  }
+
+  @override
+  String get academyAllGuides => 'كل الأدلة';
+
+  @override
+  String get academyGymLifts => 'تمارين الحديد';
+
+  @override
+  String get academySportMechanics => 'مهارات الرياضة';
+
+  @override
+  String get academyStarterRules => 'أساسيات البداية';
+
+  @override
+  String get academyDisclaimer =>
+      'معلومات عامة وليست نصيحة متخصصة. استشر مدرباً مؤهلاً أو طبيباً.';
+
+  @override
+  String get academyCues => 'إرشادات التنفيذ الأساسية';
+
+  @override
+  String get academyMistakes => 'أخطاء شائعة يجب تجنبها';
+
+  @override
+  String get academyMastered => 'فهمت الإرشادات';
+
+  @override
+  String get academySubtitle =>
+      'دروس في حركة تمارين الحديد والإعداد الرياضي وأساسيات اللياقة.';
+
+  @override
+  String get academySearch =>
+      'ابحث عن البنش أو السكوات أو كرة السلة أو التغذية...';
+
+  @override
+  String get academyEmpty => 'لا توجد أدلة تطابق بحثك.';
+
+  @override
+  String academyMuscles(String muscles) {
+    return 'العضلات: $muscles';
+  }
+
+  @override
+  String academyBurn(String kcal, String minutes) {
+    return 'حوالي $kcal سعرة / $minutes دقيقة';
+  }
+
+  @override
+  String get academyLifetime => 'معرفة مدى الحياة';
+
+  @override
+  String get academyLearn => 'تعلّم';
+
+  @override
   String get plannerTitle => 'منظم الخطة';
 
   @override
