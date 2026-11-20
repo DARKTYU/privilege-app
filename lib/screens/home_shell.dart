@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../ui.dart';
+import '../l10n_strings.dart';
 import '../services/progression_repository.dart';
 import '../services/coach_client.dart';
 import '../state.dart';
@@ -31,15 +32,18 @@ class _HomeShellState extends State<HomeShell> {
   int _i = 0;
 
   // Shortcut strip from the React app's bottom navigation.
-  static const _shortcuts = <(String, IconData, String)>[
-    ('Community', Icons.people_alt_outlined, '/community'),
-    ('Recipes', Icons.menu_book, '/recipes'),
-    ('Streak Arena', Icons.emoji_events, '/arena'),
-    ('Cheat Meals', Icons.no_food, '/cheats'),
-    ('Classified Level', Icons.workspace_premium, '/classified'),
-    ('Academy', Icons.explore, '/academy'),
-    ('VIP Plans', Icons.diamond, '/plans'),
-  ];
+  List<(String, IconData, String)> get _shortcuts {
+    final l = strings(context);
+    return [
+      (l.community, Icons.people_alt_outlined, '/community'),
+      (l.recipes, Icons.menu_book, '/recipes'),
+      (l.arena, Icons.emoji_events, '/arena'),
+      (l.cheatMeals, Icons.no_food, '/cheats'),
+      (l.classified, Icons.workspace_premium, '/classified'),
+      (l.academy, Icons.explore, '/academy'),
+      (l.vipPlans, Icons.diamond, '/plans'),
+    ];
+  }
 
   Widget _nav(int i, IconData icon, String label) {
     final on = _i == i;
@@ -73,7 +77,8 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             for (final s in _shortcuts)
               Padding(
-                padding: EdgeInsets.only(right: 8, bottom: caloriesTab ? 2 : 6),
+                padding: EdgeInsetsDirectional.only(
+                    end: 8, bottom: caloriesTab ? 2 : 6),
                 child: ActionChip(
                   avatar: Icon(s.$2, size: 16, color: kGold),
                   label: Text(s.$1, style: const TextStyle(fontSize: 12)),
@@ -93,7 +98,7 @@ class _HomeShellState extends State<HomeShell> {
         body: SafeArea(
           child: Column(children: [
             Align(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: widget.alertBell ?? const AlertBell(),
             ),
             Expanded(
@@ -124,7 +129,7 @@ class _HomeShellState extends State<HomeShell> {
           backgroundColor: kMaroon,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           shape: const CircleBorder(),
-          tooltip: 'AI Privilege Bot',
+          tooltip: strings(context).botTooltip,
           onPressed: () => showCoachSheet(context, client: widget.coachClient),
           child: const Icon(Icons.smart_toy_rounded),
         ),
@@ -135,11 +140,13 @@ class _HomeShellState extends State<HomeShell> {
           shape: const CircularNotchedRectangle(),
           notchMargin: 8,
           child: Row(children: [
-            Expanded(child: _nav(0, Icons.home_rounded, 'Home')),
-            Expanded(child: _nav(1, Icons.shuffle, 'Splits')),
+            Expanded(child: _nav(0, Icons.home_rounded, strings(context).home)),
+            Expanded(child: _nav(1, Icons.shuffle, strings(context).splits)),
             const SizedBox(width: 48),
-            Expanded(child: _nav(2, Icons.local_fire_department, 'Calories')),
-            Expanded(child: _nav(3, Icons.person, 'Profile')),
+            Expanded(
+                child: _nav(
+                    2, Icons.local_fire_department, strings(context).calories)),
+            Expanded(child: _nav(3, Icons.person, strings(context).profile)),
           ]),
         ),
       ),

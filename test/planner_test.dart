@@ -196,7 +196,8 @@ void main() {
     expect(find.text('Workout logged'), findsOneWidget);
     await tester.tap(find.byTooltip('Next week'));
     await tester.pumpAndSettle();
-    expect(find.text('2026-11-22 – 2026-11-28'), findsOneWidget);
+    expect(find.text('\u2068Nov 22, 2026\u2069 – \u2068Nov 28, 2026\u2069'),
+        findsOneWidget);
     expect(find.byKey(const ValueKey('completed-2026-11-20')), findsNothing);
     await tester.tap(find.byTooltip('Previous week'));
     await tester.pumpAndSettle();

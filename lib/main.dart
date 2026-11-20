@@ -16,6 +16,9 @@ import 'screens/subscription.dart';
 import 'state.dart';
 import 'supabase_config.dart';
 import 'theme_settings.dart';
+import 'language_settings.dart';
+import 'l10n/app_localizations.dart';
+import 'l10n_strings.dart';
 import 'ui.dart';
 
 Future<void> main() async {
@@ -25,6 +28,7 @@ Future<void> main() async {
     publishableKey: SupabaseConfig.publishableKey,
   );
   await themeSettings.restore();
+  await languageSettings.restore();
   appState
       .restoreSession(); // checks the saved login (if any) before choosing the first screen
   runApp(const PrivilegeApp());
@@ -118,7 +122,7 @@ class PrivilegeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: themeSettings,
+      listenable: Listenable.merge([themeSettings, languageSettings]),
       builder: (context, _) => ListenableBuilder(
           listenable: appState,
           builder: (context, _) => MaterialApp(
@@ -127,17 +131,20 @@ class PrivilegeApp extends StatelessWidget {
                 title: 'Privilege',
                 debugShowCheckedModeBanner: false,
                 theme: buildTheme(themeSettings.selected),
+                locale: languageSettings.selected,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: const [Locale('en'), Locale('ar')],
                 routes: {
-                  '/community': (_) => _protected(AppPage(
-                        title: 'Community',
+                  '/community': (context) => _protected(AppPage(
+                        title: strings(context).community,
                         builder: () => const CommunityScreen(),
                       )),
-                  '/recipes': (_) => _protected(AppPage(
-                        title: 'Recipes',
+                  '/recipes': (context) => _protected(AppPage(
+                        title: strings(context).recipes,
                         builder: () => RecipesScreen(),
                       )),
-                  '/arena': (_) => _protected(AppPage(
-                        title: 'Streak Arena',
+                  '/arena': (context) => _protected(AppPage(
+                        title: strings(context).arena,
                         builder: () => ArenaScreen(),
                       )),
                   '/rewards': (_) => _protected(AppPage(
@@ -148,24 +155,24 @@ class PrivilegeApp extends StatelessWidget {
                         title: 'Badges & Achievements',
                         builder: () => const BadgesAchievementsScreen(),
                       )),
-                  '/cheats': (_) => _protected(AppPage(
-                        title: 'Cravings & Treats',
+                  '/cheats': (context) => _protected(AppPage(
+                        title: strings(context).cravingsTitle,
                         builder: () => CheatsScreen(),
                       )),
-                  '/classified': (_) => _protected(AppPage(
-                        title: 'Classified Level',
+                  '/classified': (context) => _protected(AppPage(
+                        title: strings(context).classified,
                         builder: () => ChampionScreen(),
                       )),
-                  '/academy': (_) => _protected(AppPage(
-                        title: 'Fitness Academy',
+                  '/academy': (context) => _protected(AppPage(
+                        title: strings(context).academyTitle,
                         builder: () => AcademyScreen(),
                       )),
-                  '/plans': (_) => _protected(AppPage(
-                        title: 'VIP Plans',
+                  '/plans': (context) => _protected(AppPage(
+                        title: strings(context).vipPlans,
                         builder: () => SubscriptionScreen(),
                       )),
-                  '/settings': (_) => _protected(AppPage(
-                        title: 'Settings',
+                  '/settings': (context) => _protected(AppPage(
+                        title: strings(context).settings,
                         builder: () => SettingsScreen(),
                       )),
                 },

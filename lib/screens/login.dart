@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/validators.dart';
+import '../l10n_strings.dart';
 import '../services/account_types.dart' show AuthException;
 import '../services/supabase_auth_service.dart';
 import '../services/session_recovery.dart';
@@ -25,6 +26,36 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _success = false;
   String? _message;
   Map<String, String> _errors = {};
+
+  String _translated(String value) {
+    final l = strings(context);
+    switch (value) {
+      case 'Enter a valid email address.':
+        return l.invalidEmail;
+      case 'Enter your password.':
+        return l.enterPassword;
+      case 'Password must be 8-72 characters and include a letter and a number.':
+        return l.invalidPassword;
+      case 'Passwords do not match.':
+        return l.passwordMismatch;
+      case 'Incorrect email or password.':
+        return l.invalidCredentials;
+      case 'Please confirm your email before logging in.':
+        return l.emailNotConfirmed;
+      case 'Could not connect. Check your internet connection and try again.':
+        return l.networkError;
+      case 'Could not sign in right now. Please try again.':
+        return l.signInError;
+      case 'Could not sign in. Please try again.':
+        return l.registrationError;
+      case 'Account created. Log in to continue.':
+        return l.registrationCreated;
+      case 'If this email can be registered, check your inbox for a confirmation link, then log in.':
+        return l.registrationConfirm;
+      default:
+        return value;
+    }
+  }
 
   String _loginMessage(AuthException error) {
     if (error.code == 'invalid_credentials' ||
@@ -120,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: fieldDecoration(
           hint,
           icon: Icons.lock_outline,
-          error: _errors[key],
+          error: _errors[key] == null ? null : _translated(_errors[key]!),
           suffix: IconButton(
             icon: Icon(_hide ? Icons.visibility_off : Icons.visibility),
             onPressed: () => setState(() => _hide = !_hide),
@@ -142,7 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(child: PrivilegeLogo(width: _register ? 150 : 220)),
                     const SizedBox(height: 16),
                     Text(
-                      _register ? 'Create your account' : 'Welcome back',
+                      _register
+                          ? strings(context).createYourAccount
+                          : strings(context).welcomeBack,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.w800),
@@ -150,8 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     Text(
                       _register
-                          ? 'Create an account with your email and password.'
-                          : 'Log in with your email and password.',
+                          ? strings(context).createAccountDescription
+                          : strings(context).loginDescription,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 12, color: kMuted),
                     ),
@@ -164,7 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: _success ? kGreen : kRed),
                         ),
-                        child: Text(_message!, style: TextStyle(color: kCream)),
+                        child: Text(_translated(_message!),
+                            style: TextStyle(color: kCream)),
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -174,25 +208,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       autocorrect: false,
                       textCapitalization: TextCapitalization.none,
                       onChanged: (_) => _revalidate(),
-                      decoration: fieldDecoration('Email',
-                          icon: Icons.email_outlined, error: _errors['email']),
+                      decoration: fieldDecoration(strings(context).email,
+                          icon: Icons.email_outlined,
+                          error: _errors['email'] == null
+                              ? null
+                              : _translated(_errors['email']!)),
                     ),
                     const SizedBox(height: 12),
-                    _passwordField(_password, 'Password', 'password'),
+                    _passwordField(
+                        _password, strings(context).password, 'password'),
                     if (_register) ...[
                       const SizedBox(height: 12),
-                      _passwordField(_confirm, 'Confirm password', 'confirm'),
+                      _passwordField(_confirm, strings(context).confirmPassword,
+                          'confirm'),
                       const SizedBox(height: 8),
                       Text(
-                        'Use 8-72 characters with at least one letter and one number.',
+                        strings(context).passwordHint,
                         style: TextStyle(fontSize: 11, color: kMuted),
                       ),
                     ],
                     const SizedBox(height: 18),
                     PrimaryButton(
                       _busy
-                          ? 'Please wait…'
-                          : (_register ? 'Create account' : 'Log In'),
+                          ? strings(context).pleaseWait
+                          : (_register
+                              ? strings(context).createAccount
+                              : strings(context).logIn),
                       onPressed: _busy ? null : _submit,
                     ),
                     TextButton(
@@ -207,12 +248,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _message = null;
                               }),
                       child: Text(_register
-                          ? 'Already have an account? Log in'
-                          : 'New here? Create an account'),
+                          ? strings(context).alreadyAccount
+                          : strings(context).newAccount),
                     ),
                     if (!_register)
                       Text(
-                        'Password reset and social sign-in will be available after setup.',
+                        strings(context).loginUnavailableFeatures,
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 11, color: kMuted),
                       ),

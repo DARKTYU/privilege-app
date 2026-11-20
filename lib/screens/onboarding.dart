@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../logic/user_profile.dart';
 import '../logic/calorie_target.dart';
 import '../logic/username.dart';
+import '../l10n_strings.dart';
 import '../services/account_types.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -23,6 +24,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _lbs = false;
   bool _saving = false;
   String? _error;
+
+  String _translatedError(String value) {
+    final l = strings(context);
+    switch (value) {
+      case 'Username must be 3 to 20 letters, numbers or underscores.':
+        return l.invalidUsername;
+      case 'Enter your name (up to 60 characters).':
+        return l.invalidName;
+      case 'Enter both your weight and height.':
+        return l.missingMeasurements;
+      case 'Weight must be 35-250 kg and height 120-230 cm.':
+        return l.invalidMeasurements;
+      case 'Choose a primary target goal.':
+        return l.chooseGoal;
+      case 'That username is already taken.':
+        return l.usernameTaken;
+      case 'Please log in again.':
+        return l.sessionExpired;
+      case 'Could not connect. Check your internet connection and try again.':
+        return l.networkError;
+      default:
+        return value.startsWith('Could not save your profile.')
+            ? '${l.profileSaveError} $value'
+            : value;
+    }
+  }
+
+  String _goalLabel(String value) {
+    final l = strings(context);
+    switch (goals.indexOf(value)) {
+      case 0:
+        return l.goalChampionship;
+      case 1:
+        return l.goalMuscle;
+      case 2:
+        return l.goalSports;
+      case 3:
+        return l.goalFatLoss;
+      default:
+        return value;
+    }
+  }
 
   @override
   void initState() {
@@ -133,7 +176,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _label(String t, IconData i, Color c) => Padding(
-        padding: const EdgeInsets.only(left: 4, bottom: 6),
+        padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
         child: Row(children: [
           Icon(i, size: 14, color: c),
           const SizedBox(width: 6),
@@ -216,30 +259,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const Center(child: PrivilegeLogo(width: 150)),
                     const SizedBox(height: 8),
                     Center(
-                      child: Text('ATHLETE TARGET SETUP',
+                      child: Text(strings(context).setupTitle,
                           style: TextStyle(
                               color: kCream,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 1.2)),
                     ),
                     Center(
-                      child: Text(
-                          'Personalize your athletic splits and calorie targets',
+                      child: Text(strings(context).setupSubtitle,
+                          textAlign: TextAlign.center,
                           style: TextStyle(color: kMuted, fontSize: 12)),
                     ),
                     const SizedBox(height: 18),
-                    _label('Full Name', Icons.person_outline, kGold),
+                    _label(
+                        strings(context).fullName, Icons.person_outline, kGold),
                     TextField(
                         controller: _name,
-                        decoration: fieldDecoration('e.g. Alex Johnson')),
+                        decoration:
+                            fieldDecoration(strings(context).exampleName)),
                     const SizedBox(height: 14),
-                    _label('Username', Icons.alternate_email, kGold),
+                    _label(strings(context).username, Icons.alternate_email,
+                        kGold),
                     TextField(
                         controller: _username,
                         maxLength: 20,
                         autocorrect: false,
-                        decoration: fieldDecoration(
-                            'Letters, numbers and underscores')),
+                        decoration:
+                            fieldDecoration(strings(context).usernameHint)),
                     const SizedBox(height: 14),
                     Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +295,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _measurementHeading(
-                                    label: 'Weight',
+                                    label: strings(context).weight,
                                     icon: Icons.monitor_weight_outlined,
                                     color: kRed,
                                     unit: _lbs ? 'LBS' : 'KG',
@@ -272,7 +318,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   _measurementHeading(
-                                    label: 'Height',
+                                    label: strings(context).height,
                                     icon: Icons.straighten,
                                     color: kCyan,
                                     unit: 'CM',
@@ -289,7 +335,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ]),
                     const SizedBox(height: 14),
-                    _label('Primary Target Goal', Icons.flag_outlined, kGold),
+                    _label(strings(context).primaryGoal, Icons.flag_outlined,
+                        kGold),
                     for (final g in goals)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 6),
@@ -307,7 +354,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                             child: Row(children: [
                               Expanded(
-                                child: Text(g,
+                                child: Text(_goalLabel(g),
                                     style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -331,26 +378,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Icon(Icons.auto_awesome, size: 16, color: kGold),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text('Estimated Calorie Target:',
+                          child: Text(strings(context).estimatedTarget,
                               style: TextStyle(fontSize: 12, color: kMuted)),
                         ),
-                        Text(
-                          _recommended == null
-                              ? 'Enter details and choose a goal'
-                              : '${fmt(_recommended!)} kcal/day',
-                          style: TextStyle(
-                              color: kCream, fontWeight: FontWeight.w800),
+                        Flexible(
+                          child: Text(
+                            _recommended == null
+                                ? strings(context).enterDetails
+                                : '${fmt(_recommended!)} ${strings(context).kcalPerDay}',
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                                color: kCream, fontWeight: FontWeight.w800),
+                          ),
                         ),
                       ]),
                     ),
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(_error!,
+                        child: Text(_translatedError(_error!),
                             style: TextStyle(color: kRed, fontSize: 12)),
                       ),
                     PrimaryButton(
-                      _saving ? 'Saving...' : 'Complete Setup & Enter',
+                      _saving
+                          ? strings(context).saving
+                          : strings(context).completeSetup,
                       icon: Icons.arrow_forward,
                       onPressed: _saving ? null : _submit,
                     ),

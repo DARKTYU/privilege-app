@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../state.dart';
+import '../l10n_strings.dart';
+import '../language_settings.dart';
 import '../theme_settings.dart';
 import '../ui.dart';
 
@@ -28,12 +30,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             ListTile(
               leading: Icon(Icons.photo_library_outlined, color: kGold),
-              title: const Text('Choose from photos'),
+              title: Text(strings(context).choosePhotos),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
               leading: Icon(Icons.camera_alt_outlined, color: kGold),
-              title: const Text('Take a photo'),
+              title: Text(strings(context).takePhoto),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
           ]),
@@ -54,18 +56,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       final bytes = await photo.readAsBytes();
       if (bytes.length > 900 * 1024) {
-        if (mounted) toast(context, 'Choose a smaller photo (under 900 KB).');
+        if (mounted) toast(context, strings(context).smallerPhoto);
         return;
       }
       await appState.setProfilePhoto(bytes);
-      if (mounted) toast(context, 'Profile photo updated.');
+      if (mounted) toast(context, strings(context).photoUpdated);
     } on PlatformException catch (error) {
       if (mounted) {
-        toast(context,
-            error.message ?? 'Could not open the camera or photo library.');
+        toast(context, error.message ?? strings(context).cameraError);
       }
     } on Exception catch (error) {
-      if (mounted) toast(context, 'Could not save your profile photo: $error');
+      if (mounted) toast(context, '${strings(context).savePhotoError} $error');
     } finally {
       if (mounted) setState(() => _choosingPhoto = false);
     }
@@ -73,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _removePhoto() async {
     await appState.removeProfilePhoto();
-    if (mounted) toast(context, 'Profile photo removed.');
+    if (mounted) toast(context, strings(context).photoRemoved);
   }
 
   Widget _photoPreview() {
@@ -112,7 +113,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           try {
             await themeSettings.select(preset);
           } on Exception catch (error) {
-            if (mounted) toast(context, 'Could not save your theme: $error');
+            if (mounted) {
+              toast(context, '${strings(context).saveThemeError} $error');
+            }
           }
         },
         child: AnimatedContainer(
@@ -157,14 +160,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      preset.label,
+                      _themeName(preset),
                       style: TextStyle(
                         color: preset.text,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(preset.description,
+                    Text(_themeDescription(preset),
                         style:
                             TextStyle(color: preset.mutedText, fontSize: 11)),
                     const SizedBox(height: 8),
@@ -200,14 +203,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  String _themeName(AppThemePreset preset) {
+    final l = strings(context);
+    switch (preset) {
+      case AppThemePreset.privilege:
+        return l.themePrivilege;
+      case AppThemePreset.ocean:
+        return l.themeOcean;
+      case AppThemePreset.forest:
+        return l.themeForest;
+      case AppThemePreset.violet:
+        return l.themeViolet;
+    }
+  }
+
+  String _themeDescription(AppThemePreset preset) {
+    final l = strings(context);
+    switch (preset) {
+      case AppThemePreset.privilege:
+        return l.themePrivilegeDescription;
+      case AppThemePreset.ocean:
+        return l.themeOceanDescription;
+      case AppThemePreset.forest:
+        return l.themeForestDescription;
+      case AppThemePreset.violet:
+        return l.themeVioletDescription;
+    }
+  }
+
+  Future<void> _chooseLanguage() async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: kCard,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            title: const Text('English', textDirection: TextDirection.ltr),
+            selected: languageSettings.selected.languageCode == 'en',
+            onTap: () => Navigator.pop(context, 'en'),
+          ),
+          ListTile(
+            title: const Text('العربية', textDirection: TextDirection.rtl),
+            selected: languageSettings.selected.languageCode == 'ar',
+            onTap: () => Navigator.pop(context, 'ar'),
+          ),
+        ]),
+      ),
+    );
+    if (choice == null) return;
+    try {
+      await languageSettings.select(choice);
+    } on Exception catch (error) {
+      if (mounted) toast(context, '${strings(context).languageError} $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: appState,
         builder: (context, _) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            const ScreenHeader('Settings', 'Make Privilege feel like yours'),
-            sectionTitle('Profile photo'),
+            ScreenHeader(
+                strings(context).settings, strings(context).settingsSubtitle),
+            Panel(
+              child: Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.language),
+                  title: Text(strings(context).language),
+                  subtitle: Text(languageSettings.selected.languageCode == 'ar'
+                      ? 'العربية'
+                      : 'English'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: _chooseLanguage,
+                ),
+              ),
+            ),
+            sectionTitle(strings(context).profilePhoto),
             Panel(
               child: Row(children: [
                 _photoPreview(),
@@ -223,7 +297,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 4),
-                        Text('Stored privately on this device',
+                        Text(strings(context).photoPrivate,
                             style: TextStyle(color: kMuted, fontSize: 11)),
                         const SizedBox(height: 10),
                         Wrap(spacing: 8, runSpacing: 4, children: [
@@ -238,32 +312,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   )
                                 : const Icon(Icons.add_a_photo_outlined,
                                     size: 16),
-                            label: Text(
-                                _choosingPhoto ? 'Opening…' : 'Change photo'),
+                            label: Text(_choosingPhoto
+                                ? strings(context).opening
+                                : strings(context).changePhoto),
                           ),
                           if (appState.profilePhotoBase64 != null)
                             TextButton(
                               onPressed: _choosingPhoto ? null : _removePhoto,
-                              child: const Text('Remove'),
+                              child: Text(strings(context).remove),
                             ),
                         ]),
                       ]),
                 ),
               ]),
             ),
-            sectionTitle('App appearance'),
+            sectionTitle(strings(context).appearance),
             Panel(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Choose a color theme',
+                      strings(context).chooseTheme,
                       style:
                           TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Your selection is saved on this device.',
+                      strings(context).savedDevice,
                       style: TextStyle(color: kMuted, fontSize: 11),
                     ),
                     const SizedBox(height: 14),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n_strings.dart';
+import '../logic/localized_dates.dart';
 import '../services/planner_repository.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -300,7 +302,10 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                       icon: const Icon(Icons.chevron_left)),
                   Expanded(
                       child: Text(
-                          '${plannerDate(week!)} – ${plannerDate(week!.add(const Duration(days: 6)))}',
+                          strings(context).plannerWeekRange(
+                            '\u2068${localizedPlannerDate(week!, Localizations.localeOf(context).languageCode)}\u2069',
+                            '\u2068${localizedPlannerDate(week!.add(const Duration(days: 6)), Localizations.localeOf(context).languageCode)}\u2069',
+                          ),
                           textAlign: TextAlign.center)),
                   IconButton(
                       tooltip: 'Next week',
@@ -457,7 +462,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
     final day = days.where((item) => item.date == key).firstOrNull;
     final complete =
         day?.kind == 'workout' && state.plannerWorkoutDates.contains(key);
-    final label = const ['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.weekday % 7];
+    final label = localizedPlannerWeekday(
+        date, Localizations.localeOf(context).languageCode);
     final background = selected == date ? kMaroon : kCard;
     final todayColor =
         background.computeLuminance() > 0.179 ? Colors.black : Colors.white;
@@ -472,7 +478,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
           border: Border.all(color: selected == date ? kGold : kLine),
         ),
         child: Column(children: [
-          Text(label),
+          FittedBox(child: Text(label)),
           Text('${date.day}'),
           SizedBox(
             height: 3,
