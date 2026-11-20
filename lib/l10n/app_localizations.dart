@@ -98,6 +98,342 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @plannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Organiser'**
+  String get plannerTitle;
+
+  /// No description provided for @plannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly calendar & schedule planner'**
+  String get plannerSubtitle;
+
+  /// No description provided for @plannerCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get plannerCancel;
+
+  /// No description provided for @plannerDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get plannerDelete;
+
+  /// No description provided for @plannerSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get plannerSave;
+
+  /// No description provided for @plannerRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get plannerRetry;
+
+  /// No description provided for @plannerAddSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Split'**
+  String get plannerAddSplit;
+
+  /// No description provided for @plannerEditSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit split'**
+  String get plannerEditSplit;
+
+  /// No description provided for @plannerEditDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this day'**
+  String get plannerEditDay;
+
+  /// No description provided for @plannerPlanDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan this day'**
+  String get plannerPlanDay;
+
+  /// No description provided for @plannerRestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day'**
+  String get plannerRestDay;
+
+  /// No description provided for @plannerRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest'**
+  String get plannerRest;
+
+  /// No description provided for @plannerWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get plannerWorkout;
+
+  /// No description provided for @plannerSplitUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The split is no longer available.'**
+  String get plannerSplitUnavailable;
+
+  /// No description provided for @plannerLogOnlyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging is available on the workout day only.'**
+  String get plannerLogOnlyToday;
+
+  /// No description provided for @plannerPreviousWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get plannerPreviousWeek;
+
+  /// No description provided for @plannerNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get plannerNextWeek;
+
+  /// No description provided for @plannerPlannedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned workout'**
+  String get plannerPlannedWorkout;
+
+  /// No description provided for @plannerCompletedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed workout'**
+  String get plannerCompletedWorkout;
+
+  /// No description provided for @plannerRestLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'— Rest day'**
+  String get plannerRestLegend;
+
+  /// No description provided for @plannerNothingPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing planned for this day.'**
+  String get plannerNothingPlanned;
+
+  /// No description provided for @plannerWorkoutLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout logged'**
+  String get plannerWorkoutLogged;
+
+  /// No description provided for @plannerWorkoutNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout not logged'**
+  String get plannerWorkoutNotLogged;
+
+  /// No description provided for @plannerRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get plannerRemove;
+
+  /// No description provided for @plannerRemoveDayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove planned day?'**
+  String get plannerRemoveDayTitle;
+
+  /// No description provided for @plannerRemoveDayDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'This does not delete any workout log.'**
+  String get plannerRemoveDayDetails;
+
+  /// No description provided for @plannerLogWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this workout'**
+  String get plannerLogWorkout;
+
+  /// No description provided for @plannerAvailableOnDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on the day'**
+  String get plannerAvailableOnDay;
+
+  /// No description provided for @plannerMySplits.
+  ///
+  /// In en, this message translates to:
+  /// **'My splits'**
+  String get plannerMySplits;
+
+  /// No description provided for @plannerNoSplits.
+  ///
+  /// In en, this message translates to:
+  /// **'No splits yet. Create one or add starter splits.'**
+  String get plannerNoSplits;
+
+  /// No description provided for @plannerCreateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first split'**
+  String get plannerCreateFirst;
+
+  /// No description provided for @plannerAddStarters.
+  ///
+  /// In en, this message translates to:
+  /// **'Add starter splits'**
+  String get plannerAddStarters;
+
+  /// No description provided for @plannerDeleteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Days already planned will stay unchanged.'**
+  String get plannerDeleteDetails;
+
+  /// No description provided for @plannerDeleteExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting a split keeps the days already planned.'**
+  String get plannerDeleteExplanation;
+
+  /// No description provided for @plannerToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get plannerToday;
+
+  /// No description provided for @plannerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get plannerName;
+
+  /// No description provided for @plannerType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get plannerType;
+
+  /// No description provided for @plannerDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (minutes)'**
+  String get plannerDuration;
+
+  /// No description provided for @plannerDurationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'1 to 600 minutes'**
+  String get plannerDurationHint;
+
+  /// No description provided for @plannerEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Effort (%)'**
+  String get plannerEffort;
+
+  /// No description provided for @plannerEffortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 to 100'**
+  String get plannerEffortHint;
+
+  /// No description provided for @plannerInvalidName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name between 1 and 100 characters.'**
+  String get plannerInvalidName;
+
+  /// No description provided for @plannerInvalidDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 1 to 600 minutes.'**
+  String get plannerInvalidDuration;
+
+  /// No description provided for @plannerInvalidEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter effort from 0 to 100%.'**
+  String get plannerInvalidEffort;
+
+  /// No description provided for @plannerPush.
+  ///
+  /// In en, this message translates to:
+  /// **'Push'**
+  String get plannerPush;
+
+  /// No description provided for @plannerPull.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull'**
+  String get plannerPull;
+
+  /// No description provided for @plannerLegs.
+  ///
+  /// In en, this message translates to:
+  /// **'Legs'**
+  String get plannerLegs;
+
+  /// No description provided for @plannerSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save: {error}'**
+  String plannerSaveError(String error);
+
+  /// No description provided for @plannerLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load planner: {error}'**
+  String plannerLoadError(String error);
+
+  /// No description provided for @plannerOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open workout logger: {error}'**
+  String plannerOpenError(String error);
+
+  /// No description provided for @plannerSelectedDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected day: {date}'**
+  String plannerSelectedDay(String date);
+
+  /// No description provided for @plannerWorkoutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout · {minutes} min · {effort}% effort'**
+  String plannerWorkoutSummary(String minutes, String effort);
+
+  /// No description provided for @plannerSplitSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min · {effort}% effort'**
+  String plannerSplitSummary(String minutes, String effort);
+
+  /// No description provided for @plannerEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {name}'**
+  String plannerEditName(String name);
+
+  /// No description provided for @plannerDeleteName.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}'**
+  String plannerDeleteName(String name);
+
+  /// No description provided for @plannerDeleteQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String plannerDeleteQuestion(String name);
+
   /// No description provided for @splitPushDay.
   ///
   /// In en, this message translates to:

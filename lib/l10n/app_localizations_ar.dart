@@ -9,6 +9,194 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get plannerTitle => 'منظم الخطة';
+
+  @override
+  String get plannerSubtitle => 'التقويم الأسبوعي وجدول التمارين';
+
+  @override
+  String get plannerCancel => 'إلغاء';
+
+  @override
+  String get plannerDelete => 'حذف';
+
+  @override
+  String get plannerSave => 'حفظ';
+
+  @override
+  String get plannerRetry => 'إعادة المحاولة';
+
+  @override
+  String get plannerAddSplit => 'إضافة تقسيمة';
+
+  @override
+  String get plannerEditSplit => 'تعديل التقسيمة';
+
+  @override
+  String get plannerEditDay => 'تعديل هذا اليوم';
+
+  @override
+  String get plannerPlanDay => 'خطط لهذا اليوم';
+
+  @override
+  String get plannerRestDay => 'يوم راحة';
+
+  @override
+  String get plannerRest => 'راحة';
+
+  @override
+  String get plannerWorkout => 'تمرين';
+
+  @override
+  String get plannerSplitUnavailable => 'التقسيمة لم تعد متاحة.';
+
+  @override
+  String get plannerLogOnlyToday => 'يمكن تسجيل التمرين في يومه فقط.';
+
+  @override
+  String get plannerPreviousWeek => 'الأسبوع السابق';
+
+  @override
+  String get plannerNextWeek => 'الأسبوع التالي';
+
+  @override
+  String get plannerPlannedWorkout => 'تمرين مخطط';
+
+  @override
+  String get plannerCompletedWorkout => 'تمرين مكتمل';
+
+  @override
+  String get plannerRestLegend => '— يوم راحة';
+
+  @override
+  String get plannerNothingPlanned => 'لا توجد خطة لهذا اليوم.';
+
+  @override
+  String get plannerWorkoutLogged => 'تم تسجيل التمرين';
+
+  @override
+  String get plannerWorkoutNotLogged => 'لم يُسجل التمرين';
+
+  @override
+  String get plannerRemove => 'إزالة';
+
+  @override
+  String get plannerRemoveDayTitle => 'إزالة خطة اليوم؟';
+
+  @override
+  String get plannerRemoveDayDetails => 'لن يُحذف أي تمرين مسجل.';
+
+  @override
+  String get plannerLogWorkout => 'سجل هذا التمرين';
+
+  @override
+  String get plannerAvailableOnDay => 'متاح في يوم التمرين';
+
+  @override
+  String get plannerMySplits => 'تقسيماتي';
+
+  @override
+  String get plannerNoSplits =>
+      'لا توجد تقسيمات بعد. أنشئ تقسيمة أو أضف تقسيمات جاهزة.';
+
+  @override
+  String get plannerCreateFirst => 'أنشئ أول تقسيمة';
+
+  @override
+  String get plannerAddStarters => 'أضف تقسيمات جاهزة';
+
+  @override
+  String get plannerDeleteDetails => 'ستبقى الأيام المخططة كما هي.';
+
+  @override
+  String get plannerDeleteExplanation =>
+      'عند حذف تقسيمة، تبقى الأيام المخططة كما هي.';
+
+  @override
+  String get plannerToday => 'اليوم';
+
+  @override
+  String get plannerName => 'الاسم';
+
+  @override
+  String get plannerType => 'النوع';
+
+  @override
+  String get plannerDuration => 'المدة (بالدقائق)';
+
+  @override
+  String get plannerDurationHint => 'من 1 إلى 600 دقيقة';
+
+  @override
+  String get plannerEffort => 'المجهود (%)';
+
+  @override
+  String get plannerEffortHint => 'من 0 إلى 100';
+
+  @override
+  String get plannerInvalidName => 'أدخل اسماً من 1 إلى 100 حرف.';
+
+  @override
+  String get plannerInvalidDuration => 'أدخل مدة من 1 إلى 600 دقيقة.';
+
+  @override
+  String get plannerInvalidEffort => 'أدخل مجهوداً من 0 إلى 100%.';
+
+  @override
+  String get plannerPush => 'دفع';
+
+  @override
+  String get plannerPull => 'سحب';
+
+  @override
+  String get plannerLegs => 'ساقين';
+
+  @override
+  String plannerSaveError(String error) {
+    return 'تعذر الحفظ: $error';
+  }
+
+  @override
+  String plannerLoadError(String error) {
+    return 'تعذر تحميل الخطة: $error';
+  }
+
+  @override
+  String plannerOpenError(String error) {
+    return 'تعذر فتح تسجيل التمرين: $error';
+  }
+
+  @override
+  String plannerSelectedDay(String date) {
+    return 'اليوم المحدد: $date';
+  }
+
+  @override
+  String plannerWorkoutSummary(String minutes, String effort) {
+    return 'تمرين · $minutes دقيقة · مجهود $effort%';
+  }
+
+  @override
+  String plannerSplitSummary(String minutes, String effort) {
+    return '$minutes دقيقة · مجهود $effort%';
+  }
+
+  @override
+  String plannerEditName(String name) {
+    return 'تعديل $name';
+  }
+
+  @override
+  String plannerDeleteName(String name) {
+    return 'حذف $name';
+  }
+
+  @override
+  String plannerDeleteQuestion(String name) {
+    return 'هل تريد حذف $name؟';
+  }
+
+  @override
   String get splitPushDay => 'تمرين الدفع';
 
   @override

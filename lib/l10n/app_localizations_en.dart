@@ -9,6 +9,196 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get plannerTitle => 'Plan Organiser';
+
+  @override
+  String get plannerSubtitle => 'Weekly calendar & schedule planner';
+
+  @override
+  String get plannerCancel => 'Cancel';
+
+  @override
+  String get plannerDelete => 'Delete';
+
+  @override
+  String get plannerSave => 'Save';
+
+  @override
+  String get plannerRetry => 'Retry';
+
+  @override
+  String get plannerAddSplit => 'Add Split';
+
+  @override
+  String get plannerEditSplit => 'Edit split';
+
+  @override
+  String get plannerEditDay => 'Edit this day';
+
+  @override
+  String get plannerPlanDay => 'Plan this day';
+
+  @override
+  String get plannerRestDay => 'Rest day';
+
+  @override
+  String get plannerRest => 'Rest';
+
+  @override
+  String get plannerWorkout => 'Workout';
+
+  @override
+  String get plannerSplitUnavailable => 'The split is no longer available.';
+
+  @override
+  String get plannerLogOnlyToday =>
+      'Logging is available on the workout day only.';
+
+  @override
+  String get plannerPreviousWeek => 'Previous week';
+
+  @override
+  String get plannerNextWeek => 'Next week';
+
+  @override
+  String get plannerPlannedWorkout => 'Planned workout';
+
+  @override
+  String get plannerCompletedWorkout => 'Completed workout';
+
+  @override
+  String get plannerRestLegend => '— Rest day';
+
+  @override
+  String get plannerNothingPlanned => 'Nothing planned for this day.';
+
+  @override
+  String get plannerWorkoutLogged => 'Workout logged';
+
+  @override
+  String get plannerWorkoutNotLogged => 'Workout not logged';
+
+  @override
+  String get plannerRemove => 'Remove';
+
+  @override
+  String get plannerRemoveDayTitle => 'Remove planned day?';
+
+  @override
+  String get plannerRemoveDayDetails => 'This does not delete any workout log.';
+
+  @override
+  String get plannerLogWorkout => 'Log this workout';
+
+  @override
+  String get plannerAvailableOnDay => 'Available on the day';
+
+  @override
+  String get plannerMySplits => 'My splits';
+
+  @override
+  String get plannerNoSplits =>
+      'No splits yet. Create one or add starter splits.';
+
+  @override
+  String get plannerCreateFirst => 'Create your first split';
+
+  @override
+  String get plannerAddStarters => 'Add starter splits';
+
+  @override
+  String get plannerDeleteDetails =>
+      'Days already planned will stay unchanged.';
+
+  @override
+  String get plannerDeleteExplanation =>
+      'Deleting a split keeps the days already planned.';
+
+  @override
+  String get plannerToday => 'Today';
+
+  @override
+  String get plannerName => 'Name';
+
+  @override
+  String get plannerType => 'Type';
+
+  @override
+  String get plannerDuration => 'Duration (minutes)';
+
+  @override
+  String get plannerDurationHint => '1 to 600 minutes';
+
+  @override
+  String get plannerEffort => 'Effort (%)';
+
+  @override
+  String get plannerEffortHint => '0 to 100';
+
+  @override
+  String get plannerInvalidName => 'Enter a name between 1 and 100 characters.';
+
+  @override
+  String get plannerInvalidDuration => 'Enter 1 to 600 minutes.';
+
+  @override
+  String get plannerInvalidEffort => 'Enter effort from 0 to 100%.';
+
+  @override
+  String get plannerPush => 'Push';
+
+  @override
+  String get plannerPull => 'Pull';
+
+  @override
+  String get plannerLegs => 'Legs';
+
+  @override
+  String plannerSaveError(String error) {
+    return 'Could not save: $error';
+  }
+
+  @override
+  String plannerLoadError(String error) {
+    return 'Could not load planner: $error';
+  }
+
+  @override
+  String plannerOpenError(String error) {
+    return 'Could not open workout logger: $error';
+  }
+
+  @override
+  String plannerSelectedDay(String date) {
+    return 'Selected day: $date';
+  }
+
+  @override
+  String plannerWorkoutSummary(String minutes, String effort) {
+    return 'Workout · $minutes min · $effort% effort';
+  }
+
+  @override
+  String plannerSplitSummary(String minutes, String effort) {
+    return '$minutes min · $effort% effort';
+  }
+
+  @override
+  String plannerEditName(String name) {
+    return 'Edit $name';
+  }
+
+  @override
+  String plannerDeleteName(String name) {
+    return 'Delete $name';
+  }
+
+  @override
+  String plannerDeleteQuestion(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
   String get splitPushDay => 'Push Day';
 
   @override
