@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../logic/fitness_logic.dart';
+import '../logic/workout_estimate.dart';
 import '../services/food_database.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -18,9 +20,9 @@ class CaloriesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => TabbedPage(
-        title: 'Calories',
-        subtitle: 'Meals, macros & activity',
-        labels: ['Food Log', 'Activity'],
+        title: strings(context).calories,
+        subtitle: strings(context).caloriesSubtitle,
+        labels: [strings(context).foodLog, strings(context).activity],
         children: [
           FoodLogTab(state: state ?? appState, database: database),
           ActivityTab(state: state ?? appState),
@@ -77,17 +79,16 @@ class FoodLogTab extends StatelessWidget {
       final matches = foods.foods.where((food) => food.id == meal.foodId);
       if (!context.mounted) return;
       if (matches.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text(
-              'This food is no longer available in the food database. The meal was not changed.'),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(strings(context).foodUnavailable),
         ));
         return;
       }
       await showFoodPortionSheet(context, state, matches.first, log: meal);
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not open food: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(strings(context).foodOpenError(error.toString()))));
       }
     }
   }
@@ -153,44 +154,60 @@ Widget _activityCard(CaloriesPalette palette, Widget child) => Container(
       child: child,
     );
 
-Widget _burnTile(CaloriesPalette palette, BurnItem b,
-        {VoidCallback? onRemove}) =>
-    _activityCard(
-      palette,
-      Row(children: [
-        Text(b.icon, style: const TextStyle(fontSize: 22)),
-        const SizedBox(width: 10),
-        Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Flexible(
-                child: Text(b.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700, fontSize: 13)),
-              ),
-              const SizedBox(width: 6),
-              tag(b.type.name, _burnColor(b.type)),
-            ]),
-            Text(b.time, style: TextStyle(fontSize: 11, color: palette.muted)),
-            Text('${fmt(b.calories)} kcal burned',
-                style: TextStyle(
-                    color: palette.text,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 12)),
+Widget _burnTile(BuildContext context, CaloriesPalette palette, BurnItem b,
+    {VoidCallback? onRemove}) {
+  final l = strings(context);
+  final generated = WorkoutActivity.values
+      .where((item) => b.title == '${item.label} - ${b.durationMin} min')
+      .firstOrNull;
+  final title = generated == null
+      ? b.title
+      : l.workoutSavedTitle(
+          localizedWorkoutActivityName(l, generated), b.durationMin.toString());
+  return _activityCard(
+    palette,
+    Row(children: [
+      Text(b.icon, style: const TextStyle(fontSize: 22)),
+      const SizedBox(width: 10),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Flexible(
+              child: Text(title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 13)),
+            ),
+            const SizedBox(width: 6),
+            tag(
+                switch (b.type) {
+                  BurnType.strength => strings(context).burnTypeStrength,
+                  BurnType.cardio => strings(context).burnTypeCardio,
+                  BurnType.mobility => strings(context).burnTypeMobility,
+                },
+                _burnColor(b.type)),
           ]),
-        ),
-        if (onRemove != null)
-          IconButton(
-              tooltip: 'Delete ${b.title}',
-              icon: const Icon(Icons.delete_outline, size: 18),
-              onPressed: onRemove),
-      ]),
-    );
+          Text(b.time == 'Just now' ? l.justNow : b.time,
+              style: TextStyle(fontSize: 11, color: palette.muted)),
+          Text(strings(context).burnedAmount(fmt(b.calories)),
+              style: TextStyle(
+                  color: palette.text,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12)),
+        ]),
+      ),
+      if (onRemove != null)
+        IconButton(
+            tooltip: strings(context).deleteNamed(title),
+            icon: const Icon(Icons.delete_outline, size: 18),
+            onPressed: onRemove),
+    ]),
+  );
+}
 
-Widget _activityStatus(AppState state, CaloriesPalette palette) {
+Widget _activityStatus(
+    BuildContext context, AppState state, CaloriesPalette palette) {
   if (state.activityLoading && state.burns.isEmpty) {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 20),
@@ -206,7 +223,7 @@ Widget _activityStatus(AppState state, CaloriesPalette palette) {
         TextButton.icon(
           onPressed: state.loadActivity,
           icon: const Icon(Icons.refresh),
-          label: const Text('Retry'),
+          label: Text(strings(context).plannerRetry),
         ),
       ]),
     );
@@ -215,7 +232,7 @@ Widget _activityStatus(AppState state, CaloriesPalette palette) {
     return _activityCard(
       palette,
       Text(
-        'No workouts logged today yet.',
+        strings(context).noWorkouts,
         textAlign: TextAlign.center,
         style: TextStyle(color: palette.muted),
       ),
@@ -232,8 +249,8 @@ Future<void> _runActivityAction(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-          SnackBar(content: Text('Could not save activity: $error')));
+      ..showSnackBar(SnackBar(
+          content: Text(strings(context).activitySaveError(error.toString()))));
   }
 }
 
@@ -265,7 +282,7 @@ class _AddFormState extends State<_AddForm> {
   Future<void> _submit() async {
     final cals = int.tryParse(_cals.text.trim());
     if (cals == null || cals <= 0) {
-      setState(() => _error = 'Enter a calorie amount greater than zero.');
+      setState(() => _error = strings(context).manualInvalidCalories);
       return;
     }
     final typed = _name.text.trim();
@@ -307,7 +324,10 @@ class _AddFormState extends State<_AddForm> {
       }
       if (mounted) widget.onClose();
     } catch (error) {
-      if (mounted) setState(() => _error = 'Could not save activity: $error');
+      if (mounted) {
+        setState(() =>
+            _error = strings(context).activitySaveError(error.toString()));
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -332,16 +352,16 @@ class _AddFormState extends State<_AddForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l = strings(context);
     return Panel(
       borderColor: kGold.withAlpha(110),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Log Nutrition or Workout Burn',
+        Text(l.manualTitle,
             style: const TextStyle(fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Wrap(spacing: 8, children: [
-          appChip('Food Intake (+)', _meal, () => setState(() => _meal = true)),
-          appChip(
-              'Workout Burn (+)', !_meal, () => setState(() => _meal = false)),
+          appChip(l.manualFood, _meal, () => setState(() => _meal = true)),
+          appChip(l.manualBurn, !_meal, () => setState(() => _meal = false)),
         ]),
         if (_error != null) ...[
           const SizedBox(height: 8),
@@ -351,44 +371,44 @@ class _AddFormState extends State<_AddForm> {
         const SizedBox(height: 10),
         TextField(
           controller: _name,
-          decoration: fieldDecoration(
-              _meal ? 'e.g. Grass-fed Steak' : 'e.g. Olympic Lifts'),
+          decoration:
+              fieldDecoration(_meal ? l.manualFoodHint : l.manualBurnHint),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _cals,
           keyboardType: TextInputType.number,
-          decoration: fieldDecoration('Calories (kcal)'),
+          decoration: fieldDecoration(l.caloriesKcal),
         ),
         const SizedBox(height: 8),
         if (_meal)
           Wrap(spacing: 8, children: [
-            appChip('🔴 Protein', _macro == 'protein',
+            appChip(l.manualProtein, _macro == 'protein',
                 () => setState(() => _macro = 'protein')),
-            appChip('🔵 Carbs', _macro == 'carbs',
+            appChip(l.manualCarbs, _macro == 'carbs',
                 () => setState(() => _macro = 'carbs')),
-            appChip('🟠 Fats', _macro == 'fats',
+            appChip(l.manualFats, _macro == 'fats',
                 () => setState(() => _macro = 'fats')),
-            appChip('🟢 Greens', _macro == 'greens',
+            appChip(l.manualGreens, _macro == 'greens',
                 () => setState(() => _macro = 'greens')),
           ])
         else
           Wrap(spacing: 8, children: [
-            appChip('🟡 Strength / Gym', _burn == BurnType.strength,
+            appChip(l.manualStrength, _burn == BurnType.strength,
                 () => setState(() => _burn = BurnType.strength)),
-            appChip('🔷 Cardio / Sports', _burn == BurnType.cardio,
+            appChip(l.manualCardio, _burn == BurnType.cardio,
                 () => setState(() => _burn = BurnType.cardio)),
-            appChip('🟢 Mobility / Stage', _burn == BurnType.mobility,
+            appChip(l.manualMobility, _burn == BurnType.mobility,
                 () => setState(() => _burn = BurnType.mobility)),
           ]),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
               child: TextButton(
-                  onPressed: widget.onClose, child: const Text('Cancel'))),
+                  onPressed: widget.onClose, child: Text(l.plannerCancel))),
           const SizedBox(width: 8),
           Expanded(
-            child: PrimaryButton('Save activity',
+            child: PrimaryButton(l.saveActivity,
                 gold: true, expand: false, onPressed: _saving ? null : _submit),
           ),
         ]),
@@ -436,6 +456,7 @@ class ActivityTab extends StatelessWidget {
     return ListenableBuilder(
       listenable: state,
       builder: (context, _) {
+        final l = strings(context);
         final s = state;
         final p = CaloriesPalette(Theme.of(context));
         final t = s.totals;
@@ -445,11 +466,11 @@ class ActivityTab extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
           children: [
-            _title(p, 'Activity Rings & Workouts'),
-            Text('Track workouts and calories burned',
+            _title(p, l.activityTitle),
+            Text(l.activitySubtitle,
                 style: TextStyle(fontSize: 12, color: p.muted)),
             const SizedBox(height: 10),
-            _activityStatus(s, p),
+            _activityStatus(context, s, p),
             _activityCard(
               p,
               Column(children: [
@@ -461,38 +482,38 @@ class ActivityTab extends StatelessWidget {
                         size: const Size(200, 200),
                         painter: RingsPainter(outer, middle, inner)),
                     Column(mainAxisSize: MainAxisSize.min, children: [
-                      Text('Burned',
+                      Text(l.burned,
                           style: TextStyle(fontSize: 11, color: p.muted)),
                       Text(fmt(t.totalBurnedCalories),
                           style: TextStyle(
                               color: p.text,
                               fontSize: 28,
                               fontWeight: FontWeight.w800)),
-                      Text('/ ${t.burnTarget} kcal target',
+                      Text(l.burnTarget(t.burnTarget.toString()),
                           style: TextStyle(fontSize: 10, color: p.muted)),
                     ]),
                   ]),
                 ),
-                Text('Daily burn goal • total includes mobility',
+                Text(l.burnGoalNote,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, color: p.muted)),
-                Text('Each ring uses the daily burn goal.',
+                Text(l.burnRingNote,
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 11, color: p.muted)),
                 const SizedBox(height: 12),
                 Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: AlignmentDirectional.centerStart,
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _legend(p, kRed,
-                            'Total burn (${t.totalBurnedCalories} kcal)'),
+                            l.totalBurn(t.totalBurnedCalories.toString())),
                         const SizedBox(height: 4),
                         _legend(p, kGold,
-                            'Strength burn (${t.strengthBurnCalories} kcal)'),
+                            l.strengthBurn(t.strengthBurnCalories.toString())),
                         const SizedBox(height: 4),
                         _legend(p, kCyan,
-                            'Cardio burn (${t.cardioBurnCalories} kcal)'),
+                            l.cardioBurn(t.cardioBurnCalories.toString())),
                       ]),
                 ),
                 const SizedBox(height: 12),
@@ -506,23 +527,24 @@ class ActivityTab extends StatelessWidget {
                     ),
                     onPressed: () => showWorkoutLogger(context, s),
                     icon: const Icon(Icons.fitness_center),
-                    label: const Text('Log workout'),
+                    label: Text(l.mergeLogWorkout),
                   ),
                 ),
               ]),
             ),
-            _title(p, 'Burn Stats'),
+            _title(p, l.burnStats),
             _activityCard(
               p,
               Column(children: [
-                _stat(p, 'Strength Burn', '${t.strengthBurnCalories} kcal',
-                    kGold),
-                _stat(p, 'Cardio Burn', '${t.cardioBurnCalories} kcal', kCyan),
+                _stat(p, l.strengthBurnLabel,
+                    l.mergeCalories(t.strengthBurnCalories.toString()), kGold),
+                _stat(p, l.cardioBurnLabel,
+                    l.mergeCalories(t.cardioBurnCalories.toString()), kCyan),
               ]),
             ),
-            _title(p, 'Workout Logs (${s.burns.length})'),
+            _title(p, l.workoutLogs(s.burns.length.toString())),
             for (final b in s.burns)
-              _burnTile(p, b,
+              _burnTile(context, p, b,
                   onRemove: () =>
                       _runActivityAction(context, () => s.removeBurn(b.id))),
           ],

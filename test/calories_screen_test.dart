@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/screens/calories.dart';
 import 'package:privilege/services/food_database.dart';
@@ -87,6 +90,53 @@ const _snack = MealItem(
 
 void main() {
   setUpAll(() async => FoodDatabase().load());
+  test('calorie screens contain no hardcoded UI labels', () {
+    final pattern = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:labelText|hintText|helperText|tooltip|semanticLabel|subtitle)\s*:\s*)['"]""");
+    for (final path in [
+      'lib/screens/calories.dart',
+      'lib/screens/workout_logger_sheet.dart',
+      'lib/screens/calories_food_summary.dart',
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(pattern.allMatches(source), isEmpty, reason: path);
+      expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))), reason: path);
+    }
+  });
+  for (final language in ['en', 'ar']) {
+    testWidgets('Calories tabs fit and switch language at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final state = _FakeState()..meals.add(_meal);
+      addTearDown(state.dispose);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: buildTheme(),
+        home: Scaffold(
+            body: CaloriesSection(
+                state: state, database: CaloriesTestDatabase(FoodDatabase()))),
+      ));
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(CaloriesSection));
+      final l = AppLocalizations.of(context)!;
+      expect(find.text(l.caloriesSubtitle), findsOneWidget);
+      expect(find.text(l.foodLog), findsOneWidget);
+      expect(find.text(l.foodBalance), findsOneWidget);
+      expect(find.text(l.foodEaten), findsOneWidget);
+      expect(find.text(l.foodLeft), findsOneWidget);
+      expect(find.text(l.foodAdd), findsOneWidget);
+      await tester.tap(find.text(l.activity));
+      await tester.pumpAndSettle();
+      expect(find.text(l.activityTitle), findsOneWidget);
+      expect(find.text(l.noWorkouts), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
   testWidgets('Calories screen renders in every preset and light variant',
       (tester) async {
     final previous = themeSettings.selected;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/user_profile.dart';
 import 'package:privilege/logic/workout_estimate.dart';
@@ -59,18 +60,23 @@ void main() {
         isNull);
   });
 
-  Future<void> open(WidgetTester tester, _WorkoutState state) async {
+  Future<void> open(WidgetTester tester, _WorkoutState state,
+      {String language = 'en'}) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
+      locale: Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: buildTheme(),
       home: Scaffold(body: ActivityTab(state: state)),
     ));
-    await tester.ensureVisible(find.text('Log workout'));
+    final l = AppLocalizations.of(tester.element(find.byType(ActivityTab)))!;
+    await tester.ensureVisible(find.text(l.mergeLogWorkout));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Log workout'));
+    await tester.tap(find.text(l.mergeLogWorkout));
     await tester.pumpAndSettle();
   }
 
@@ -81,6 +87,37 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(finder);
     await tester.pumpAndSettle();
+  }
+
+  for (final language in ['en', 'ar']) {
+    testWidgets(
+        'logger translates and preserves saved data at 360 in $language',
+        (tester) async {
+      final state = _WorkoutState()
+        ..profile = defaultUserProfile.copyWith(weightKg: 80);
+      addTearDown(state.dispose);
+      await open(tester, state, language: language);
+      final context = tester.element(find.byType(WorkoutLoggerSheet));
+      final l = AppLocalizations.of(context)!;
+      expect(Directionality.of(context),
+          language == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+      await tapVisible(
+          tester, find.text(l.workoutActivityLabel('🏃', l.workoutRunning)));
+      expect(find.text(l.workoutEstimate('392')), findsOneWidget);
+      final duration = find.byKey(const ValueKey('workout-duration'));
+      await tester.ensureVisible(duration);
+      await tester.enterText(duration, '0');
+      await tapVisible(tester, find.text(l.workoutSave));
+      expect(find.text(l.workoutInvalidDuration), findsOneWidget);
+      await tester.ensureVisible(duration);
+      await tester.enterText(duration, '30');
+      await tapVisible(tester, find.text(l.workoutSave));
+      expect(state.saved!.title, 'Running - 30 min');
+      expect(state.saved!.calories, 392);
+      expect(find.text(l.workoutSavedTitle(l.workoutRunning, '30')),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   }
 
   testWidgets('running estimate saves through addBurn and deletes',

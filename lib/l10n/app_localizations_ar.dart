@@ -376,6 +376,448 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get caloriesSubtitle => 'الوجبات والعناصر الغذائية والنشاط';
+
+  @override
+  String get foodLog => 'سجل الطعام';
+
+  @override
+  String get activity => 'النشاط';
+
+  @override
+  String get foodUnavailable =>
+      'لم يعد هذا الطعام متاحًا في قاعدة البيانات. لم تتغير الوجبة.';
+
+  @override
+  String foodOpenError(String error) {
+    return 'تعذر فتح الطعام: $error';
+  }
+
+  @override
+  String activitySaveError(String error) {
+    return 'تعذر حفظ النشاط: $error';
+  }
+
+  @override
+  String burnedAmount(String amount) {
+    return '$amount سعرة محروقة';
+  }
+
+  @override
+  String deleteNamed(String name) {
+    return 'حذف $name';
+  }
+
+  @override
+  String get noWorkouts => 'لم تسجل أي تمارين اليوم بعد.';
+
+  @override
+  String get manualInvalidCalories => 'أدخل عدد سعرات أكبر من صفر.';
+
+  @override
+  String get manualTitle => 'سجل الطعام أو التمرين';
+
+  @override
+  String get manualFood => 'الطعام (+)';
+
+  @override
+  String get manualBurn => 'حرق التمرين (+)';
+
+  @override
+  String get manualFoodHint => 'مثال: شريحة لحم';
+
+  @override
+  String get manualBurnHint => 'مثال: رفع الأثقال';
+
+  @override
+  String get caloriesKcal => 'السعرات (سعرة)';
+
+  @override
+  String get manualProtein => '🔴 بروتين';
+
+  @override
+  String get manualCarbs => '🔵 كربوهيدرات';
+
+  @override
+  String get manualFats => '🟠 دهون';
+
+  @override
+  String get manualGreens => '🟢 خضروات';
+
+  @override
+  String get manualStrength => '🟡 قوة / نادي';
+
+  @override
+  String get manualCardio => '🔷 كارديو / رياضة';
+
+  @override
+  String get manualMobility => '🟢 مرونة / حركة';
+
+  @override
+  String get saveActivity => 'حفظ النشاط';
+
+  @override
+  String get activityTitle => 'حلقات النشاط والتمارين';
+
+  @override
+  String get activitySubtitle => 'تابع التمارين والسعرات المحروقة';
+
+  @override
+  String get burned => 'المحروق';
+
+  @override
+  String burnTarget(String amount) {
+    return '/ هدف $amount سعرة';
+  }
+
+  @override
+  String get burnGoalNote => 'هدف الحرق اليومي • يشمل الإجمالي تمارين الحركة';
+
+  @override
+  String get burnRingNote => 'تستخدم كل حلقة هدف الحرق اليومي.';
+
+  @override
+  String totalBurn(String amount) {
+    return 'إجمالي الحرق ($amount سعرة)';
+  }
+
+  @override
+  String strengthBurn(String amount) {
+    return 'حرق القوة ($amount سعرة)';
+  }
+
+  @override
+  String cardioBurn(String amount) {
+    return 'حرق الكارديو ($amount سعرة)';
+  }
+
+  @override
+  String get burnStats => 'إحصاءات الحرق';
+
+  @override
+  String get strengthBurnLabel => 'حرق القوة';
+
+  @override
+  String get cardioBurnLabel => 'حرق الكارديو';
+
+  @override
+  String get burnTypeStrength => 'قوة';
+
+  @override
+  String get burnTypeCardio => 'كارديو';
+
+  @override
+  String get burnTypeMobility => 'حركة';
+
+  @override
+  String workoutLogs(String count) {
+    return 'سجل التمارين ($count)';
+  }
+
+  @override
+  String get workoutInvalidDuration => 'أدخل مدة من 1 إلى 600 دقيقة.';
+
+  @override
+  String get workoutInvalidCalories => 'أدخل سعرات من 0 إلى 5000.';
+
+  @override
+  String get workoutSaved => 'تم تسجيل التمرين.';
+
+  @override
+  String get workoutRefreshError =>
+      'تم الحفظ، لكن تعذر تحديث قائمة النشاط. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String workoutSaveError(String error) {
+    return 'تعذر حفظ التمرين: $error';
+  }
+
+  @override
+  String get workoutStrength => 'تمارين القوة';
+
+  @override
+  String get workoutWalking => 'المشي';
+
+  @override
+  String get workoutRunning => 'الجري';
+
+  @override
+  String get workoutCycling => 'ركوب الدراجة';
+
+  @override
+  String get workoutSwimming => 'السباحة';
+
+  @override
+  String get workoutFootball => 'كرة القدم';
+
+  @override
+  String get workoutBasketball => 'كرة السلة';
+
+  @override
+  String get workoutTennis => 'التنس';
+
+  @override
+  String get workoutCircuit => 'تمرين متقطع أو دائري';
+
+  @override
+  String get workoutMartialArts => 'الملاكمة أو الفنون القتالية';
+
+  @override
+  String get workoutYoga => 'اليوغا أو الإطالة';
+
+  @override
+  String get workoutJumpRope => 'نط الحبل';
+
+  @override
+  String get workoutOther => 'أخرى';
+
+  @override
+  String workoutActivityLabel(String icon, String name) {
+    return '$icon $name';
+  }
+
+  @override
+  String workoutSavedTitle(String name, String minutes) {
+    return '$name - $minutes دقيقة';
+  }
+
+  @override
+  String get justNow => 'الآن';
+
+  @override
+  String get workoutIntensity => 'الشدة';
+
+  @override
+  String get workoutEstimateUnavailable =>
+      'التقدير غير متاح — أدخل السعرات يدويًا.';
+
+  @override
+  String workoutEstimate(String amount) {
+    return '≈ $amount سعرة محروقة';
+  }
+
+  @override
+  String get workoutFormula => 'معامل النشاط × الوزن × الساعات';
+
+  @override
+  String get workoutEstimateNote => 'السعرات المحروقة تقديرية.';
+
+  @override
+  String get workoutManualOther => 'الأنشطة الأخرى تتطلب إدخال السعرات يدويًا.';
+
+  @override
+  String get workoutCaloriesEditable => 'السعرات المحروقة (قابلة للتعديل)';
+
+  @override
+  String get workoutCaloriesHint => 'من 0 إلى 5000 سعرة';
+
+  @override
+  String get workoutUseEstimate => 'استخدم التقدير';
+
+  @override
+  String get workoutSaving => 'جارٍ الحفظ...';
+
+  @override
+  String get workoutSave => 'حفظ التمرين';
+
+  @override
+  String get foodEaten => 'سعرة تم تناولها';
+
+  @override
+  String get foodBalance => 'توازن الطاقة اليومي';
+
+  @override
+  String get foodTargetUnavailable => 'الهدف غير متاح';
+
+  @override
+  String get foodOver => 'سعرة فوق الهدف';
+
+  @override
+  String get foodLeft => 'سعرة متبقية';
+
+  @override
+  String get foodEstimated => ' • تقديري';
+
+  @override
+  String foodGoalSummary(String goal, String estimated, String count) {
+    return 'الهدف: $goal$estimated • العناصر المسجلة: $count';
+  }
+
+  @override
+  String get foodProtein => 'بروتين';
+
+  @override
+  String get foodCarbs => 'كربوهيدرات';
+
+  @override
+  String get foodFats => 'دهون';
+
+  @override
+  String get foodFiber => 'ألياف';
+
+  @override
+  String get foodSugar => 'سكر';
+
+  @override
+  String get foodSodium => 'صوديوم';
+
+  @override
+  String foodGrams(String amount) {
+    return '$amount جم';
+  }
+
+  @override
+  String foodMilligrams(String amount) {
+    return '$amount مجم';
+  }
+
+  @override
+  String foodMacroGoal(String eaten, String goal) {
+    return '$eaten / $goal جم';
+  }
+
+  @override
+  String foodLabelValue(String label, String value) {
+    return '$label $value';
+  }
+
+  @override
+  String get foodAdd => 'إضافة طعام';
+
+  @override
+  String get foodCompleteProfile => 'أكمل ملفك الشخصي للحصول على هدف أدق';
+
+  @override
+  String get foodDismissReminder => 'إغلاق تذكير الملف الشخصي';
+
+  @override
+  String get foodToday => 'سجل طعام اليوم';
+
+  @override
+  String get foodAll => 'الكل';
+
+  @override
+  String get foodBreakfast => 'الإفطار';
+
+  @override
+  String get foodLunch => 'الغداء';
+
+  @override
+  String get foodDinner => 'العشاء';
+
+  @override
+  String get foodSnacks => 'الوجبات الخفيفة';
+
+  @override
+  String get foodSnacksHeading => 'الوجبات الخفيفة والإضافات';
+
+  @override
+  String get foodEmpty => 'سجلك اليومي فارغ';
+
+  @override
+  String get foodEmptyHint => 'أضف وجبة لبدء التتبع اليوم.';
+
+  @override
+  String foodHeading(String icon, String name) {
+    return '$icon $name';
+  }
+
+  @override
+  String foodGroupTotals(String calories, String protein) {
+    return '$calories سعرة • $protein جم بروتين';
+  }
+
+  @override
+  String foodNoItems(String meal) {
+    return 'لا توجد عناصر مسجلة في $meal.';
+  }
+
+  @override
+  String foodUncheck(String name) {
+    return 'إلغاء تسجيل $name';
+  }
+
+  @override
+  String foodLogNamed(String name) {
+    return 'تسجيل $name';
+  }
+
+  @override
+  String get foodManualEntry => 'إدخال يدوي';
+
+  @override
+  String foodCustomGrams(String amount) {
+    return '$amount جم مخصص';
+  }
+
+  @override
+  String foodServing(String name, String amount) {
+    return '$name ($amount)';
+  }
+
+  @override
+  String foodProteinShort(String amount) {
+    return '$amount بروتين';
+  }
+
+  @override
+  String foodCarbsShort(String amount) {
+    return '$amount كربوهيدرات';
+  }
+
+  @override
+  String foodFatsShort(String amount) {
+    return '$amount دهون';
+  }
+
+  @override
+  String foodCaloriesLines(String amount) {
+    return '$amount\nسعرة';
+  }
+
+  @override
+  String foodEditPortion(String name) {
+    return 'تعديل حصة $name';
+  }
+
+  @override
+  String foodDuplicate(String name) {
+    return 'نسخ $name';
+  }
+
+  @override
+  String get foodDuplicateUnavailable => 'لم يعد هذا الطعام متاحًا للنسخ.';
+
+  @override
+  String get foodSavedRefreshError =>
+      'تم حفظ الطعام، لكن تعذر تحديث قائمة النشاط. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get foodDeletedRefreshError =>
+      'تم حذف الطعام، لكن تعذر تحديث قائمة النشاط. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get foodDuplicated => 'تم نسخ الطعام.';
+
+  @override
+  String get foodDeleted => 'تم حذف الطعام.';
+
+  @override
+  String foodDuplicateError(String error) {
+    return 'تعذر نسخ الطعام: $error';
+  }
+
+  @override
+  String foodDeleteError(String error) {
+    return 'تعذر حذف الطعام: $error';
+  }
+
+  @override
+  String foodUpdateError(String error) {
+    return 'تعذر تحديث الوجبة: $error';
+  }
+
+  @override
   String plannerWeekRange(String start, String end) {
     return 'من $start إلى $end';
   }

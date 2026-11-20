@@ -381,6 +381,452 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get caloriesSubtitle => 'Meals, macros & activity';
+
+  @override
+  String get foodLog => 'Food Log';
+
+  @override
+  String get activity => 'Activity';
+
+  @override
+  String get foodUnavailable =>
+      'This food is no longer available in the food database. The meal was not changed.';
+
+  @override
+  String foodOpenError(String error) {
+    return 'Could not open food: $error';
+  }
+
+  @override
+  String activitySaveError(String error) {
+    return 'Could not save activity: $error';
+  }
+
+  @override
+  String burnedAmount(String amount) {
+    return '$amount kcal burned';
+  }
+
+  @override
+  String deleteNamed(String name) {
+    return 'Delete $name';
+  }
+
+  @override
+  String get noWorkouts => 'No workouts logged today yet.';
+
+  @override
+  String get manualInvalidCalories =>
+      'Enter a calorie amount greater than zero.';
+
+  @override
+  String get manualTitle => 'Log Nutrition or Workout Burn';
+
+  @override
+  String get manualFood => 'Food Intake (+)';
+
+  @override
+  String get manualBurn => 'Workout Burn (+)';
+
+  @override
+  String get manualFoodHint => 'e.g. Grass-fed Steak';
+
+  @override
+  String get manualBurnHint => 'e.g. Olympic Lifts';
+
+  @override
+  String get caloriesKcal => 'Calories (kcal)';
+
+  @override
+  String get manualProtein => '🔴 Protein';
+
+  @override
+  String get manualCarbs => '🔵 Carbs';
+
+  @override
+  String get manualFats => '🟠 Fats';
+
+  @override
+  String get manualGreens => '🟢 Greens';
+
+  @override
+  String get manualStrength => '🟡 Strength / Gym';
+
+  @override
+  String get manualCardio => '🔷 Cardio / Sports';
+
+  @override
+  String get manualMobility => '🟢 Mobility / Stage';
+
+  @override
+  String get saveActivity => 'Save activity';
+
+  @override
+  String get activityTitle => 'Activity Rings & Workouts';
+
+  @override
+  String get activitySubtitle => 'Track workouts and calories burned';
+
+  @override
+  String get burned => 'Burned';
+
+  @override
+  String burnTarget(String amount) {
+    return '/ $amount kcal target';
+  }
+
+  @override
+  String get burnGoalNote => 'Daily burn goal • total includes mobility';
+
+  @override
+  String get burnRingNote => 'Each ring uses the daily burn goal.';
+
+  @override
+  String totalBurn(String amount) {
+    return 'Total burn ($amount kcal)';
+  }
+
+  @override
+  String strengthBurn(String amount) {
+    return 'Strength burn ($amount kcal)';
+  }
+
+  @override
+  String cardioBurn(String amount) {
+    return 'Cardio burn ($amount kcal)';
+  }
+
+  @override
+  String get burnStats => 'Burn Stats';
+
+  @override
+  String get strengthBurnLabel => 'Strength Burn';
+
+  @override
+  String get cardioBurnLabel => 'Cardio Burn';
+
+  @override
+  String get burnTypeStrength => 'strength';
+
+  @override
+  String get burnTypeCardio => 'cardio';
+
+  @override
+  String get burnTypeMobility => 'mobility';
+
+  @override
+  String workoutLogs(String count) {
+    return 'Workout Logs ($count)';
+  }
+
+  @override
+  String get workoutInvalidDuration =>
+      'Enter a duration between 1 and 600 minutes.';
+
+  @override
+  String get workoutInvalidCalories => 'Enter calories between 0 and 5000.';
+
+  @override
+  String get workoutSaved => 'Workout logged.';
+
+  @override
+  String get workoutRefreshError =>
+      'Saved, but the activity list could not be refreshed. Please retry.';
+
+  @override
+  String workoutSaveError(String error) {
+    return 'Could not save workout: $error';
+  }
+
+  @override
+  String get workoutStrength => 'Strength training';
+
+  @override
+  String get workoutWalking => 'Walking';
+
+  @override
+  String get workoutRunning => 'Running';
+
+  @override
+  String get workoutCycling => 'Cycling';
+
+  @override
+  String get workoutSwimming => 'Swimming';
+
+  @override
+  String get workoutFootball => 'Football';
+
+  @override
+  String get workoutBasketball => 'Basketball';
+
+  @override
+  String get workoutTennis => 'Tennis';
+
+  @override
+  String get workoutCircuit => 'HIIT or circuit';
+
+  @override
+  String get workoutMartialArts => 'Boxing or martial arts';
+
+  @override
+  String get workoutYoga => 'Yoga or stretching';
+
+  @override
+  String get workoutJumpRope => 'Jump rope';
+
+  @override
+  String get workoutOther => 'Other';
+
+  @override
+  String workoutActivityLabel(String icon, String name) {
+    return '$icon $name';
+  }
+
+  @override
+  String workoutSavedTitle(String name, String minutes) {
+    return '$name - $minutes min';
+  }
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String get workoutIntensity => 'Intensity';
+
+  @override
+  String get workoutEstimateUnavailable =>
+      'Estimate unavailable — enter calories manually.';
+
+  @override
+  String workoutEstimate(String amount) {
+    return '≈ $amount kcal burned';
+  }
+
+  @override
+  String get workoutFormula => 'MET x weight x hours';
+
+  @override
+  String get workoutEstimateNote => 'Calorie burn is an estimate.';
+
+  @override
+  String get workoutManualOther => 'Other activities require manual calories.';
+
+  @override
+  String get workoutCaloriesEditable => 'Calories burned (editable)';
+
+  @override
+  String get workoutCaloriesHint => '0 to 5000 kcal';
+
+  @override
+  String get workoutUseEstimate => 'Use estimate';
+
+  @override
+  String get workoutSaving => 'Saving...';
+
+  @override
+  String get workoutSave => 'Save workout';
+
+  @override
+  String get foodEaten => 'kcal eaten';
+
+  @override
+  String get foodBalance => 'DAILY ENERGY BALANCE';
+
+  @override
+  String get foodTargetUnavailable => 'target unavailable';
+
+  @override
+  String get foodOver => 'kcal over';
+
+  @override
+  String get foodLeft => 'kcal left';
+
+  @override
+  String get foodEstimated => ' • Estimated';
+
+  @override
+  String foodGoalSummary(String goal, String estimated, String count) {
+    return 'Goal: $goal$estimated • Logged items: $count';
+  }
+
+  @override
+  String get foodProtein => 'Protein';
+
+  @override
+  String get foodCarbs => 'Carbs';
+
+  @override
+  String get foodFats => 'Fats';
+
+  @override
+  String get foodFiber => 'Fiber';
+
+  @override
+  String get foodSugar => 'Sugar';
+
+  @override
+  String get foodSodium => 'Sodium';
+
+  @override
+  String foodGrams(String amount) {
+    return '$amount g';
+  }
+
+  @override
+  String foodMilligrams(String amount) {
+    return '$amount mg';
+  }
+
+  @override
+  String foodMacroGoal(String eaten, String goal) {
+    return '$eaten / $goal g';
+  }
+
+  @override
+  String foodLabelValue(String label, String value) {
+    return '$label $value';
+  }
+
+  @override
+  String get foodAdd => 'Add food';
+
+  @override
+  String get foodCompleteProfile =>
+      'Complete your profile for an accurate target';
+
+  @override
+  String get foodDismissReminder => 'Dismiss profile reminder';
+
+  @override
+  String get foodToday => 'Today\'s Food Log';
+
+  @override
+  String get foodAll => 'All';
+
+  @override
+  String get foodBreakfast => 'Breakfast';
+
+  @override
+  String get foodLunch => 'Lunch';
+
+  @override
+  String get foodDinner => 'Dinner';
+
+  @override
+  String get foodSnacks => 'Snacks';
+
+  @override
+  String get foodSnacksHeading => 'Snacks & Toppings';
+
+  @override
+  String get foodEmpty => 'Your daily log is empty';
+
+  @override
+  String get foodEmptyHint => 'Add a meal to start tracking today.';
+
+  @override
+  String foodHeading(String icon, String name) {
+    return '$icon $name';
+  }
+
+  @override
+  String foodGroupTotals(String calories, String protein) {
+    return '$calories kcal • ${protein}g P';
+  }
+
+  @override
+  String foodNoItems(String meal) {
+    return 'No items logged for $meal.';
+  }
+
+  @override
+  String foodUncheck(String name) {
+    return 'Uncheck $name';
+  }
+
+  @override
+  String foodLogNamed(String name) {
+    return 'Log $name';
+  }
+
+  @override
+  String get foodManualEntry => 'Manual entry';
+
+  @override
+  String foodCustomGrams(String amount) {
+    return '$amount g custom';
+  }
+
+  @override
+  String foodServing(String name, String amount) {
+    return '$name ($amount)';
+  }
+
+  @override
+  String foodProteinShort(String amount) {
+    return '$amount P';
+  }
+
+  @override
+  String foodCarbsShort(String amount) {
+    return '$amount C';
+  }
+
+  @override
+  String foodFatsShort(String amount) {
+    return '$amount F';
+  }
+
+  @override
+  String foodCaloriesLines(String amount) {
+    return '$amount\nkcal';
+  }
+
+  @override
+  String foodEditPortion(String name) {
+    return 'Edit portion $name';
+  }
+
+  @override
+  String foodDuplicate(String name) {
+    return 'Duplicate $name';
+  }
+
+  @override
+  String get foodDuplicateUnavailable =>
+      'This food is no longer available to duplicate.';
+
+  @override
+  String get foodSavedRefreshError =>
+      'Food was saved, but the activity list could not be refreshed. Please retry.';
+
+  @override
+  String get foodDeletedRefreshError =>
+      'Food was deleted, but the activity list could not be refreshed. Please retry.';
+
+  @override
+  String get foodDuplicated => 'Food duplicated.';
+
+  @override
+  String get foodDeleted => 'Food deleted.';
+
+  @override
+  String foodDuplicateError(String error) {
+    return 'Could not duplicate food: $error';
+  }
+
+  @override
+  String foodDeleteError(String error) {
+    return 'Could not delete food: $error';
+  }
+
+  @override
+  String foodUpdateError(String error) {
+    return 'Could not update meal: $error';
+  }
+
+  @override
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }

@@ -740,6 +740,744 @@ abstract class AppLocalizations {
   /// **'Date: {date}'**
   String mergeDate(String date);
 
+  /// No description provided for @caloriesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals, macros & activity'**
+  String get caloriesSubtitle;
+
+  /// No description provided for @foodLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Log'**
+  String get foodLog;
+
+  /// No description provided for @activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activity;
+
+  /// No description provided for @foodUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This food is no longer available in the food database. The meal was not changed.'**
+  String get foodUnavailable;
+
+  /// No description provided for @foodOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open food: {error}'**
+  String foodOpenError(String error);
+
+  /// No description provided for @activitySaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save activity: {error}'**
+  String activitySaveError(String error);
+
+  /// No description provided for @burnedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} kcal burned'**
+  String burnedAmount(String amount);
+
+  /// No description provided for @deleteNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}'**
+  String deleteNamed(String name);
+
+  /// No description provided for @noWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'No workouts logged today yet.'**
+  String get noWorkouts;
+
+  /// No description provided for @manualInvalidCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a calorie amount greater than zero.'**
+  String get manualInvalidCalories;
+
+  /// No description provided for @manualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Nutrition or Workout Burn'**
+  String get manualTitle;
+
+  /// No description provided for @manualFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Intake (+)'**
+  String get manualFood;
+
+  /// No description provided for @manualBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Burn (+)'**
+  String get manualBurn;
+
+  /// No description provided for @manualFoodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Grass-fed Steak'**
+  String get manualFoodHint;
+
+  /// No description provided for @manualBurnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Olympic Lifts'**
+  String get manualBurnHint;
+
+  /// No description provided for @caloriesKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories (kcal)'**
+  String get caloriesKcal;
+
+  /// No description provided for @manualProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'🔴 Protein'**
+  String get manualProtein;
+
+  /// No description provided for @manualCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'🔵 Carbs'**
+  String get manualCarbs;
+
+  /// No description provided for @manualFats.
+  ///
+  /// In en, this message translates to:
+  /// **'🟠 Fats'**
+  String get manualFats;
+
+  /// No description provided for @manualGreens.
+  ///
+  /// In en, this message translates to:
+  /// **'🟢 Greens'**
+  String get manualGreens;
+
+  /// No description provided for @manualStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'🟡 Strength / Gym'**
+  String get manualStrength;
+
+  /// No description provided for @manualCardio.
+  ///
+  /// In en, this message translates to:
+  /// **'🔷 Cardio / Sports'**
+  String get manualCardio;
+
+  /// No description provided for @manualMobility.
+  ///
+  /// In en, this message translates to:
+  /// **'🟢 Mobility / Stage'**
+  String get manualMobility;
+
+  /// No description provided for @saveActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Save activity'**
+  String get saveActivity;
+
+  /// No description provided for @activityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Rings & Workouts'**
+  String get activityTitle;
+
+  /// No description provided for @activitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Track workouts and calories burned'**
+  String get activitySubtitle;
+
+  /// No description provided for @burned.
+  ///
+  /// In en, this message translates to:
+  /// **'Burned'**
+  String get burned;
+
+  /// No description provided for @burnTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'/ {amount} kcal target'**
+  String burnTarget(String amount);
+
+  /// No description provided for @burnGoalNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily burn goal • total includes mobility'**
+  String get burnGoalNote;
+
+  /// No description provided for @burnRingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Each ring uses the daily burn goal.'**
+  String get burnRingNote;
+
+  /// No description provided for @totalBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Total burn ({amount} kcal)'**
+  String totalBurn(String amount);
+
+  /// No description provided for @strengthBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength burn ({amount} kcal)'**
+  String strengthBurn(String amount);
+
+  /// No description provided for @cardioBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardio burn ({amount} kcal)'**
+  String cardioBurn(String amount);
+
+  /// No description provided for @burnStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Burn Stats'**
+  String get burnStats;
+
+  /// No description provided for @strengthBurnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength Burn'**
+  String get strengthBurnLabel;
+
+  /// No description provided for @cardioBurnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardio Burn'**
+  String get cardioBurnLabel;
+
+  /// No description provided for @burnTypeStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'strength'**
+  String get burnTypeStrength;
+
+  /// No description provided for @burnTypeCardio.
+  ///
+  /// In en, this message translates to:
+  /// **'cardio'**
+  String get burnTypeCardio;
+
+  /// No description provided for @burnTypeMobility.
+  ///
+  /// In en, this message translates to:
+  /// **'mobility'**
+  String get burnTypeMobility;
+
+  /// No description provided for @workoutLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout Logs ({count})'**
+  String workoutLogs(String count);
+
+  /// No description provided for @workoutInvalidDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a duration between 1 and 600 minutes.'**
+  String get workoutInvalidDuration;
+
+  /// No description provided for @workoutInvalidCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter calories between 0 and 5000.'**
+  String get workoutInvalidCalories;
+
+  /// No description provided for @workoutSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout logged.'**
+  String get workoutSaved;
+
+  /// No description provided for @workoutRefreshError.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but the activity list could not be refreshed. Please retry.'**
+  String get workoutRefreshError;
+
+  /// No description provided for @workoutSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save workout: {error}'**
+  String workoutSaveError(String error);
+
+  /// No description provided for @workoutStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength training'**
+  String get workoutStrength;
+
+  /// No description provided for @workoutWalking.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking'**
+  String get workoutWalking;
+
+  /// No description provided for @workoutRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get workoutRunning;
+
+  /// No description provided for @workoutCycling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cycling'**
+  String get workoutCycling;
+
+  /// No description provided for @workoutSwimming.
+  ///
+  /// In en, this message translates to:
+  /// **'Swimming'**
+  String get workoutSwimming;
+
+  /// No description provided for @workoutFootball.
+  ///
+  /// In en, this message translates to:
+  /// **'Football'**
+  String get workoutFootball;
+
+  /// No description provided for @workoutBasketball.
+  ///
+  /// In en, this message translates to:
+  /// **'Basketball'**
+  String get workoutBasketball;
+
+  /// No description provided for @workoutTennis.
+  ///
+  /// In en, this message translates to:
+  /// **'Tennis'**
+  String get workoutTennis;
+
+  /// No description provided for @workoutCircuit.
+  ///
+  /// In en, this message translates to:
+  /// **'HIIT or circuit'**
+  String get workoutCircuit;
+
+  /// No description provided for @workoutMartialArts.
+  ///
+  /// In en, this message translates to:
+  /// **'Boxing or martial arts'**
+  String get workoutMartialArts;
+
+  /// No description provided for @workoutYoga.
+  ///
+  /// In en, this message translates to:
+  /// **'Yoga or stretching'**
+  String get workoutYoga;
+
+  /// No description provided for @workoutJumpRope.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get workoutJumpRope;
+
+  /// No description provided for @workoutOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get workoutOther;
+
+  /// No description provided for @workoutActivityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{icon} {name}'**
+  String workoutActivityLabel(String icon, String name);
+
+  /// No description provided for @workoutSavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} - {minutes} min'**
+  String workoutSavedTitle(String name, String minutes);
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @workoutIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get workoutIntensity;
+
+  /// No description provided for @workoutEstimateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate unavailable — enter calories manually.'**
+  String get workoutEstimateUnavailable;
+
+  /// No description provided for @workoutEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'≈ {amount} kcal burned'**
+  String workoutEstimate(String amount);
+
+  /// No description provided for @workoutFormula.
+  ///
+  /// In en, this message translates to:
+  /// **'MET x weight x hours'**
+  String get workoutFormula;
+
+  /// No description provided for @workoutEstimateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie burn is an estimate.'**
+  String get workoutEstimateNote;
+
+  /// No description provided for @workoutManualOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other activities require manual calories.'**
+  String get workoutManualOther;
+
+  /// No description provided for @workoutCaloriesEditable.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories burned (editable)'**
+  String get workoutCaloriesEditable;
+
+  /// No description provided for @workoutCaloriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 to 5000 kcal'**
+  String get workoutCaloriesHint;
+
+  /// No description provided for @workoutUseEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Use estimate'**
+  String get workoutUseEstimate;
+
+  /// No description provided for @workoutSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get workoutSaving;
+
+  /// No description provided for @workoutSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save workout'**
+  String get workoutSave;
+
+  /// No description provided for @foodEaten.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal eaten'**
+  String get foodEaten;
+
+  /// No description provided for @foodBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'DAILY ENERGY BALANCE'**
+  String get foodBalance;
+
+  /// No description provided for @foodTargetUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'target unavailable'**
+  String get foodTargetUnavailable;
+
+  /// No description provided for @foodOver.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal over'**
+  String get foodOver;
+
+  /// No description provided for @foodLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal left'**
+  String get foodLeft;
+
+  /// No description provided for @foodEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **' • Estimated'**
+  String get foodEstimated;
+
+  /// No description provided for @foodGoalSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal: {goal}{estimated} • Logged items: {count}'**
+  String foodGoalSummary(String goal, String estimated, String count);
+
+  /// No description provided for @foodProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get foodProtein;
+
+  /// No description provided for @foodCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get foodCarbs;
+
+  /// No description provided for @foodFats.
+  ///
+  /// In en, this message translates to:
+  /// **'Fats'**
+  String get foodFats;
+
+  /// No description provided for @foodFiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber'**
+  String get foodFiber;
+
+  /// No description provided for @foodSugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sugar'**
+  String get foodSugar;
+
+  /// No description provided for @foodSodium.
+  ///
+  /// In en, this message translates to:
+  /// **'Sodium'**
+  String get foodSodium;
+
+  /// No description provided for @foodGrams.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} g'**
+  String foodGrams(String amount);
+
+  /// No description provided for @foodMilligrams.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} mg'**
+  String foodMilligrams(String amount);
+
+  /// No description provided for @foodMacroGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'{eaten} / {goal} g'**
+  String foodMacroGoal(String eaten, String goal);
+
+  /// No description provided for @foodLabelValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} {value}'**
+  String foodLabelValue(String label, String value);
+
+  /// No description provided for @foodAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add food'**
+  String get foodAdd;
+
+  /// No description provided for @foodCompleteProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile for an accurate target'**
+  String get foodCompleteProfile;
+
+  /// No description provided for @foodDismissReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss profile reminder'**
+  String get foodDismissReminder;
+
+  /// No description provided for @foodToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Food Log'**
+  String get foodToday;
+
+  /// No description provided for @foodAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get foodAll;
+
+  /// No description provided for @foodBreakfast.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakfast'**
+  String get foodBreakfast;
+
+  /// No description provided for @foodLunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunch'**
+  String get foodLunch;
+
+  /// No description provided for @foodDinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dinner'**
+  String get foodDinner;
+
+  /// No description provided for @foodSnacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get foodSnacks;
+
+  /// No description provided for @foodSnacksHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks & Toppings'**
+  String get foodSnacksHeading;
+
+  /// No description provided for @foodEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily log is empty'**
+  String get foodEmpty;
+
+  /// No description provided for @foodEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a meal to start tracking today.'**
+  String get foodEmptyHint;
+
+  /// No description provided for @foodHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'{icon} {name}'**
+  String foodHeading(String icon, String name);
+
+  /// No description provided for @foodGroupTotals.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal • {protein}g P'**
+  String foodGroupTotals(String calories, String protein);
+
+  /// No description provided for @foodNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items logged for {meal}.'**
+  String foodNoItems(String meal);
+
+  /// No description provided for @foodUncheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncheck {name}'**
+  String foodUncheck(String name);
+
+  /// No description provided for @foodLogNamed.
+  ///
+  /// In en, this message translates to:
+  /// **'Log {name}'**
+  String foodLogNamed(String name);
+
+  /// No description provided for @foodManualEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual entry'**
+  String get foodManualEntry;
+
+  /// No description provided for @foodCustomGrams.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} g custom'**
+  String foodCustomGrams(String amount);
+
+  /// No description provided for @foodServing.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({amount})'**
+  String foodServing(String name, String amount);
+
+  /// No description provided for @foodProteinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} P'**
+  String foodProteinShort(String amount);
+
+  /// No description provided for @foodCarbsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} C'**
+  String foodCarbsShort(String amount);
+
+  /// No description provided for @foodFatsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} F'**
+  String foodFatsShort(String amount);
+
+  /// No description provided for @foodCaloriesLines.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}\nkcal'**
+  String foodCaloriesLines(String amount);
+
+  /// No description provided for @foodEditPortion.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit portion {name}'**
+  String foodEditPortion(String name);
+
+  /// No description provided for @foodDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate {name}'**
+  String foodDuplicate(String name);
+
+  /// No description provided for @foodDuplicateUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This food is no longer available to duplicate.'**
+  String get foodDuplicateUnavailable;
+
+  /// No description provided for @foodSavedRefreshError.
+  ///
+  /// In en, this message translates to:
+  /// **'Food was saved, but the activity list could not be refreshed. Please retry.'**
+  String get foodSavedRefreshError;
+
+  /// No description provided for @foodDeletedRefreshError.
+  ///
+  /// In en, this message translates to:
+  /// **'Food was deleted, but the activity list could not be refreshed. Please retry.'**
+  String get foodDeletedRefreshError;
+
+  /// No description provided for @foodDuplicated.
+  ///
+  /// In en, this message translates to:
+  /// **'Food duplicated.'**
+  String get foodDuplicated;
+
+  /// No description provided for @foodDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Food deleted.'**
+  String get foodDeleted;
+
+  /// No description provided for @foodDuplicateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not duplicate food: {error}'**
+  String foodDuplicateError(String error);
+
+  /// No description provided for @foodDeleteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete food: {error}'**
+  String foodDeleteError(String error);
+
+  /// No description provided for @foodUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update meal: {error}'**
+  String foodUpdateError(String error);
+
   /// No description provided for @plannerWeekRange.
   ///
   /// In en, this message translates to:

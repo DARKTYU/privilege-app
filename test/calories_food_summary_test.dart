@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/models/food_item.dart';
 import 'package:privilege/screens/calories_food_summary.dart';
@@ -112,12 +113,16 @@ void main() {
       {Brightness brightness = Brightness.dark,
       VoidCallback? onAdd,
       ValueChanged<MealItem>? onEdit,
-      double width = 400}) async {
+      double width = 400,
+      String language = 'en'}) async {
     tester.view.physicalSize = Size(width, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
+      locale: Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(brightness: brightness),
       home: Scaffold(
         body: SingleChildScrollView(
@@ -178,7 +183,7 @@ void main() {
     expect(state.manualCopy!.source, 'manual');
   });
 
-  testWidgets('mixed meals use saved totals and Arabic is RTL', (tester) async {
+  testWidgets('mixed meals use saved totals in English', (tester) async {
     final state = FakeCaloriesState()..meals.addAll([manual(), foodMeal]);
     addTearDown(state.dispose);
     await showSummary(tester, state);
@@ -189,8 +194,30 @@ void main() {
     expect(find.text('Saved koshary'), findsOneWidget);
     final name =
         FoodDatabase().foods.firstWhere((f) => f.id == foodMeal.foodId).nameAr;
-    final text = tester.widget<Text>(find.text(name));
-    expect(text.textDirection, TextDirection.rtl);
+    expect(find.text(name), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Arabic summary translates food and keeps custom text',
+      (tester) async {
+    final state = FakeCaloriesState()..meals.addAll([manual(), foodMeal]);
+    addTearDown(state.dispose);
+    await showSummary(tester, state, language: 'ar', width: 360);
+    final l =
+        AppLocalizations.of(tester.element(find.byType(CaloriesFoodSummary)))!;
+    final arabicName =
+        FoodDatabase().foods.firstWhere((f) => f.id == foodMeal.foodId).nameAr;
+    expect(find.text(arabicName), findsOneWidget);
+    expect(find.text('Saved koshary'), findsNothing);
+    expect(find.text('Manual breakfast'), findsOneWidget);
+    expect(find.text(l.foodBalance), findsOneWidget);
+    expect(find.text(l.foodToday), findsOneWidget);
+    expect(find.text(l.foodLabelValue(l.foodSugar, l.foodGrams('4.2'))),
+        findsOneWidget);
+    expect(find.text(l.foodLabelValue(l.foodSodium, l.foodMilligrams('101'))),
+        findsOneWidget);
+    expect(Directionality.of(tester.element(find.text(arabicName))),
+        TextDirection.rtl);
     expect(tester.takeException(), isNull);
   });
 

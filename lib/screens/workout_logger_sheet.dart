@@ -1,11 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n_strings.dart';
+import '../l10n/app_localizations.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/workout_estimate.dart';
 import '../state.dart';
 import 'calorie_profile_sheet.dart';
 import 'calories_food_summary.dart';
+
+String localizedWorkoutActivityName(AppLocalizations l, WorkoutActivity item) =>
+    switch (item) {
+      WorkoutActivity.strength => l.workoutStrength,
+      WorkoutActivity.walking => l.workoutWalking,
+      WorkoutActivity.running => l.workoutRunning,
+      WorkoutActivity.cycling => l.workoutCycling,
+      WorkoutActivity.swimming => l.workoutSwimming,
+      WorkoutActivity.football => l.workoutFootball,
+      WorkoutActivity.basketball => l.workoutBasketball,
+      WorkoutActivity.tennis => l.workoutTennis,
+      WorkoutActivity.circuit => l.workoutCircuit,
+      WorkoutActivity.martialArts => l.workoutMartialArts,
+      WorkoutActivity.yoga => l.workoutYoga,
+      WorkoutActivity.jumpRope => l.workoutJumpRope,
+      WorkoutActivity.other => l.workoutOther,
+    };
 
 Future<void> showWorkoutLogger(BuildContext context, AppState state,
         {int? initialDuration,
@@ -100,11 +119,11 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
     final minutes = int.tryParse(duration.text.trim());
     final amount = int.tryParse(calories.text.trim());
     if (minutes == null || minutes < 1 || minutes > 600) {
-      setState(() => error = 'Enter a duration between 1 and 600 minutes.');
+      setState(() => error = strings(context).workoutInvalidDuration);
       return;
     }
     if (amount == null || amount < 0 || amount > 5000) {
-      setState(() => error = 'Enter calories between 0 and 5000.');
+      setState(() => error = strings(context).workoutInvalidCalories);
       return;
     }
     setState(() {
@@ -123,13 +142,15 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
       ));
       if (!mounted) return;
       final message = widget.state.activityError == null
-          ? 'Workout logged.'
-          : 'Saved, but the activity list could not be refreshed. Please retry.';
+          ? strings(context).workoutSaved
+          : strings(context).workoutRefreshError;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
-      if (mounted) setState(() => error = 'Could not save workout: $e');
+      if (mounted) {
+        setState(() => error = strings(context).workoutSaveError(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -138,6 +159,12 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
   @override
   Widget build(BuildContext context) {
     final p = CaloriesPalette(Theme.of(context));
+    final l = strings(context);
+    String intensityName(WorkoutIntensity item) => switch (item) {
+          WorkoutIntensity.light => l.intensityLight,
+          WorkoutIntensity.moderate => l.intensityModerate,
+          WorkoutIntensity.vigorous => l.intensityVigorous,
+        };
     final currentEstimate = estimate;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -150,19 +177,20 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Log workout',
+                Text(l.mergeLogWorkout,
                     style: TextStyle(
                         color: p.text,
                         fontSize: 20,
                         fontWeight: FontWeight.w800)),
                 const SizedBox(height: 12),
-                Text('Activity',
+                Text(l.activity,
                     style:
                         TextStyle(color: p.text, fontWeight: FontWeight.bold)),
                 Wrap(spacing: 8, children: [
                   for (final item in WorkoutActivity.values)
                     ChoiceChip(
-                      label: Text('${item.icon} ${item.label}'),
+                      label: Text(l.workoutActivityLabel(
+                          item.icon, localizedWorkoutActivityName(l, item))),
                       selected: activity == item,
                       selectedColor: p.accent.withAlpha(55),
                       onSelected: saving
@@ -177,15 +205,15 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                   enabled: !saving,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                      labelText: 'Duration (minutes)',
-                      helperText: '1 to 600 minutes'),
+                  decoration: InputDecoration(
+                      labelText: l.plannerDuration,
+                      helperText: l.plannerDurationHint),
                   onChanged: (_) => _changeEstimate(() {}),
                 ),
                 Wrap(spacing: 8, children: [
                   for (final minutes in [15, 30, 45, 60, 90])
                     ChoiceChip(
-                      label: Text('$minutes min'),
+                      label: Text(l.mergeShortMinutes(minutes.toString())),
                       selected: int.tryParse(duration.text) == minutes,
                       selectedColor: p.accent.withAlpha(55),
                       onSelected: saving
@@ -195,14 +223,13 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                     ),
                 ]),
                 const SizedBox(height: 12),
-                Text('Intensity',
+                Text(l.workoutIntensity,
                     style:
                         TextStyle(color: p.text, fontWeight: FontWeight.bold)),
                 Wrap(spacing: 8, children: [
                   for (final item in WorkoutIntensity.values)
                     ChoiceChip(
-                      label: Text(
-                          '${item.name[0].toUpperCase()}${item.name.substring(1)}'),
+                      label: Text(intensityName(item)),
                       selected: intensity == item,
                       selectedColor: p.accent.withAlpha(55),
                       onSelected: saving
@@ -213,29 +240,27 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                 const SizedBox(height: 12),
                 Text(
                     currentEstimate == null
-                        ? 'Estimate unavailable — enter calories manually.'
-                        : '≈ $currentEstimate kcal burned',
+                        ? l.workoutEstimateUnavailable
+                        : l.workoutEstimate(currentEstimate.toString()),
                     style: TextStyle(
                         color: p.accentText,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
-                Text('MET x weight x hours', style: TextStyle(color: p.muted)),
-                Text('Calorie burn is an estimate.',
-                    style: TextStyle(color: p.muted)),
+                Text(l.workoutFormula, style: TextStyle(color: p.muted)),
+                Text(l.workoutEstimateNote, style: TextStyle(color: p.muted)),
                 if (weight == null)
                   Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
                       onPressed: saving
                           ? null
                           : () =>
                               showCalorieProfileSheet(context, widget.state),
-                      child: const Text('Complete your profile'),
+                      child: Text(l.mergeCompleteProfile),
                     ),
                   ),
                 if (activity == WorkoutActivity.other)
-                  Text('Other activities require manual calories.',
-                      style: TextStyle(color: p.muted)),
+                  Text(l.workoutManualOther, style: TextStyle(color: p.muted)),
                 const SizedBox(height: 8),
                 TextField(
                   key: const ValueKey('workout-calories'),
@@ -243,9 +268,9 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                   enabled: !saving,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                      labelText: 'Calories burned (editable)',
-                      helperText: '0 to 5000 kcal'),
+                  decoration: InputDecoration(
+                      labelText: l.workoutCaloriesEditable,
+                      helperText: l.workoutCaloriesHint),
                   onChanged: (_) => setState(() {
                     manual = true;
                     error = null;
@@ -253,12 +278,12 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                 ),
                 if (manual && currentEstimate != null)
                   Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: AlignmentDirectional.centerStart,
                     child: TextButton(
                       onPressed: saving
                           ? null
                           : () => _changeEstimate(() => manual = false),
-                      child: const Text('Use estimate'),
+                      child: Text(l.workoutUseEstimate),
                     ),
                   ),
                 if (error != null) ...[
@@ -272,7 +297,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                   style: FilledButton.styleFrom(
                       backgroundColor: p.accent, foregroundColor: p.onAccent),
                   onPressed: saving ? null : save,
-                  child: Text(saving ? 'Saving...' : 'Save workout'),
+                  child: Text(saving ? l.workoutSaving : l.workoutSave),
                 ),
               ],
             ),

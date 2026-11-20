@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/calorie_target.dart';
 import '../models/food_item.dart';
@@ -50,13 +51,13 @@ class CaloriesPalette {
 }
 
 enum _MealSlot {
-  breakfast('Breakfast', 'الفطار', '☀️'),
-  lunch('Lunch', 'الغداء', '🍽️'),
-  dinner('Dinner', 'العشاء', '🌙'),
-  snacks('Snacks & Toppings', 'سناكس وإضافات', '⚡');
+  breakfast('☀️'),
+  lunch('🍽️'),
+  dinner('🌙'),
+  snacks('⚡');
 
-  const _MealSlot(this.title, this.arabic, this.icon);
-  final String title, arabic, icon;
+  const _MealSlot(this.icon);
+  final String icon;
 }
 
 _MealSlot _slot(MealCategory category) => switch (category) {
@@ -92,8 +93,19 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
   _MealSlot? selected;
   final Set<String> busy = {};
 
+  String _slotName(_MealSlot slot, {bool heading = false}) {
+    final l = strings(context);
+    return switch (slot) {
+      _MealSlot.breakfast => l.foodBreakfast,
+      _MealSlot.lunch => l.foodLunch,
+      _MealSlot.dinner => l.foodDinner,
+      _MealSlot.snacks => heading ? l.foodSnacksHeading : l.foodSnacks,
+    };
+  }
+
   Future<void> _act(MealItem meal, bool duplicate) async {
     if (!busy.add(meal.id)) return;
+    final l = strings(context);
     setState(() {});
     try {
       if (duplicate) {
@@ -107,7 +119,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
             }
           }
           if (food == null || meal.grams == null) {
-            throw StateError('This food is no longer available to duplicate.');
+            throw StateError(l.foodDuplicateUnavailable);
           }
           await widget.state.logFood(
               food,
@@ -133,21 +145,25 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
-              content: Text(
-                  'Food was ${duplicate ? 'saved' : 'deleted'}, but the activity list could not be refreshed. Please retry.')));
+              content: Text(duplicate
+                  ? strings(context).foodSavedRefreshError
+                  : strings(context).foodDeletedRefreshError)));
       } else if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
-              content: Text(duplicate ? 'Food duplicated.' : 'Food deleted.')));
+              content: Text(duplicate
+                  ? strings(context).foodDuplicated
+                  : strings(context).foodDeleted)));
       }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
-              content: Text(
-                  'Could not ${duplicate ? 'duplicate' : 'delete'} food: $error')));
+              content: Text(duplicate
+                  ? strings(context).foodDuplicateError(error.toString())
+                  : strings(context).foodDeleteError(error.toString()))));
       }
     } finally {
       busy.remove(meal.id);
@@ -160,8 +176,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
       await widget.state.toggleMeal(meal.id);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Could not update meal: $error')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(strings(context).foodUpdateError(error.toString()))));
       }
     }
   }
@@ -170,6 +186,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: widget.state,
         builder: (context, _) {
+          final l = strings(context);
           final palette = CaloriesPalette(Theme.of(context));
           final state = widget.state;
           final meals = state.meals;
@@ -221,7 +238,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                               color: palette.text,
                                               fontSize: 20,
                                               fontWeight: FontWeight.w800)),
-                                      Text('kcal eaten',
+                                      Text(l.foodEaten,
                                           style: TextStyle(
                                               color: palette.muted,
                                               fontSize: 11)),
@@ -234,7 +251,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                  Text('DAILY ENERGY BALANCE',
+                                  Text(l.foodBalance,
                                       style: TextStyle(
                                           color: palette.accentText,
                                           fontSize: 11,
@@ -273,10 +290,10 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                                   fontWeight: FontWeight.w800)),
                                           Text(
                                               goal <= 0
-                                                  ? 'target unavailable'
+                                                  ? l.foodTargetUnavailable
                                                   : (over
-                                                      ? 'kcal over'
-                                                      : 'kcal left'),
+                                                      ? l.foodOver
+                                                      : l.foodLeft),
                                               style: TextStyle(
                                                   color: over
                                                       ? CaloriesPalette.over
@@ -285,7 +302,15 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                         ]),
                                   ),
                                   Text(
-                                      'Goal: ${goal > 0 ? '${fmt(goal)} kcal' : 'unavailable'}${state.calorieTarget.isEstimate ? ' • Estimated' : ''} • Logged items: ${consumed.length}',
+                                      l.foodGoalSummary(
+                                          goal > 0
+                                              ? l.mergeCalories(fmt(goal))
+                                              : l.mergeUnavailable
+                                                  .toLowerCase(),
+                                          state.calorieTarget.isEstimate
+                                              ? l.foodEstimated
+                                              : '',
+                                          consumed.length.toString()),
                                       style: TextStyle(
                                           color: palette.muted, fontSize: 11)),
                                 ])),
@@ -295,7 +320,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                             Expanded(
                                 child: _macro(
                                     palette,
-                                    'Protein',
+                                    l.foodProtein,
                                     totals.proteinGrams,
                                     goals?.protein ?? 0,
                                     CaloriesPalette.protein)),
@@ -303,14 +328,18 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                             Expanded(
                                 child: _macro(
                                     palette,
-                                    'Carbs',
+                                    l.foodCarbs,
                                     totals.carbsGrams,
                                     goals?.carbs ?? 0,
                                     CaloriesPalette.carbs)),
                             const SizedBox(width: 6),
                             Expanded(
-                                child: _macro(palette, 'Fats', totals.fatGrams,
-                                    goals?.fat ?? 0, CaloriesPalette.fat)),
+                                child: _macro(
+                                    palette,
+                                    l.foodFats,
+                                    totals.fatGrams,
+                                    goals?.fat ?? 0,
+                                    CaloriesPalette.fat)),
                           ]),
                           SizedBox(height: widget.compact ? 4 : 14),
                           Divider(color: palette.border, height: 1),
@@ -320,15 +349,27 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                               spacing: 16,
                               runSpacing: 8,
                               children: [
-                                _micro(palette, palette.accent, 'Fiber',
-                                    '${formatCaloriesGrams(totals.fiberGrams.toDouble())} g'),
-                                _micro(palette, CaloriesPalette.sugar, 'Sugar',
-                                    '${formatCaloriesGrams(consumed.fold<double>(0, (v, m) => v + (m.sugarG ?? 0)))} g'),
+                                _micro(
+                                    palette,
+                                    palette.accent,
+                                    l.foodFiber,
+                                    l.foodGrams(formatCaloriesGrams(
+                                        totals.fiberGrams.toDouble()))),
+                                _micro(
+                                    palette,
+                                    CaloriesPalette.sugar,
+                                    l.foodSugar,
+                                    l.foodGrams(formatCaloriesGrams(
+                                        consumed.fold<double>(0,
+                                            (v, m) => v + (m.sugarG ?? 0))))),
                                 _micro(
                                     palette,
                                     CaloriesPalette.sodium,
-                                    'Sodium',
-                                    '${consumed.fold<double>(0, (v, m) => v + (m.sodiumMg ?? 0)).toStringAsFixed(0)} mg'),
+                                    l.foodSodium,
+                                    l.foodMilligrams(consumed
+                                        .fold<double>(
+                                            0, (v, m) => v + (m.sodiumMg ?? 0))
+                                        .toStringAsFixed(0))),
                               ]),
                         ]),
                       )),
@@ -341,7 +382,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                         minimumSize: const Size.fromHeight(48)),
                     onPressed: widget.onAdd,
                     icon: const Icon(Icons.add),
-                    label: const Text('Add food'),
+                    label: Text(l.foodAdd),
                   ),
                   const SizedBox(height: 16),
                   if (widget.onCompleteProfile != null &&
@@ -355,12 +396,11 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                           Expanded(
                             child: TextButton(
                               onPressed: widget.onCompleteProfile,
-                              child: const Text(
-                                  'Complete your profile for an accurate target'),
+                              child: Text(l.foodCompleteProfile),
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Dismiss profile reminder',
+                            tooltip: l.foodDismissReminder,
                             onPressed: state.dismissTargetPrompt,
                             icon: const Icon(Icons.close),
                           ),
@@ -376,26 +416,23 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text("Today's Food Log",
+                              Text(l.foodToday,
                                   style: TextStyle(
                                       color: palette.text,
                                       fontWeight: FontWeight.w800,
                                       fontSize: 16)),
-                              Text('سجل الوجبات اليومي',
-                                  textDirection: TextDirection.rtl,
-                                  textAlign: TextAlign.left,
-                                  style: TextStyle(
-                                      color: palette.muted, fontSize: 12)),
                               const SizedBox(height: 12),
                               SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: Row(children: [
-                                    _tab(palette, 'All', null),
-                                    _tab(palette, 'Breakfast',
+                                    _tab(palette, l.foodAll, null),
+                                    _tab(palette, l.foodBreakfast,
                                         _MealSlot.breakfast),
-                                    _tab(palette, 'Lunch', _MealSlot.lunch),
-                                    _tab(palette, 'Dinner', _MealSlot.dinner),
-                                    _tab(palette, 'Snacks', _MealSlot.snacks),
+                                    _tab(palette, l.foodLunch, _MealSlot.lunch),
+                                    _tab(palette, l.foodDinner,
+                                        _MealSlot.dinner),
+                                    _tab(palette, l.foodSnacks,
+                                        _MealSlot.snacks),
                                   ])),
                               const SizedBox(height: 12),
                               if (state.activityLoading && meals.isEmpty)
@@ -406,7 +443,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                       style: TextStyle(color: palette.text)),
                                   TextButton(
                                       onPressed: state.loadActivity,
-                                      child: const Text('Retry')),
+                                      child: Text(l.plannerRetry)),
                                 ])
                               else if (meals.isEmpty)
                                 CustomPaint(
@@ -414,14 +451,13 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                   child: Padding(
                                       padding: const EdgeInsets.all(24),
                                       child: Column(children: [
-                                        Text('Your daily log is empty',
+                                        Text(l.foodEmpty,
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: palette.text,
                                                 fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 6),
-                                        Text(
-                                            'Add a meal to start tracking today.',
+                                        Text(l.foodEmptyHint,
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 color: palette.muted,
@@ -437,9 +473,9 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                             !snapshot.hasError
                                         ? {
                                             for (final food in database.foods)
-                                              food.id: food.nameAr
+                                              food.id: food
                                           }
-                                        : <String, String>{};
+                                        : <String, FoodItem>{};
                                     if (snapshot.hasError) {
                                       debugPrint(
                                           'Could not load food names: ${snapshot.error}');
@@ -496,7 +532,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                       fontWeight: FontWeight.bold)),
             ),
           ]),
-          Text('$eaten / $goal g',
+          Text(
+              strings(context).foodMacroGoal(eaten.toString(), goal.toString()),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -522,11 +559,12 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
       Row(mainAxisSize: MainAxisSize.min, children: [
         CircleAvatar(radius: 4, backgroundColor: color),
         const SizedBox(width: 5),
-        Text('$title $value', style: TextStyle(color: p.muted, fontSize: 11)),
+        Text(strings(context).foodLabelValue(title, value),
+            style: TextStyle(color: p.muted, fontSize: 11)),
       ]);
 
   Widget _tab(CaloriesPalette p, String label, _MealSlot? value) => Padding(
-        padding: const EdgeInsets.only(right: 4),
+        padding: const EdgeInsetsDirectional.only(end: 4),
         child: Semantics(
           selected: selected == value,
           child: TextButton(
@@ -545,7 +583,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
       );
 
   Widget _group(CaloriesPalette p, _MealSlot slot, List<MealItem> meals,
-      Map<String, String> names) {
+      Map<String, FoodItem> names) {
     final active = meals.where((m) => m.consumed);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -561,13 +599,21 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
               spacing: 8,
               runSpacing: 4,
               children: [
-                Text('${slot.icon} ${slot.title} (${slot.arabic})',
+                Text(
+                    strings(context)
+                        .foodHeading(slot.icon, _slotName(slot, heading: true)),
                     style: TextStyle(
                         color: p.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 11)),
                 Text(
-                    '${active.fold<int>(0, (v, m) => v + m.calories)} kcal • ${active.fold<int>(0, (v, m) => v + m.proteinGrams)}g P',
+                    strings(context).foodGroupTotals(
+                        active
+                            .fold<int>(0, (v, m) => v + m.calories)
+                            .toString(),
+                        active
+                            .fold<int>(0, (v, m) => v + m.proteinGrams)
+                            .toString()),
                     style: TextStyle(
                         color: p.accentText,
                         fontWeight: FontWeight.bold,
@@ -578,7 +624,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
           Padding(
               padding: const EdgeInsets.all(12),
               child: Text(
-                  'No items logged for ${slot == _MealSlot.snacks ? 'snacks' : slot.title.toLowerCase()}.',
+                  strings(context).foodNoItems(_slotName(slot).toLowerCase()),
                   style: TextStyle(
                       color: p.muted,
                       fontSize: 11,
@@ -589,138 +635,165 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
     );
   }
 
-  Widget _meal(CaloriesPalette p, MealItem meal, String? arabic) => Opacity(
-        opacity: meal.consumed ? 1 : .6,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
-          child: InkWell(
-              onTap: meal.source == 'food_db' && widget.onEdit != null
-                  ? () => widget.onEdit!(meal)
-                  : null,
-              child: LayoutBuilder(builder: (context, constraints) {
-                final compact = constraints.maxWidth < 300;
-                final details = Row(children: [
-                  SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Checkbox(
-                        value: meal.consumed,
-                        activeColor: p.accent,
-                        checkColor: p.onAccent,
-                        onChanged: (_) => _toggle(meal),
-                        semanticLabel: meal.consumed
-                            ? 'Uncheck ${meal.name}'
-                            : 'Log ${meal.name}',
-                      )),
-                  Expanded(
-                      child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 40),
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(meal.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: meal.consumed ? p.text : p.muted,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold)),
-                                if (meal.source == 'food_db' &&
-                                    arabic != null &&
-                                    arabic.isNotEmpty)
-                                  Text(arabic,
-                                      textDirection: TextDirection.rtl,
-                                      textAlign: TextAlign.right,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          color: p.muted, fontSize: 11)),
-                                Text(
-                                    meal.servingLabel != null
-                                        ? formatCaloriesServingLabel(
-                                            meal.servingLabel!)
-                                        : (meal.grams == null
-                                            ? 'Manual entry'
-                                            : '${formatCaloriesGrams(meal.grams!)} g${meal.source == 'food_db' ? ' custom' : ''}'),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: p.muted, fontSize: 11)),
-                                Wrap(spacing: 5, children: [
-                                  _macroValue(p, CaloriesPalette.protein,
-                                      '${meal.proteinGrams} P'),
-                                  _macroValue(p, CaloriesPalette.carbs,
-                                      '${meal.carbsGrams} C'),
-                                  _macroValue(p, CaloriesPalette.fat,
-                                      '${meal.fatGrams} F'),
-                                ]),
-                              ]))),
-                ]);
-                final actions = Row(mainAxisSize: MainAxisSize.min, children: [
-                  SizedBox(
-                    width: 46,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text('${meal.calories}\nkcal',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: p.text,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold)),
-                    ),
+  Widget _meal(CaloriesPalette p, MealItem meal, FoodItem? food) {
+    final l = strings(context);
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
+    final name = meal.source == 'food_db' && arabic && food != null
+        ? food.nameAr
+        : meal.name;
+    String serving() {
+      final label = meal.servingLabel;
+      if (label == null) {
+        if (meal.grams == null) return l.foodManualEntry;
+        final grams = formatCaloriesGrams(meal.grams!);
+        return meal.source == 'food_db'
+            ? l.foodCustomGrams(grams)
+            : l.foodGrams(grams);
+      }
+      if (arabic && meal.source == 'food_db') {
+        final custom = RegExp(r'^(\d+(?:\.\d+)?)g custom$').firstMatch(label);
+        if (custom != null) {
+          return l
+              .foodCustomGrams(formatCaloriesGrams(double.parse(custom[1]!)));
+        }
+        if (food != null) {
+          for (final item in food.servings) {
+            final prefix = '${item.nameEn} (';
+            if (label.startsWith(prefix) && label.endsWith('g)')) {
+              final amount = label.substring(prefix.length, label.length - 2);
+              final grams = double.tryParse(amount);
+              if (grams != null) {
+                return l.foodServing(
+                    item.nameAr, l.foodGrams(formatCaloriesGrams(grams)));
+              }
+            }
+          }
+        }
+      }
+      return formatCaloriesServingLabel(label);
+    }
+
+    return Opacity(
+      opacity: meal.consumed ? 1 : .6,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
+        child: InkWell(
+            onTap: meal.source == 'food_db' && widget.onEdit != null
+                ? () => widget.onEdit!(meal)
+                : null,
+            child: LayoutBuilder(builder: (context, constraints) {
+              final compact = constraints.maxWidth < 360;
+              final details = Row(children: [
+                SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Checkbox(
+                      value: meal.consumed,
+                      activeColor: p.accent,
+                      checkColor: p.onAccent,
+                      onChanged: (_) => _toggle(meal),
+                      semanticLabel: meal.consumed
+                          ? l.foodUncheck(name)
+                          : l.foodLogNamed(name),
+                    )),
+                Expanded(
+                    child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 40),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      color: meal.consumed ? p.text : p.muted,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold)),
+                              Text(serving(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      TextStyle(color: p.muted, fontSize: 11)),
+                              Wrap(spacing: 5, children: [
+                                _macroValue(
+                                    p,
+                                    CaloriesPalette.protein,
+                                    l.foodProteinShort(
+                                        meal.proteinGrams.toString())),
+                                _macroValue(
+                                    p,
+                                    CaloriesPalette.carbs,
+                                    l.foodCarbsShort(
+                                        meal.carbsGrams.toString())),
+                                _macroValue(p, CaloriesPalette.fat,
+                                    l.foodFatsShort(meal.fatGrams.toString())),
+                              ]),
+                            ]))),
+              ]);
+              final actions = Row(mainAxisSize: MainAxisSize.min, children: [
+                SizedBox(
+                  width: 46,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(l.foodCaloriesLines(meal.calories.toString()),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: p.text,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold)),
                   ),
-                  if (meal.source == 'food_db')
-                    IconButton(
-                        constraints:
-                            const BoxConstraints(minWidth: 40, minHeight: 40),
-                        padding: EdgeInsets.zero,
-                        tooltip: 'Edit portion ${meal.name}',
-                        onPressed:
-                            busy.contains(meal.id) || widget.onEdit == null
-                                ? null
-                                : () => widget.onEdit!(meal),
-                        icon: Icon(Icons.edit_outlined,
-                            size: 18, color: p.muted)),
+                ),
+                if (meal.source == 'food_db')
                   IconButton(
                       constraints:
                           const BoxConstraints(minWidth: 40, minHeight: 40),
                       padding: EdgeInsets.zero,
-                      tooltip: 'Duplicate ${meal.name}',
-                      onPressed: busy.contains(meal.id)
+                      tooltip: l.foodEditPortion(name),
+                      onPressed: busy.contains(meal.id) || widget.onEdit == null
                           ? null
-                          : () => _act(meal, true),
+                          : () => widget.onEdit!(meal),
                       icon:
-                          Icon(Icons.copy_outlined, size: 18, color: p.muted)),
-                  IconButton(
-                      constraints:
-                          const BoxConstraints(minWidth: 40, minHeight: 40),
-                      padding: EdgeInsets.zero,
-                      tooltip: 'Delete ${meal.name}',
-                      onPressed: busy.contains(meal.id)
-                          ? null
-                          : () => _act(meal, false),
-                      icon:
-                          Icon(Icons.delete_outline, size: 18, color: p.muted)),
-                ]);
-                return compact
-                    ? Column(children: [
-                        details,
-                        Align(alignment: Alignment.centerRight, child: actions),
-                      ])
-                    : Row(children: [
-                        Expanded(child: details),
-                        const SizedBox(width: 4),
-                        actions,
-                      ]);
-              })),
-        ),
-      );
+                          Icon(Icons.edit_outlined, size: 18, color: p.muted)),
+                IconButton(
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
+                    padding: EdgeInsets.zero,
+                    tooltip: l.foodDuplicate(name),
+                    onPressed:
+                        busy.contains(meal.id) ? null : () => _act(meal, true),
+                    icon: Icon(Icons.copy_outlined, size: 18, color: p.muted)),
+                IconButton(
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
+                    padding: EdgeInsets.zero,
+                    tooltip: l.deleteNamed(name),
+                    onPressed:
+                        busy.contains(meal.id) ? null : () => _act(meal, false),
+                    icon: Icon(Icons.delete_outline, size: 18, color: p.muted)),
+              ]);
+              return compact
+                  ? Column(children: [
+                      details,
+                      Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: actions),
+                    ])
+                  : Row(children: [
+                      Expanded(child: details),
+                      const SizedBox(width: 4),
+                      actions,
+                    ]);
+            })),
+      ),
+    );
+  }
 
   Widget _macroValue(CaloriesPalette p, Color color, String value) =>
       Row(mainAxisSize: MainAxisSize.min, children: [
         CircleAvatar(radius: 3, backgroundColor: color),
         const SizedBox(width: 3),
-        Text(value, style: TextStyle(color: p.text, fontSize: 10)),
+        Flexible(
+            child: Text(value, style: TextStyle(color: p.text, fontSize: 10))),
       ]);
 }
 
