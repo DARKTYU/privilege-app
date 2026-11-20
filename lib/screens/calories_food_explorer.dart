@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/food_nutrition.dart';
 import '../models/food_item.dart';
@@ -7,6 +8,47 @@ import '../services/food_database.dart';
 import '../state.dart';
 import 'calories_display_format.dart';
 import 'calories_food_summary.dart';
+
+String _groupName(BuildContext context, String group) {
+  final l = strings(context);
+  return switch (group) {
+    'American & Latin' => l.groupAmerican,
+    'Asian' => l.groupAsian,
+    'Cafes & Bakeries' => l.groupCafes,
+    'Egyptian' => l.groupEgyptian,
+    'European' => l.groupEuropean,
+    'Middle Eastern & African' => l.groupMiddleEastern,
+    'Raw & Fitness Staples' => l.groupRaw,
+    'Restaurants & Fast Food' => l.groupRestaurants,
+    'Snacks' => l.groupSnacks,
+    _ => group,
+  };
+}
+
+String _tagName(BuildContext context, String tag) {
+  final l = strings(context);
+  return switch (tag) {
+    'high-protein' => l.tagProtein,
+    'fitness-staple' => l.tagFitness,
+    'breakfast' => l.foodBreakfast,
+    'street-food' => l.tagStreet,
+    'vegan' => l.tagVegan,
+    'keto-friendly' => l.tagKeto,
+    'low-carb' => l.tagLowCarb,
+    'cooking-oil' => l.tagOils,
+    'topping' => l.tagToppings,
+    'snack' => l.foodSnacks,
+    'dessert' => l.tagDesserts,
+    'raw' => l.tagRaw,
+    'cooked' => l.tagCooked,
+    _ => tag,
+  };
+}
+
+String _foodName(BuildContext context, FoodItem food) =>
+    Localizations.localeOf(context).languageCode == 'ar'
+        ? food.nameAr
+        : food.nameEn;
 
 class FoodExplorerPage extends StatefulWidget {
   const FoodExplorerPage({
@@ -39,9 +81,10 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
   @override
   Widget build(BuildContext context) {
     final p = CaloriesPalette(Theme.of(context));
+    final l = strings(context);
     return Scaffold(
       backgroundColor: p.background,
-      appBar: AppBar(title: const Text('Add food')),
+      appBar: AppBar(title: Text(l.foodAdd)),
       body: SafeArea(
         child: FutureBuilder<void>(
           future: loading,
@@ -49,13 +92,12 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
             if (snapshot.hasError) {
               return Center(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                const Text('Could not load the food database.'),
+                Text(l.explorerLoadError),
                 TextButton(
                     onPressed: () => setState(() => loading = database.load()),
-                    child: const Text('Retry')),
+                    child: Text(l.plannerRetry)),
                 TextButton(
-                    onPressed: widget.onManual,
-                    child: const Text("Can't find it? Quick add manually")),
+                    onPressed: widget.onManual, child: Text(l.explorerManual)),
               ]));
             }
             if (snapshot.connectionState != ConnectionState.done) {
@@ -66,19 +108,19 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
             final availableTags =
                 database.foods.expand((food) => food.tags).toSet();
             const choices = [
-              ('high-protein', 'High Protein'),
-              ('fitness-staple', 'Fitness Staple'),
-              ('breakfast', 'Breakfast'),
-              ('street-food', 'Street Food'),
-              ('vegan', 'Vegan'),
-              ('keto-friendly', 'Keto Friendly'),
-              ('low-carb', 'Low Carb'),
-              ('cooking-oil', 'Oils'),
-              ('topping', 'Toppings'),
-              ('snack', 'Snacks'),
-              ('dessert', 'Desserts'),
-              ('raw', 'Raw'),
-              ('cooked', 'Cooked'),
+              'high-protein',
+              'fitness-staple',
+              'breakfast',
+              'street-food',
+              'vegan',
+              'keto-friendly',
+              'low-carb',
+              'cooking-oil',
+              'topping',
+              'snack',
+              'dessert',
+              'raw',
+              'cooked',
             ];
             return Column(children: [
               Padding(
@@ -86,14 +128,15 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 child: TextField(
                   key: const ValueKey('food-search'),
                   controller: query,
-                  textDirection: foodNameDirection(query.text),
+                  textDirection: query.text.isEmpty
+                      ? Directionality.of(context)
+                      : foodNameDirection(query.text),
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText:
-                        'Search English or Arabic... e.g. Koshary, كشري, Ful, فول',
+                    hintText: l.explorerSearch,
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: IconButton(
-                      tooltip: 'Clear search',
+                      tooltip: l.explorerClear,
                       onPressed: () => setState(query.clear),
                       icon: const Icon(Icons.clear),
                     ),
@@ -106,10 +149,13 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     children: [
-                      _filter(p, 'All', category == null,
+                      _filter(p, l.foodAll, category == null,
                           () => setState(() => category = null)),
                       for (final group in database.categoryGroups)
-                        _filter(p, group, category == group,
+                        _filter(
+                            p,
+                            _groupName(context, group),
+                            category == group,
                             () => setState(() => category = group)),
                     ],
                   )),
@@ -120,14 +166,14 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                     scrollDirection: Axis.horizontal,
                     children: [
                       for (final choice in choices)
-                        if (availableTags.contains(choice.$1))
+                        if (availableTags.contains(choice))
                           _filter(
                               p,
-                              choice.$2,
-                              tags.contains(choice.$1),
+                              _tagName(context, choice),
+                              tags.contains(choice),
                               () => setState(() {
-                                    if (!tags.add(choice.$1)) {
-                                      tags.remove(choice.$1);
+                                    if (!tags.add(choice)) {
+                                      tags.remove(choice);
                                     }
                                   })),
                     ],
@@ -136,9 +182,10 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Align(
-                    alignment: Alignment.centerLeft,
+                    alignment: AlignmentDirectional.centerStart,
                     child: Text(
-                        'Showing ${results.length} of ${database.foods.length}',
+                        l.explorerShowing(results.length.toString(),
+                            database.foods.length.toString()),
                         style: TextStyle(color: p.muted))),
               ),
               Expanded(
@@ -146,9 +193,8 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                     ? Center(
                         child:
                             Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text('No matching foods found',
-                            style: TextStyle(color: p.text)),
-                        Text('Try another search or remove a filter.',
+                        Text(l.explorerEmpty, style: TextStyle(color: p.text)),
+                        Text(l.explorerEmptyHint,
                             style: TextStyle(color: p.muted)),
                       ]))
                     : ListView.builder(
@@ -161,12 +207,12 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
                 child: Column(children: [
-                  Text(foodNutritionDisclaimer,
+                  Text(l.explorerDisclaimer,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: p.muted, fontSize: 11)),
                   TextButton(
                     onPressed: widget.onManual,
-                    child: const Text("Can't find it? Quick add manually"),
+                    child: Text(l.explorerManual),
                   ),
                 ]),
               ),
@@ -180,7 +226,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
   Widget _filter(
           CaloriesPalette p, String label, bool selected, VoidCallback onTap) =>
       Padding(
-        padding: const EdgeInsets.only(right: 6),
+        padding: const EdgeInsetsDirectional.only(end: 6),
         child: FilterChip(
           label: Text(label),
           selected: selected,
@@ -191,10 +237,15 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
       );
 
   Widget _foodCard(BuildContext context, CaloriesPalette p, FoodItem food) {
-    final serving = food.servings.isEmpty
-        ? const FoodServing(nameEn: 'Standard', nameAr: '', grams: 100)
-        : food.servings.first;
-    final portion = calculateFoodPortion(food.per100g, serving.grams);
+    final l = strings(context);
+    final serving = food.servings.isEmpty ? null : food.servings.first;
+    final grams = serving?.grams ?? 100.0;
+    final portion = calculateFoodPortion(food.per100g, grams);
+    final servingName = serving == null
+        ? l.explorerStandard
+        : (Localizations.localeOf(context).languageCode == 'ar'
+            ? serving.nameAr
+            : serving.nameEn);
     return Card(
       color: p.card,
       child: InkWell(
@@ -209,44 +260,48 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                     children: [
                   Text(
                       formatCaloriesCategory(
-                          food.categoryGroup, food.cuisineOrBrand),
+                          _groupName(context, food.categoryGroup),
+                          food.categoryGroup == food.cuisineOrBrand
+                              ? ''
+                              : food.cuisineOrBrand),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: p.accentText, fontSize: 10)),
-                  Text(food.nameEn,
+                  Text(_foodName(context, food),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: p.text, fontWeight: FontWeight.bold)),
-                  Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(food.nameAr,
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.right,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: p.muted, fontSize: 12))),
                   Wrap(spacing: 5, children: [
-                    Text(
-                        'Per 100 g: ${food.per100g.kcal.toStringAsFixed(0)} kcal',
+                    Text(l.explorerPer100(food.per100g.kcal.toStringAsFixed(0)),
                         style: TextStyle(color: p.muted, fontSize: 10)),
-                    _macroDot(p, CaloriesPalette.protein,
-                        '${formatCaloriesGrams(food.per100g.proteinG)} P'),
-                    _macroDot(p, CaloriesPalette.carbs,
-                        '${formatCaloriesGrams(food.per100g.carbsG)} C'),
-                    _macroDot(p, CaloriesPalette.fat,
-                        '${formatCaloriesGrams(food.per100g.fatG)} F'),
+                    _macroDot(
+                        p,
+                        CaloriesPalette.protein,
+                        l.foodProteinShort(
+                            formatCaloriesGrams(food.per100g.proteinG))),
+                    _macroDot(
+                        p,
+                        CaloriesPalette.carbs,
+                        l.foodCarbsShort(
+                            formatCaloriesGrams(food.per100g.carbsG))),
+                    _macroDot(
+                        p,
+                        CaloriesPalette.fat,
+                        l.foodFatsShort(
+                            formatCaloriesGrams(food.per100g.fatG))),
                   ]),
                 ])),
             const SizedBox(width: 8),
             SizedBox(
                 width: 100,
                 child: Column(children: [
-                  Text('${portion.kcal} kcal',
+                  Text(l.mergeCalories(portion.kcal.toString()),
                       style: TextStyle(
                           color: p.accentText, fontWeight: FontWeight.bold)),
                   Text(
-                      '${serving.nameEn} (${formatCaloriesGrams(serving.grams)} g)',
+                      l.foodServing(
+                          servingName, l.foodGrams(formatCaloriesGrams(grams))),
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -257,7 +312,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                         foregroundColor: p.accentText),
                     onPressed: () =>
                         showFoodPortionSheet(context, widget.state, food),
-                    child: const Text('+ Log'),
+                    child: Text(l.explorerLog),
                   ),
                 ])),
           ]),
@@ -271,7 +326,8 @@ Widget _macroDot(CaloriesPalette p, Color color, String value) =>
     Row(mainAxisSize: MainAxisSize.min, children: [
       CircleAvatar(radius: 3, backgroundColor: color),
       const SizedBox(width: 3),
-      Text(value, style: TextStyle(color: p.text, fontSize: 10)),
+      Flexible(
+          child: Text(value, style: TextStyle(color: p.text, fontSize: 10))),
     ]);
 
 Future<void> showFoodPortionSheet(
@@ -302,9 +358,7 @@ class _PortionSheetState extends State<_PortionSheet> {
   late final List<FoodServing> servings = [
     ...widget.food.servings,
     const FoodServing(
-        nameEn: '100 g standard reference',
-        nameAr: 'الكمية القياسية',
-        grams: 100),
+        nameEn: '100 g standard reference', nameAr: '', grams: 100),
   ];
   late final TextEditingController weight = TextEditingController(
       text: formatCaloriesGrams(widget.log?.grams ?? servings.first.grams));
@@ -339,7 +393,7 @@ class _PortionSheetState extends State<_PortionSheet> {
   Future<void> save() async {
     final g = grams;
     if (g == null) {
-      setState(() => error = 'Enter a weight between 1 and 3000 g.');
+      setState(() => error = strings(context).explorerInvalidWeight);
       return;
     }
     setState(() {
@@ -366,13 +420,18 @@ class _PortionSheetState extends State<_PortionSheet> {
       }
       if (!mounted) return;
       final message = widget.state.activityError != null
-          ? 'Saved, but the activity list could not be refreshed. Please retry.'
+          ? strings(context).workoutRefreshError
           : widget.log != null
-              ? 'Updated ${widget.food.nameEn}.'
-              : 'Logged ${widget.food.nameEn} (${portion.kcal} kcal)';
+              ? strings(context)
+                  .explorerUpdated(_foodName(context, widget.food))
+              : strings(context).explorerLogged(
+                  _foodName(context, widget.food), portion.kcal.toString());
       Navigator.pop(context, message);
     } catch (e) {
-      if (mounted) setState(() => error = 'Could not save food: $e');
+      if (mounted) {
+        setState(
+            () => error = strings(context).explorerSaveError(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -381,6 +440,7 @@ class _PortionSheetState extends State<_PortionSheet> {
   @override
   Widget build(BuildContext context) {
     final p = CaloriesPalette(Theme.of(context));
+    final l = strings(context);
     final g = grams;
     final portion =
         g == null ? null : calculateFoodPortion(widget.food.per100g, g);
@@ -396,20 +456,20 @@ class _PortionSheetState extends State<_PortionSheet> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                      formatCaloriesCategory(widget.food.categoryGroup,
-                          widget.food.cuisineOrBrand),
+                      formatCaloriesCategory(
+                          _groupName(context, widget.food.categoryGroup),
+                          widget.food.categoryGroup ==
+                                  widget.food.cuisineOrBrand
+                              ? ''
+                              : widget.food.cuisineOrBrand),
                       style: TextStyle(color: p.muted)),
-                  Text(widget.food.nameEn,
+                  Text(_foodName(context, widget.food),
                       style: TextStyle(
                           color: p.text,
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
-                  Text(widget.food.nameAr,
-                      textDirection: TextDirection.rtl,
-                      textAlign: TextAlign.right,
-                      style: TextStyle(color: p.accentText)),
                   const SizedBox(height: 16),
-                  const Text('Quick Household & Restaurant Portions'),
+                  Text(l.explorerPortions),
                   const SizedBox(height: 8),
                   GridView.builder(
                     shrinkWrap: true,
@@ -433,15 +493,17 @@ class _PortionSheetState extends State<_PortionSheet> {
                         child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(s.nameEn,
-                                  maxLines: 1, overflow: TextOverflow.ellipsis),
-                              Text(s.nameAr,
-                                  textDirection: TextDirection.rtl,
+                              Text(
+                                  index == servings.length - 1
+                                      ? l.explorerStandard
+                                      : (Localizations.localeOf(context)
+                                                  .languageCode ==
+                                              'ar'
+                                          ? s.nameAr
+                                          : s.nameEn),
                                   maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      TextStyle(color: p.muted, fontSize: 11)),
-                              Text('${formatCaloriesGrams(s.grams)} g',
+                                  overflow: TextOverflow.ellipsis),
+                              Text(l.foodGrams(formatCaloriesGrams(s.grams)),
                                   style:
                                       TextStyle(color: p.muted, fontSize: 11)),
                             ]),
@@ -455,8 +517,9 @@ class _PortionSheetState extends State<_PortionSheet> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     onChanged: (_) => setState(() => error = null),
-                    decoration: const InputDecoration(
-                        labelText: 'Exact Weight (Grams)', suffixText: 'g'),
+                    decoration: InputDecoration(
+                        labelText: l.explorerExactWeight,
+                        suffixText: l.unitGrams),
                   ),
                   Slider(
                     key: const ValueKey('portion-slider'),
@@ -467,51 +530,60 @@ class _PortionSheetState extends State<_PortionSheet> {
                     activeColor: p.accent,
                     onChanged: (value) => setWeight(value),
                   ),
-                  const Row(
+                  Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('5 g'),
-                        Text('250 g'),
-                        Text('500 g'),
-                        Text('800 g'),
+                        Text(l.foodGrams('5')),
+                        Text(l.foodGrams('250')),
+                        Text(l.foodGrams('500')),
+                        Text(l.foodGrams('800')),
                       ]),
                   const SizedBox(height: 16),
                   Wrap(spacing: 8, runSpacing: 8, children: [
-                    _preview(p, 'Calories', portion?.kcal.toString() ?? '—',
+                    _preview(p, l.calories, portion?.kcal.toString() ?? '—',
                         p.accent),
                     _preview(
                         p,
-                        'Protein',
+                        l.foodProtein,
                         portion == null
                             ? '—'
-                            : '${formatCaloriesGrams(portion.proteinG)} g',
+                            : l.foodGrams(
+                                formatCaloriesGrams(portion.proteinG)),
                         CaloriesPalette.protein),
                     _preview(
                         p,
-                        'Carbs',
+                        l.foodCarbs,
                         portion == null
                             ? '—'
-                            : '${formatCaloriesGrams(portion.carbsG)} g',
+                            : l.foodGrams(formatCaloriesGrams(portion.carbsG)),
                         CaloriesPalette.carbs),
                     _preview(
                         p,
-                        'Fat',
+                        l.foodFat,
                         portion == null
                             ? '—'
-                            : '${formatCaloriesGrams(portion.fatG)} g',
+                            : l.foodGrams(formatCaloriesGrams(portion.fatG)),
                         CaloriesPalette.fat),
                   ]),
                   const SizedBox(height: 12),
                   Wrap(spacing: 12, runSpacing: 4, children: [
-                    Text(
-                        'Fiber: ${portion == null ? '—' : formatCaloriesGrams(portion.fiberG)} g'),
-                    Text(
-                        'Sugar: ${portion == null ? '—' : formatCaloriesGrams(portion.sugarG)} g'),
-                    Text(
-                        'Sodium: ${portion?.sodiumMg.toStringAsFixed(0) ?? '—'} mg'),
+                    Text(l.explorerNutrient(
+                        l.foodFiber,
+                        l.foodGrams(portion == null
+                            ? '—'
+                            : formatCaloriesGrams(portion.fiberG)))),
+                    Text(l.explorerNutrient(
+                        l.foodSugar,
+                        l.foodGrams(portion == null
+                            ? '—'
+                            : formatCaloriesGrams(portion.sugarG)))),
+                    Text(l.explorerNutrient(
+                        l.foodSodium,
+                        l.foodMilligrams(
+                            portion?.sodiumMg.toStringAsFixed(0) ?? '—'))),
                   ]),
                   const SizedBox(height: 16),
-                  const Text('Log to Meal'),
+                  Text(l.explorerMeal),
                   Wrap(spacing: 6, children: [
                     for (final choice in [
                       MealCategory.breakfast,
@@ -520,8 +592,13 @@ class _PortionSheetState extends State<_PortionSheet> {
                       MealCategory.snack
                     ])
                       ChoiceChip(
-                        label: Text(
-                            '${choice.name[0].toUpperCase()}${choice.name.substring(1)}'),
+                        label: Text(switch (choice) {
+                          MealCategory.breakfast => l.foodBreakfast,
+                          MealCategory.lunch => l.foodLunch,
+                          MealCategory.dinner => l.foodDinner,
+                          MealCategory.snack => l.foodSnackSingular,
+                          MealCategory.shake => l.foodSnackSingular,
+                        }),
                         selected: meal == choice,
                         selectedColor: p.accent.withAlpha(55),
                         onSelected: widget.log != null
@@ -539,7 +616,7 @@ class _PortionSheetState extends State<_PortionSheet> {
                         child: TextButton(
                             onPressed:
                                 saving ? null : () => Navigator.pop(context),
-                            child: const Text('Cancel'))),
+                            child: Text(l.plannerCancel))),
                     const SizedBox(width: 8),
                     Expanded(
                         child: FilledButton(
@@ -548,8 +625,8 @@ class _PortionSheetState extends State<_PortionSheet> {
                           foregroundColor: p.onAccent),
                       onPressed: saving ? null : save,
                       child: Text(widget.log == null
-                          ? '+ Add to Daily Log'
-                          : 'Save changes'),
+                          ? l.explorerAdd
+                          : l.explorerSaveChanges),
                     )),
                   ]),
                 ]),

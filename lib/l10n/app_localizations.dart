@@ -1478,6 +1478,888 @@ abstract class AppLocalizations {
   /// **'Could not update meal: {error}'**
   String foodUpdateError(String error);
 
+  /// No description provided for @explorerLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the food database.'**
+  String get explorerLoadError;
+
+  /// No description provided for @explorerManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it? Quick add manually'**
+  String get explorerManual;
+
+  /// No description provided for @explorerSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search foods in English or Arabic...'**
+  String get explorerSearch;
+
+  /// No description provided for @explorerClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get explorerClear;
+
+  /// No description provided for @explorerShowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {shown} of {total}'**
+  String explorerShowing(String shown, String total);
+
+  /// No description provided for @explorerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching foods found'**
+  String get explorerEmpty;
+
+  /// No description provided for @explorerEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search or remove a filter.'**
+  String get explorerEmptyHint;
+
+  /// No description provided for @explorerDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition values are approximate estimates.'**
+  String get explorerDisclaimer;
+
+  /// No description provided for @explorerPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 100 g: {calories} kcal'**
+  String explorerPer100(String calories);
+
+  /// No description provided for @explorerLog.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Log'**
+  String get explorerLog;
+
+  /// No description provided for @explorerStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'100 g standard reference'**
+  String get explorerStandard;
+
+  /// No description provided for @explorerInvalidWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a weight between 1 and 3000 g.'**
+  String get explorerInvalidWeight;
+
+  /// No description provided for @explorerUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {name}.'**
+  String explorerUpdated(String name);
+
+  /// No description provided for @explorerLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged {name} ({calories} kcal)'**
+  String explorerLogged(String name, String calories);
+
+  /// No description provided for @explorerSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save food: {error}'**
+  String explorerSaveError(String error);
+
+  /// No description provided for @explorerPortions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Household & Restaurant Portions'**
+  String get explorerPortions;
+
+  /// No description provided for @explorerExactWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact Weight (Grams)'**
+  String get explorerExactWeight;
+
+  /// No description provided for @unitGrams.
+  ///
+  /// In en, this message translates to:
+  /// **'g'**
+  String get unitGrams;
+
+  /// No description provided for @explorerNutrient.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {amount}'**
+  String explorerNutrient(String name, String amount);
+
+  /// No description provided for @explorerMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Log to Meal'**
+  String get explorerMeal;
+
+  /// No description provided for @explorerAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add to Daily Log'**
+  String get explorerAdd;
+
+  /// No description provided for @explorerSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get explorerSaveChanges;
+
+  /// No description provided for @foodFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get foodFat;
+
+  /// No description provided for @foodSnackSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack'**
+  String get foodSnackSingular;
+
+  /// No description provided for @groupAmerican.
+  ///
+  /// In en, this message translates to:
+  /// **'American & Latin'**
+  String get groupAmerican;
+
+  /// No description provided for @groupAsian.
+  ///
+  /// In en, this message translates to:
+  /// **'Asian'**
+  String get groupAsian;
+
+  /// No description provided for @groupCafes.
+  ///
+  /// In en, this message translates to:
+  /// **'Cafes & Bakeries'**
+  String get groupCafes;
+
+  /// No description provided for @groupEgyptian.
+  ///
+  /// In en, this message translates to:
+  /// **'Egyptian'**
+  String get groupEgyptian;
+
+  /// No description provided for @groupEuropean.
+  ///
+  /// In en, this message translates to:
+  /// **'European'**
+  String get groupEuropean;
+
+  /// No description provided for @groupMiddleEastern.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle Eastern & African'**
+  String get groupMiddleEastern;
+
+  /// No description provided for @groupRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw & Fitness Staples'**
+  String get groupRaw;
+
+  /// No description provided for @groupRestaurants.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurants & Fast Food'**
+  String get groupRestaurants;
+
+  /// No description provided for @groupSnacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Snacks'**
+  String get groupSnacks;
+
+  /// No description provided for @tagProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'High Protein'**
+  String get tagProtein;
+
+  /// No description provided for @tagFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness Staple'**
+  String get tagFitness;
+
+  /// No description provided for @tagStreet.
+  ///
+  /// In en, this message translates to:
+  /// **'Street Food'**
+  String get tagStreet;
+
+  /// No description provided for @tagVegan.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegan'**
+  String get tagVegan;
+
+  /// No description provided for @tagKeto.
+  ///
+  /// In en, this message translates to:
+  /// **'Keto Friendly'**
+  String get tagKeto;
+
+  /// No description provided for @tagLowCarb.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Carb'**
+  String get tagLowCarb;
+
+  /// No description provided for @tagOils.
+  ///
+  /// In en, this message translates to:
+  /// **'Oils'**
+  String get tagOils;
+
+  /// No description provided for @tagToppings.
+  ///
+  /// In en, this message translates to:
+  /// **'Toppings'**
+  String get tagToppings;
+
+  /// No description provided for @tagDesserts.
+  ///
+  /// In en, this message translates to:
+  /// **'Desserts'**
+  String get tagDesserts;
+
+  /// No description provided for @tagRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw'**
+  String get tagRaw;
+
+  /// No description provided for @tagCooked.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooked'**
+  String get tagCooked;
+
+  /// No description provided for @profileInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid birth date (age 13–100), sex, activity, weight (30–300 kg), and height (120–230 cm).'**
+  String get profileInvalid;
+
+  /// No description provided for @profileSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your profile. Please try again.'**
+  String profileSaveError(String error);
+
+  /// No description provided for @profileWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get profileWeight;
+
+  /// No description provided for @profileHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get profileHeight;
+
+  /// No description provided for @profileChooseBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose birth date'**
+  String get profileChooseBirth;
+
+  /// No description provided for @profileBirth.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth date: {date}'**
+  String profileBirth(String date);
+
+  /// No description provided for @profileSex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex for the estimate'**
+  String get profileSex;
+
+  /// No description provided for @profileMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get profileMale;
+
+  /// No description provided for @profileFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get profileFemale;
+
+  /// No description provided for @profileUnspecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get profileUnspecified;
+
+  /// No description provided for @profileActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity level'**
+  String get profileActivity;
+
+  /// No description provided for @profileSedentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sedentary'**
+  String get profileSedentary;
+
+  /// No description provided for @profileSedentaryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Mostly sitting, little exercise.'**
+  String get profileSedentaryDescription;
+
+  /// No description provided for @profileLightDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Light exercise 1–3 days per week.'**
+  String get profileLightDescription;
+
+  /// No description provided for @profileModerateDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise 3–5 days per week.'**
+  String get profileModerateDescription;
+
+  /// No description provided for @profileVeryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Very active'**
+  String get profileVeryActive;
+
+  /// No description provided for @profileVeryActiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard exercise 6–7 days per week.'**
+  String get profileVeryActiveDescription;
+
+  /// No description provided for @profileAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete'**
+  String get profileAthlete;
+
+  /// No description provided for @profileAthleteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Very demanding daily training or physical work.'**
+  String get profileAthleteDescription;
+
+  /// No description provided for @profileTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Your daily target: {target}{estimated}'**
+  String profileTarget(String target, String estimated);
+
+  /// No description provided for @profileBmr.
+  ///
+  /// In en, this message translates to:
+  /// **'BMR: {bmr} • Maintenance: {maintenance}'**
+  String profileBmr(String bmr, String maintenance);
+
+  /// No description provided for @profileCompleteFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete all fields for a personal estimate.'**
+  String get profileCompleteFields;
+
+  /// No description provided for @profileAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal adjustment: {amount} kcal{minor}'**
+  String profileAdjustment(String amount, String minor);
+
+  /// No description provided for @profileMinor.
+  ///
+  /// In en, this message translates to:
+  /// **' (maintenance for under 18)'**
+  String get profileMinor;
+
+  /// No description provided for @profileDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates are not medical advice.'**
+  String get profileDisclaimer;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save profile'**
+  String get profileSave;
+
+  /// No description provided for @memberFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get memberFree;
+
+  /// No description provided for @memberSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver'**
+  String get memberSilver;
+
+  /// No description provided for @memberGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get memberGold;
+
+  /// No description provided for @membershipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privilege membership'**
+  String get membershipTitle;
+
+  /// No description provided for @membershipLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading membership...'**
+  String get membershipLoading;
+
+  /// No description provided for @membershipUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership unavailable'**
+  String get membershipUnavailable;
+
+  /// No description provided for @membershipUnavailableConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership unavailable. Check your connection.'**
+  String get membershipUnavailableConnection;
+
+  /// No description provided for @membershipCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current membership: {tier}'**
+  String membershipCurrent(String tier);
+
+  /// No description provided for @membershipProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Privilege {tier} Member'**
+  String membershipProfile(String tier);
+
+  /// No description provided for @membershipRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry membership'**
+  String get membershipRetry;
+
+  /// No description provided for @membershipBenefits.
+  ///
+  /// In en, this message translates to:
+  /// **'Available in the app'**
+  String get membershipBenefits;
+
+  /// No description provided for @membershipFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food and workout logging'**
+  String get membershipFood;
+
+  /// No description provided for @membershipCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community and streak tracking'**
+  String get membershipCommunity;
+
+  /// No description provided for @membershipAcademy.
+  ///
+  /// In en, this message translates to:
+  /// **'Academy exercise guides'**
+  String get membershipAcademy;
+
+  /// No description provided for @membershipRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards and achievements'**
+  String get membershipRewards;
+
+  /// No description provided for @membershipSplits.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and save custom splits'**
+  String get membershipSplits;
+
+  /// No description provided for @membershipBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'• {benefit}'**
+  String membershipBenefit(String benefit);
+
+  /// No description provided for @membershipComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon. Payments are not available yet.'**
+  String get membershipComingSoon;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profileEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get profileEdit;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile successfully updated!'**
+  String get profileUpdated;
+
+  /// No description provided for @profileFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get profileFullName;
+
+  /// No description provided for @profileFullNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name'**
+  String get profileFullNameHint;
+
+  /// No description provided for @profileGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Goal'**
+  String get profileGoal;
+
+  /// No description provided for @profileChooseGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a target goal'**
+  String get profileChooseGoal;
+
+  /// No description provided for @profileBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete bio'**
+  String get profileBio;
+
+  /// No description provided for @profileHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'@{username}'**
+  String profileHandle(String username);
+
+  /// No description provided for @profileSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get profileSaveChanges;
+
+  /// No description provided for @profileAddBio.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a bio'**
+  String get profileAddBio;
+
+  /// No description provided for @profileQuotedBio.
+  ///
+  /// In en, this message translates to:
+  /// **'“{bio}”'**
+  String profileQuotedBio(String bio);
+
+  /// No description provided for @profileCurrentWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Weight'**
+  String get profileCurrentWeight;
+
+  /// No description provided for @profileHeightLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get profileHeightLabel;
+
+  /// No description provided for @profileCalorieGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie Goal'**
+  String get profileCalorieGoal;
+
+  /// No description provided for @profileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profileNotSet;
+
+  /// No description provided for @profileKg.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} kg'**
+  String profileKg(String amount);
+
+  /// No description provided for @profileCm.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} cm'**
+  String profileCm(String amount);
+
+  /// No description provided for @profileCalorieValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}{estimated}'**
+  String profileCalorieValue(String amount, String estimated);
+
+  /// No description provided for @profileCompleteCalorie.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your calorie profile'**
+  String get profileCompleteCalorie;
+
+  /// No description provided for @profileEditCalorie.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit calorie profile'**
+  String get profileEditCalorie;
+
+  /// No description provided for @profileRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards Store'**
+  String get profileRewards;
+
+  /// No description provided for @profileBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges & Achievements'**
+  String get profileBadges;
+
+  /// No description provided for @profileActiveTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Target:'**
+  String get profileActiveTarget;
+
+  /// No description provided for @profileTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Track →'**
+  String get profileTrack;
+
+  /// No description provided for @profileSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out of Privilege'**
+  String get profileSignOut;
+
+  /// No description provided for @alertsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts (updates unavailable)'**
+  String get alertsUnavailable;
+
+  /// No description provided for @alertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get alertsTitle;
+
+  /// No description provided for @alertsTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get alertsTryAgain;
+
+  /// No description provided for @notificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings'**
+  String get notificationSettings;
+
+  /// No description provided for @alertsMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get alertsMarkRead;
+
+  /// No description provided for @alertsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You are all caught up.'**
+  String get alertsEmpty;
+
+  /// No description provided for @alertsGroupMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This group is no longer available.'**
+  String get alertsGroupMissing;
+
+  /// No description provided for @alertsNoDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'This alert has no destination.'**
+  String get alertsNoDestination;
+
+  /// No description provided for @alertsLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get alertsLikes;
+
+  /// No description provided for @alertsComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get alertsComments;
+
+  /// No description provided for @alertsFriendPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend posts'**
+  String get alertsFriendPosts;
+
+  /// No description provided for @alertsFriendRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend requests, acceptances and follows'**
+  String get alertsFriendRequests;
+
+  /// No description provided for @alertSomeone.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone'**
+  String get alertSomeone;
+
+  /// No description provided for @alertFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} sent you a friend request.'**
+  String alertFriendRequest(String name);
+
+  /// No description provided for @alertFriendAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} accepted your friend request.'**
+  String alertFriendAccepted(String name);
+
+  /// No description provided for @alertCommentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} commented: {body}'**
+  String alertCommentBody(String name, String body);
+
+  /// No description provided for @alertComment.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} commented on your post.'**
+  String alertComment(String name);
+
+  /// No description provided for @alertPostLike.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} liked your post.'**
+  String alertPostLike(String name);
+
+  /// No description provided for @alertCommentLike.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} liked your comment.'**
+  String alertCommentLike(String name);
+
+  /// No description provided for @alertFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} started following you.'**
+  String alertFollow(String name);
+
+  /// No description provided for @alertFriendPost.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} shared a new post.'**
+  String alertFriendPost(String name);
+
+  /// No description provided for @alertChallengeInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} invited you to a challenge.'**
+  String alertChallengeInvite(String name);
+
+  /// No description provided for @alertChallengeResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Your challenge results are ready.'**
+  String get alertChallengeResult;
+
+  /// No description provided for @alertBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'You earned a badge!'**
+  String get alertBadge;
+
+  /// No description provided for @alertAchievement.
+  ///
+  /// In en, this message translates to:
+  /// **'You completed an achievement!'**
+  String get alertAchievement;
+
+  /// No description provided for @alertLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached a new level!'**
+  String get alertLevel;
+
+  /// No description provided for @alertReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reward has been redeemed.'**
+  String get alertReward;
+
+  /// No description provided for @alertGroupRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} requested to join your group.'**
+  String alertGroupRequest(String name);
+
+  /// No description provided for @alertGroupApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} approved your group request.'**
+  String alertGroupApproved(String name);
+
+  /// No description provided for @alertGroupRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} removed you from a group.'**
+  String alertGroupRemoved(String name);
+
+  /// No description provided for @alertGroupBanned.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} banned you from a group.'**
+  String alertGroupBanned(String name);
+
+  /// No description provided for @alertGroupInvited.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} invited you to a group.'**
+  String alertGroupInvited(String name);
+
+  /// No description provided for @alertUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a new notification.'**
+  String get alertUnknown;
+
   /// No description provided for @plannerWeekRange.
   ///
   /// In en, this message translates to:
@@ -2029,12 +2911,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That username is already taken.'**
   String get usernameTaken;
-
-  /// No description provided for @profileSaveError.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not save your profile. Please try again.'**
-  String get profileSaveError;
 
   /// No description provided for @sessionExpired.
   ///

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/calorie_target.dart';
 import 'package:privilege/logic/user_profile.dart';
 import 'package:privilege/screens/calorie_profile_sheet.dart';
@@ -39,6 +42,71 @@ class _ProfileState extends AppState {
 
 void main() {
   setUpAll(() async => FoodDatabase().load());
+
+  test('profile has no hardcoded UI labels', () {
+    final source =
+        File('lib/screens/calorie_profile_sheet.dart').readAsStringSync();
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+    expect(
+        RegExp(r"""(?:Text\(\s*(?:const\s*)?|(?:labelText|hintText|helperText|tooltip|semanticLabel)\s*:\s*)['"]""")
+            .allMatches(source),
+        isEmpty);
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('localized profile and date picker fit at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final state = _ProfileState()
+        ..profile = defaultUserProfile.copyWith(
+            weightKg: 80,
+            heightCm: 180,
+            birthDate: DateTime(DateTime.now().year - 30, 1, 1),
+            sex: TargetSex.male,
+            activity: TargetActivity.moderate);
+      addTearDown(state.dispose);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: buildTheme(),
+        home: Scaffold(
+            body: Builder(
+                builder: (context) => TextButton(
+                      onPressed: () => showCalorieProfileSheet(context, state),
+                      child: const Text('Open'),
+                    ))),
+      ));
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(CalorieProfileSheet));
+      final l = AppLocalizations.of(context)!;
+      expect(find.text(l.profileWeight), findsOneWidget);
+      final date = l.profileBirth('${DateTime.now().year - 30}-01-01');
+      await tester.tap(find.text(date));
+      await tester.pumpAndSettle();
+      final picker = tester.element(find.byType(DatePickerDialog));
+      final text = tester
+          .widgetList<Text>(find.descendant(
+              of: find.byType(DatePickerDialog), matching: find.byType(Text)))
+          .map((x) => x.data ?? '')
+          .join(' ');
+      expect(text, isNot(contains(RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'))));
+      await tester.tap(
+          find.text(MaterialLocalizations.of(picker).cancelButtonLabel).last);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(l.profileSave));
+      await tester.pumpAndSettle();
+      expect(find.text(l.profileDisclaimer), findsOneWidget);
+      await tester.tap(find.text(l.profileSave));
+      await tester.pumpAndSettle();
+      expect(state.saves, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('reminder dismisses only for the current session',
       (tester) async {

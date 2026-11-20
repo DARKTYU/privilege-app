@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/food_nutrition.dart';
 import 'package:privilege/models/food_item.dart';
@@ -44,12 +47,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async => FoodDatabase().load());
 
-  Future<void> setup(WidgetTester tester, _FakeState state) async {
-    tester.view.physicalSize = const Size(400, 900);
+  Future<void> setup(WidgetTester tester, _FakeState state,
+      {String language = 'en', Size size = const Size(400, 900)}) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
+      locale: Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: buildTheme(),
       home: FoodExplorerPage(
           state: state,
@@ -57,6 +64,52 @@ void main() {
           database: CaloriesTestDatabase(FoodDatabase())),
     ));
     await tester.pumpAndSettle();
+  }
+
+  test('explorer has no hardcoded UI labels', () {
+    final source =
+        File('lib/screens/calories_food_explorer.dart').readAsStringSync();
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+    expect(
+        RegExp(r"""(?:Text\(\s*(?:const\s*)?|(?:labelText|hintText|helperText|tooltip|semanticLabel)\s*:\s*)['"]""")
+            .allMatches(source),
+        isEmpty);
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('localized explorer and portions fit at 360 in $language',
+        (tester) async {
+      final state = _FakeState();
+      addTearDown(state.dispose);
+      await setup(tester, state,
+          language: language, size: const Size(360, 640));
+      final context = tester.element(find.byType(FoodExplorerPage));
+      final l = AppLocalizations.of(context)!;
+      expect(find.text(l.foodAdd), findsOneWidget);
+      expect(find.text(l.tagProtein), findsOneWidget);
+      expect(find.text(l.groupEgyptian), findsWidgets);
+      await tester.enterText(find.byKey(const ValueKey('food-search')), 'كشري');
+      await tester.pumpAndSettle();
+      final food = FoodDatabase().search('koshary').first;
+      final name = language == 'ar' ? food.nameAr : food.nameEn;
+      expect(find.text(name), findsWidgets);
+      await tester.tap(find.text(name).first);
+      await tester.pumpAndSettle();
+      expect(find.text(l.explorerPortions), findsOneWidget);
+      expect(find.text(l.explorerStandard), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const ValueKey('portion-grams')));
+      await tester.enterText(
+          find.byKey(const ValueKey('portion-grams')), '200');
+      await tester.ensureVisible(find.text(l.explorerAdd));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.explorerAdd));
+      await tester.pumpAndSettle();
+      expect(state.portion!.grams, 200);
+      expect(state.label, '200g custom');
+      expect(find.text(l.explorerLogged(name, state.portion!.kcal.toString())),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   }
 
   testWidgets('English and Arabic search and category and tag filtering',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/models/community_models.dart';
 import 'package:privilege/models/community_post.dart';
 import 'package:privilege/screens/alerts.dart';
@@ -13,6 +14,36 @@ void main() {
         authOptions: const AuthClientOptions(autoRefreshToken: false));
   });
   tearDownAll(() => client.dispose());
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('alerts and preferences fit and translate in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _AlertsRepo(client);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: AlertsPage(repository: repo),
+      ));
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(AlertsPage));
+      final l = AppLocalizations.of(context)!;
+      expect(find.text(l.alertsTitle), findsOneWidget);
+      expect(find.text(l.alertCommentBody('@hossam', 'Nice work')),
+          findsOneWidget);
+      await tester.tap(find.byTooltip(l.notificationSettings));
+      await tester.pumpAndSettle();
+      expect(find.text(l.alertsLikes), findsOneWidget);
+      await tester.tap(find.text(l.alertsLikes));
+      await tester.pumpAndSettle();
+      expect(repo.settings['likes_enabled'], isFalse);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('alert list shows actor text and marks an opened alert read',
       (tester) async {

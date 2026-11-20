@@ -827,6 +827,519 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get explorerLoadError => 'Could not load the food database.';
+
+  @override
+  String get explorerManual => 'Can\'t find it? Quick add manually';
+
+  @override
+  String get explorerSearch => 'Search foods in English or Arabic...';
+
+  @override
+  String get explorerClear => 'Clear search';
+
+  @override
+  String explorerShowing(String shown, String total) {
+    return 'Showing $shown of $total';
+  }
+
+  @override
+  String get explorerEmpty => 'No matching foods found';
+
+  @override
+  String get explorerEmptyHint => 'Try another search or remove a filter.';
+
+  @override
+  String get explorerDisclaimer =>
+      'Nutrition values are approximate estimates.';
+
+  @override
+  String explorerPer100(String calories) {
+    return 'Per 100 g: $calories kcal';
+  }
+
+  @override
+  String get explorerLog => '+ Log';
+
+  @override
+  String get explorerStandard => '100 g standard reference';
+
+  @override
+  String get explorerInvalidWeight => 'Enter a weight between 1 and 3000 g.';
+
+  @override
+  String explorerUpdated(String name) {
+    return 'Updated $name.';
+  }
+
+  @override
+  String explorerLogged(String name, String calories) {
+    return 'Logged $name ($calories kcal)';
+  }
+
+  @override
+  String explorerSaveError(String error) {
+    return 'Could not save food: $error';
+  }
+
+  @override
+  String get explorerPortions => 'Quick Household & Restaurant Portions';
+
+  @override
+  String get explorerExactWeight => 'Exact Weight (Grams)';
+
+  @override
+  String get unitGrams => 'g';
+
+  @override
+  String explorerNutrient(String name, String amount) {
+    return '$name: $amount';
+  }
+
+  @override
+  String get explorerMeal => 'Log to Meal';
+
+  @override
+  String get explorerAdd => '+ Add to Daily Log';
+
+  @override
+  String get explorerSaveChanges => 'Save changes';
+
+  @override
+  String get foodFat => 'Fat';
+
+  @override
+  String get foodSnackSingular => 'Snack';
+
+  @override
+  String get groupAmerican => 'American & Latin';
+
+  @override
+  String get groupAsian => 'Asian';
+
+  @override
+  String get groupCafes => 'Cafes & Bakeries';
+
+  @override
+  String get groupEgyptian => 'Egyptian';
+
+  @override
+  String get groupEuropean => 'European';
+
+  @override
+  String get groupMiddleEastern => 'Middle Eastern & African';
+
+  @override
+  String get groupRaw => 'Raw & Fitness Staples';
+
+  @override
+  String get groupRestaurants => 'Restaurants & Fast Food';
+
+  @override
+  String get groupSnacks => 'Snacks';
+
+  @override
+  String get tagProtein => 'High Protein';
+
+  @override
+  String get tagFitness => 'Fitness Staple';
+
+  @override
+  String get tagStreet => 'Street Food';
+
+  @override
+  String get tagVegan => 'Vegan';
+
+  @override
+  String get tagKeto => 'Keto Friendly';
+
+  @override
+  String get tagLowCarb => 'Low Carb';
+
+  @override
+  String get tagOils => 'Oils';
+
+  @override
+  String get tagToppings => 'Toppings';
+
+  @override
+  String get tagDesserts => 'Desserts';
+
+  @override
+  String get tagRaw => 'Raw';
+
+  @override
+  String get tagCooked => 'Cooked';
+
+  @override
+  String get profileInvalid =>
+      'Enter a valid birth date (age 13–100), sex, activity, weight (30–300 kg), and height (120–230 cm).';
+
+  @override
+  String profileSaveError(String error) {
+    return 'Could not save your profile. Please try again.';
+  }
+
+  @override
+  String get profileWeight => 'Weight (kg)';
+
+  @override
+  String get profileHeight => 'Height (cm)';
+
+  @override
+  String get profileChooseBirth => 'Choose birth date';
+
+  @override
+  String profileBirth(String date) {
+    return 'Birth date: $date';
+  }
+
+  @override
+  String get profileSex => 'Sex for the estimate';
+
+  @override
+  String get profileMale => 'Male';
+
+  @override
+  String get profileFemale => 'Female';
+
+  @override
+  String get profileUnspecified => 'Prefer not to say';
+
+  @override
+  String get profileActivity => 'Activity level';
+
+  @override
+  String get profileSedentary => 'Sedentary';
+
+  @override
+  String get profileSedentaryDescription => 'Mostly sitting, little exercise.';
+
+  @override
+  String get profileLightDescription => 'Light exercise 1–3 days per week.';
+
+  @override
+  String get profileModerateDescription => 'Exercise 3–5 days per week.';
+
+  @override
+  String get profileVeryActive => 'Very active';
+
+  @override
+  String get profileVeryActiveDescription => 'Hard exercise 6–7 days per week.';
+
+  @override
+  String get profileAthlete => 'Athlete';
+
+  @override
+  String get profileAthleteDescription =>
+      'Very demanding daily training or physical work.';
+
+  @override
+  String profileTarget(String target, String estimated) {
+    return 'Your daily target: $target$estimated';
+  }
+
+  @override
+  String profileBmr(String bmr, String maintenance) {
+    return 'BMR: $bmr • Maintenance: $maintenance';
+  }
+
+  @override
+  String get profileCompleteFields =>
+      'Complete all fields for a personal estimate.';
+
+  @override
+  String profileAdjustment(String amount, String minor) {
+    return 'Goal adjustment: $amount kcal$minor';
+  }
+
+  @override
+  String get profileMinor => ' (maintenance for under 18)';
+
+  @override
+  String get profileDisclaimer => 'Estimates are not medical advice.';
+
+  @override
+  String get profileSave => 'Save profile';
+
+  @override
+  String get memberFree => 'Free';
+
+  @override
+  String get memberSilver => 'Silver';
+
+  @override
+  String get memberGold => 'Gold';
+
+  @override
+  String get membershipTitle => 'Privilege membership';
+
+  @override
+  String get membershipLoading => 'Loading membership...';
+
+  @override
+  String get membershipUnavailable => 'Membership unavailable';
+
+  @override
+  String get membershipUnavailableConnection =>
+      'Membership unavailable. Check your connection.';
+
+  @override
+  String membershipCurrent(String tier) {
+    return 'Current membership: $tier';
+  }
+
+  @override
+  String membershipProfile(String tier) {
+    return 'Privilege $tier Member';
+  }
+
+  @override
+  String get membershipRetry => 'Retry membership';
+
+  @override
+  String get membershipBenefits => 'Available in the app';
+
+  @override
+  String get membershipFood => 'Food and workout logging';
+
+  @override
+  String get membershipCommunity => 'Community and streak tracking';
+
+  @override
+  String get membershipAcademy => 'Academy exercise guides';
+
+  @override
+  String get membershipRewards => 'Rewards and achievements';
+
+  @override
+  String get membershipSplits => 'Create and save custom splits';
+
+  @override
+  String membershipBenefit(String benefit) {
+    return '• $benefit';
+  }
+
+  @override
+  String get membershipComingSoon =>
+      'Coming soon. Payments are not available yet.';
+
+  @override
+  String get profileTitle => 'Athlete Profile';
+
+  @override
+  String get profileEdit => 'Edit Profile';
+
+  @override
+  String get profileUpdated => 'Profile successfully updated!';
+
+  @override
+  String get profileFullName => 'Full Name';
+
+  @override
+  String get profileFullNameHint => 'Full name';
+
+  @override
+  String get profileGoal => 'Target Goal';
+
+  @override
+  String get profileChooseGoal => 'Choose a target goal';
+
+  @override
+  String get profileBio => 'Athlete bio';
+
+  @override
+  String profileHandle(String username) {
+    return '@$username';
+  }
+
+  @override
+  String get profileSaveChanges => 'Save Changes';
+
+  @override
+  String get profileAddBio => 'Add a bio';
+
+  @override
+  String profileQuotedBio(String bio) {
+    return '“$bio”';
+  }
+
+  @override
+  String get profileCurrentWeight => 'Current Weight';
+
+  @override
+  String get profileHeightLabel => 'Height';
+
+  @override
+  String get profileCalorieGoal => 'Calorie Goal';
+
+  @override
+  String get profileNotSet => 'Not set';
+
+  @override
+  String profileKg(String amount) {
+    return '$amount kg';
+  }
+
+  @override
+  String profileCm(String amount) {
+    return '$amount cm';
+  }
+
+  @override
+  String profileCalorieValue(String amount, String estimated) {
+    return '$amount$estimated';
+  }
+
+  @override
+  String get profileCompleteCalorie => 'Complete your calorie profile';
+
+  @override
+  String get profileEditCalorie => 'Edit calorie profile';
+
+  @override
+  String get profileRewards => 'Rewards Store';
+
+  @override
+  String get profileBadges => 'Badges & Achievements';
+
+  @override
+  String get profileActiveTarget => 'Active Target:';
+
+  @override
+  String get profileTrack => 'Track →';
+
+  @override
+  String get profileSignOut => 'Sign Out of Privilege';
+
+  @override
+  String get alertsUnavailable => 'Alerts (updates unavailable)';
+
+  @override
+  String get alertsTitle => 'Alerts';
+
+  @override
+  String get alertsTryAgain => 'Try again';
+
+  @override
+  String get notificationSettings => 'Notification settings';
+
+  @override
+  String get alertsMarkRead => 'Mark all as read';
+
+  @override
+  String get alertsEmpty => 'You are all caught up.';
+
+  @override
+  String get alertsGroupMissing => 'This group is no longer available.';
+
+  @override
+  String get alertsNoDestination => 'This alert has no destination.';
+
+  @override
+  String get alertsLikes => 'Likes';
+
+  @override
+  String get alertsComments => 'Comments';
+
+  @override
+  String get alertsFriendPosts => 'Friend posts';
+
+  @override
+  String get alertsFriendRequests => 'Friend requests, acceptances and follows';
+
+  @override
+  String get alertSomeone => 'Someone';
+
+  @override
+  String alertFriendRequest(String name) {
+    return '$name sent you a friend request.';
+  }
+
+  @override
+  String alertFriendAccepted(String name) {
+    return '$name accepted your friend request.';
+  }
+
+  @override
+  String alertCommentBody(String name, String body) {
+    return '$name commented: $body';
+  }
+
+  @override
+  String alertComment(String name) {
+    return '$name commented on your post.';
+  }
+
+  @override
+  String alertPostLike(String name) {
+    return '$name liked your post.';
+  }
+
+  @override
+  String alertCommentLike(String name) {
+    return '$name liked your comment.';
+  }
+
+  @override
+  String alertFollow(String name) {
+    return '$name started following you.';
+  }
+
+  @override
+  String alertFriendPost(String name) {
+    return '$name shared a new post.';
+  }
+
+  @override
+  String alertChallengeInvite(String name) {
+    return '$name invited you to a challenge.';
+  }
+
+  @override
+  String get alertChallengeResult => 'Your challenge results are ready.';
+
+  @override
+  String get alertBadge => 'You earned a badge!';
+
+  @override
+  String get alertAchievement => 'You completed an achievement!';
+
+  @override
+  String get alertLevel => 'You reached a new level!';
+
+  @override
+  String get alertReward => 'Your reward has been redeemed.';
+
+  @override
+  String alertGroupRequest(String name) {
+    return '$name requested to join your group.';
+  }
+
+  @override
+  String alertGroupApproved(String name) {
+    return '$name approved your group request.';
+  }
+
+  @override
+  String alertGroupRemoved(String name) {
+    return '$name removed you from a group.';
+  }
+
+  @override
+  String alertGroupBanned(String name) {
+    return '$name banned you from a group.';
+  }
+
+  @override
+  String alertGroupInvited(String name) {
+    return '$name invited you to a group.';
+  }
+
+  @override
+  String get alertUnknown => 'You have a new notification.';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }
@@ -1115,10 +1628,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get usernameTaken => 'That username is already taken.';
-
-  @override
-  String get profileSaveError =>
-      'Could not save your profile. Please try again.';
 
   @override
   String get sessionExpired => 'Please log in again.';

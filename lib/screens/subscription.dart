@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../services/progression_repository.dart';
 import '../ui.dart';
 
@@ -43,28 +44,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
   Widget build(BuildContext context) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Privilege membership',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Text(strings(context).membershipTitle,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
           Panel(
             child: FutureBuilder<String>(
               future: _membership,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return const Text('Loading membership...');
+                  return Text(strings(context).membershipLoading);
                 }
                 if (snapshot.hasError) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                          'Membership unavailable. Check your connection.'),
+                      Text(strings(context).membershipUnavailableConnection),
                       TextButton(
-                          onPressed: _reload, child: const Text('Retry')),
+                          onPressed: _reload,
+                          child: Text(strings(context).plannerRetry)),
                     ],
                   );
                 }
-                return Text('Current membership: ${snapshot.requireData}',
+                final l = strings(context);
+                final tier = switch (snapshot.requireData) {
+                  'Free' => l.memberFree,
+                  'Silver' => l.memberSilver,
+                  'Gold' => l.memberGold,
+                  _ => snapshot.requireData,
+                };
+                return Text(l.membershipCurrent(tier),
                     style: const TextStyle(fontWeight: FontWeight.w800));
               },
             ),
@@ -74,25 +83,25 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Available in the app',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                Text(strings(context).membershipBenefits,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
                 const SizedBox(height: 8),
                 for (final benefit in [
-                  'Food and workout logging',
-                  'Community and streak tracking',
-                  'Academy exercise guides',
-                  'Rewards and achievements',
-                  'Create and save custom splits',
+                  strings(context).membershipFood,
+                  strings(context).membershipCommunity,
+                  strings(context).membershipAcademy,
+                  strings(context).membershipRewards,
+                  strings(context).membershipSplits,
                 ])
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $benefit'),
+                    child: Text(strings(context).membershipBenefit(benefit)),
                   ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          const Text('Coming soon. Payments are not available yet.'),
+          Text(strings(context).membershipComingSoon),
         ],
       );
 }

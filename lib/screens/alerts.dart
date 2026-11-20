@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
+import '../logic/localized_dates.dart';
 import '../models/community_models.dart';
 import '../services/community_repository.dart';
 import '../services/groups_repository.dart';
@@ -13,6 +15,38 @@ import 'groups.dart';
 
 final alertsChanged = ValueNotifier<int>(0);
 void refreshAlerts() => alertsChanged.value++;
+
+String _alertMessage(BuildContext context, CommunityNotification item) {
+  final l = strings(context);
+  final name = item.fullName?.trim().isNotEmpty == true
+      ? item.fullName!
+      : item.username?.trim().isNotEmpty == true
+          ? '@${item.username!}'
+          : l.alertSomeone;
+  return switch (item.type) {
+    'friend_request' => l.alertFriendRequest(name),
+    'friend_accepted' => l.alertFriendAccepted(name),
+    'post_comment' => item.commentBody?.trim().isNotEmpty == true
+        ? l.alertCommentBody(name, item.commentBody!)
+        : l.alertComment(name),
+    'post_like' => l.alertPostLike(name),
+    'comment_like' => l.alertCommentLike(name),
+    'follow' => l.alertFollow(name),
+    'friend_post' => l.alertFriendPost(name),
+    'challenge_invite' => l.alertChallengeInvite(name),
+    'challenge_result' => l.alertChallengeResult,
+    'badge_earned' => l.alertBadge,
+    'achievement_earned' => l.alertAchievement,
+    'level_up' => l.alertLevel,
+    'reward_redeemed' => l.alertReward,
+    'group_join_request' => l.alertGroupRequest(name),
+    'group_request_approved' => l.alertGroupApproved(name),
+    'group_removed' => l.alertGroupRemoved(name),
+    'group_banned' => l.alertGroupBanned(name),
+    'group_invited' => l.alertGroupInvited(name),
+    _ => l.alertUnknown,
+  };
+}
 
 class AlertBell extends StatefulWidget {
   const AlertBell({super.key, this.repository});
@@ -85,7 +119,9 @@ class _AlertBellState extends State<AlertBell> {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: _failed ? 'Alerts (updates unavailable)' : 'Alerts',
+        tooltip: _failed
+            ? strings(context).alertsUnavailable
+            : strings(context).alertsTitle,
         onPressed: () async {
           await Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => AlertsPage(repository: _repository)));
@@ -170,9 +206,9 @@ class _AlertsPageState extends State<AlertsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Alerts'), actions: [
+        appBar: AppBar(title: Text(strings(context).alertsTitle), actions: [
           IconButton(
-            tooltip: 'Notification settings',
+            tooltip: strings(context).notificationSettings,
             icon: const Icon(Icons.settings_outlined),
             onPressed: () => Navigator.push(
                 context,
@@ -187,7 +223,9 @@ class _AlertsPageState extends State<AlertsPage> {
                 ? Center(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(_error!, textAlign: TextAlign.center),
-                    TextButton(onPressed: _load, child: const Text('Try again'))
+                    TextButton(
+                        onPressed: _load,
+                        child: Text(strings(context).alertsTryAgain))
                   ]))
                 : RefreshIndicator(
                     onRefresh: _load,
@@ -197,7 +235,7 @@ class _AlertsPageState extends State<AlertsPage> {
                       children: [
                         if (_items.any((item) => !item.isRead))
                           Align(
-                            alignment: Alignment.centerRight,
+                            alignment: AlignmentDirectional.centerEnd,
                             child: TextButton(
                               onPressed: () async {
                                 try {
@@ -212,15 +250,15 @@ class _AlertsPageState extends State<AlertsPage> {
                                   }
                                 }
                               },
-                              child: const Text('Mark all as read'),
+                              child: Text(strings(context).alertsMarkRead),
                             ),
                           ),
                         if (_error != null) Text(_error!),
                         if (_items.isEmpty)
-                          const Padding(
-                              padding: EdgeInsets.only(top: 80),
-                              child:
-                                  Center(child: Text('You are all caught up.')))
+                          Padding(
+                              padding: const EdgeInsets.only(top: 80),
+                              child: Center(
+                                  child: Text(strings(context).alertsEmpty)))
                         else
                           for (final item in _items)
                             Card(
@@ -245,9 +283,11 @@ class _AlertsPageState extends State<AlertsPage> {
                                           .toUpperCase()),
                                 ),
                               ),
-                              title: Text(item.message),
-                              subtitle: Text(MaterialLocalizations.of(context)
-                                  .formatMediumDate(item.createdAt.toLocal())),
+                              title: Text(_alertMessage(context, item)),
+                              subtitle: Text(westernDigits(
+                                  MaterialLocalizations.of(context)
+                                      .formatMediumDate(
+                                          item.createdAt.toLocal()))),
                               trailing: const Icon(Icons.chevron_right),
                             )),
                       ],
@@ -265,7 +305,7 @@ Future<void> openAlertTarget(BuildContext context, CommunityNotification item,
     if (!context.mounted) return;
     if (id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This group is no longer available.')));
+          SnackBar(content: Text(strings(context).alertsGroupMissing)));
       return;
     }
     await Navigator.push(
@@ -284,7 +324,7 @@ Future<void> openAlertTarget(BuildContext context, CommunityNotification item,
         context,
         MaterialPageRoute<void>(
           builder: (_) => AppPage(
-            title: 'Community',
+            title: strings(context).community,
             builder: () => CommunityScreen(
               repository: repository,
               openPostId: item.postId,
@@ -304,7 +344,7 @@ Future<void> openAlertTarget(BuildContext context, CommunityNotification item,
     await Navigator.pushNamed(context, route);
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This alert has no destination.')));
+        SnackBar(content: Text(strings(context).alertsNoDestination)));
   }
 }
 
@@ -358,22 +398,24 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Notification settings')),
+        appBar: AppBar(title: Text(strings(context).notificationSettings)),
         body: _settings == null
             ? _error == null
                 ? const Center(child: CircularProgressIndicator())
                 : Center(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Text(_error!),
-                    TextButton(onPressed: _load, child: const Text('Try again'))
+                    TextButton(
+                        onPressed: _load,
+                        child: Text(strings(context).alertsTryAgain))
                   ]))
             : ListView(children: [
-                for (final entry in const {
-                  'likes_enabled': 'Likes',
-                  'comments_enabled': 'Comments',
-                  'friend_posts_enabled': 'Friend posts',
+                for (final entry in {
+                  'likes_enabled': strings(context).alertsLikes,
+                  'comments_enabled': strings(context).alertsComments,
+                  'friend_posts_enabled': strings(context).alertsFriendPosts,
                   'friend_requests_enabled':
-                      'Friend requests, acceptances and follows',
+                      strings(context).alertsFriendRequests,
                 }.entries)
                   SwitchListTile(
                     title: Text(entry.value),

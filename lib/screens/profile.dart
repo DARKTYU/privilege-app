@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../logic/user_profile.dart';
 import '../logic/username.dart';
 import '../services/account_types.dart' show AuthException;
@@ -81,8 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     final username = _username.text.trim();
     final usernameError = validateUsername(username);
     if (username != p.username && usernameError != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(usernameError)));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(strings(context).invalidUsername)));
       return;
     }
     final w = double.tryParse(_weight.text) ?? p.weightKg;
@@ -101,8 +102,12 @@ class _ProfileScreenState extends State<ProfileScreen>
       ));
     } on AuthException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(error.code == 'username_taken'
+                ? strings(context).usernameTaken
+                : error.code == 'invalid_username'
+                    ? strings(context).invalidUsername
+                    : error.message)));
       }
       return;
     } finally {
@@ -158,6 +163,20 @@ class _ProfileScreenState extends State<ProfileScreen>
       listenable: appState,
       builder: (context, _) {
         final p = appState.profile;
+        final l = strings(context);
+        String goalName(String goal) => switch (goal) {
+              'Natural Championship Qualification' => l.goalChampionship,
+              'Lean Muscle Mass Hypertrophy' => l.goalMuscle,
+              'Sports & Strength Split Merger' => l.goalSports,
+              'Metabolic Fat Loss & Calorie Deficit' => l.goalFatLoss,
+              _ => goal,
+            };
+        String tierName(String tier) => switch (tier) {
+              'Free' => l.memberFree,
+              'Silver' => l.memberSilver,
+              'Gold' => l.memberGold,
+              _ => tier,
+            };
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           children: [
@@ -167,17 +186,17 @@ class _ProfileScreenState extends State<ProfileScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ScreenHeader(
-                    'Athlete Profile',
+                    l.profileTitle,
                     snapshot.connectionState != ConnectionState.done
-                        ? 'Loading membership...'
+                        ? l.membershipLoading
                         : snapshot.hasError
-                            ? 'Membership unavailable'
-                            : 'Privilege ${snapshot.data} Member',
+                            ? l.membershipUnavailable
+                            : l.membershipProfile(tierName(snapshot.data!)),
                   ),
                   Wrap(
                     children: [
                       IconButton(
-                        tooltip: 'Settings',
+                        tooltip: l.settings,
                         onPressed: () =>
                             Navigator.pushNamed(context, '/settings'),
                         icon: const Icon(Icons.settings_outlined),
@@ -200,44 +219,44 @@ class _ProfileScreenState extends State<ProfileScreen>
                           _editing = !_editing;
                         }),
                         icon: const Icon(Icons.edit, size: 16),
-                        label: Text(_editing ? 'Cancel' : 'Edit Profile'),
+                        label: Text(_editing ? l.plannerCancel : l.profileEdit),
                       ),
                     ],
                   ),
                   if (snapshot.hasError)
                     TextButton(
                       onPressed: _reloadSubscription,
-                      child: const Text('Retry membership'),
+                      child: Text(l.membershipRetry),
                     ),
                 ],
               ),
             ),
-            if (_saved) toastBanner('Profile successfully updated!'),
+            if (_saved) toastBanner(l.profileUpdated),
             if (_editing)
               Panel(
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Full Name',
+                      Text(l.profileFullName,
                           style: TextStyle(fontSize: 11, color: kMuted)),
                       const SizedBox(height: 4),
                       TextField(
                           controller: _name,
-                          decoration: fieldDecoration('Full name')),
+                          decoration: fieldDecoration(l.profileFullNameHint)),
                       const SizedBox(height: 10),
-                      Text('Username',
+                      Text(l.username,
                           style: TextStyle(fontSize: 11, color: kMuted)),
                       TextField(
                           controller: _username,
                           autocorrect: false,
-                          decoration: fieldDecoration('Username')),
+                          decoration: fieldDecoration(l.username)),
                       const SizedBox(height: 10),
                       Row(children: [
                         Expanded(
                           child: TextField(
                             controller: _weight,
                             keyboardType: TextInputType.number,
-                            decoration: fieldDecoration('Weight (kg)'),
+                            decoration: fieldDecoration(l.profileWeight),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -245,23 +264,23 @@ class _ProfileScreenState extends State<ProfileScreen>
                           child: TextField(
                             controller: _height,
                             keyboardType: TextInputType.number,
-                            decoration: fieldDecoration('Height (cm)'),
+                            decoration: fieldDecoration(l.profileHeight),
                           ),
                         ),
                       ]),
                       const SizedBox(height: 10),
-                      Text('Target Goal',
+                      Text(l.profileGoal,
                           style: TextStyle(fontSize: 11, color: kMuted)),
                       DropdownButton<String>(
                         isExpanded: true,
                         value: goals.contains(_goal) ? _goal : null,
-                        hint: const Text('Choose a target goal'),
+                        hint: Text(l.profileChooseGoal),
                         dropdownColor: kCard2,
                         items: [
                           for (final g in goals)
                             DropdownMenuItem(
                                 value: g,
-                                child: Text(g,
+                                child: Text(goalName(g),
                                     style: const TextStyle(fontSize: 13)))
                         ],
                         onChanged: (v) => setState(() => _goal = v ?? _goal),
@@ -270,9 +289,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                       TextField(
                           controller: _bio,
                           maxLines: 2,
-                          decoration: fieldDecoration('Athlete bio')),
+                          decoration: fieldDecoration(l.profileBio)),
                       const SizedBox(height: 12),
-                      PrimaryButton('Save Changes',
+                      PrimaryButton(l.profileSaveChanges,
                           icon: Icons.check, onPressed: _save),
                     ]),
               )
@@ -282,20 +301,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(children: [
-                        Stack(alignment: Alignment.bottomRight, children: [
-                          _profileAvatar(
-                              p.name.isEmpty ? p.username : p.name, 72),
-                          InkWell(
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/settings'),
-                            child: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: kMaroon,
-                              child: Icon(Icons.photo_camera,
-                                  size: 13, color: kCream),
-                            ),
-                          ),
-                        ]),
+                        Stack(
+                            alignment: AlignmentDirectional.bottomEnd,
+                            children: [
+                              _profileAvatar(
+                                  p.name.isEmpty ? p.username : p.name, 72),
+                              InkWell(
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/settings'),
+                                child: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: kMaroon,
+                                  child: Icon(Icons.photo_camera,
+                                      size: 13, color: kCream),
+                                ),
+                              ),
+                            ]),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -305,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800)),
-                                Text('@${p.username}',
+                                Text(l.profileHandle(p.username),
                                     style:
                                         TextStyle(fontSize: 12, color: kMuted)),
                                 if (appState.email.isNotEmpty)
@@ -316,7 +337,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ]),
                       const SizedBox(height: 12),
-                      Text(p.bio.isEmpty ? 'Add a bio' : '“${p.bio}”',
+                      Text(
+                          p.bio.isEmpty
+                              ? l.profileAddBio
+                              : l.profileQuotedBio(p.bio),
                           style: TextStyle(
                               fontSize: 12,
                               color: kMuted,
@@ -330,28 +354,35 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 width: width,
                                 child: _stat(
                                     Icons.monitor_weight_outlined,
-                                    'Current Weight',
+                                    l.profileCurrentWeight,
                                     p.hasWeight
-                                        ? '${p.weightKg.round()} kg'
-                                        : 'Not set',
+                                        ? l.profileKg(
+                                            p.weightKg.round().toString())
+                                        : l.profileNotSet,
                                     kRed)),
                             SizedBox(
                                 width: width,
                                 child: _stat(
                                     Icons.straighten,
-                                    'Height',
+                                    l.profileHeightLabel,
                                     p.hasHeight
-                                        ? '${p.heightCm.round()} cm'
-                                        : 'Not set',
+                                        ? l.profileCm(
+                                            p.heightCm.round().toString())
+                                        : l.profileNotSet,
                                     kCyan)),
                             SizedBox(
                                 width: width,
                                 child: _stat(
                                     Icons.local_fire_department,
-                                    'Calorie Goal',
+                                    l.profileCalorieGoal,
                                     appState.targetCalories > 0
-                                        ? '${fmt(appState.targetCalories)} kcal${appState.calorieTarget.isEstimate ? ' • Estimated' : ''}'
-                                        : 'Not set',
+                                        ? l.profileCalorieValue(
+                                            l.mergeCalories(
+                                                fmt(appState.targetCalories)),
+                                            appState.calorieTarget.isEstimate
+                                                ? l.foodEstimated
+                                                : '')
+                                        : l.profileNotSet,
                                     kOrange)),
                           ]);
                         },
@@ -365,8 +396,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 p.activity == null ||
                                 !p.hasWeight ||
                                 !p.hasHeight
-                            ? 'Complete your calorie profile'
-                            : 'Edit calorie profile'),
+                            ? l.profileCompleteCalorie
+                            : l.profileEditCalorie),
                       ),
                     ]),
               ),
@@ -375,12 +406,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                 OutlinedButton.icon(
                   onPressed: () => Navigator.pushNamed(context, '/rewards'),
                   icon: const Icon(Icons.card_giftcard),
-                  label: const Text('Rewards Store'),
+                  label: Text(l.profileRewards),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.pushNamed(context, '/badges'),
                   icon: const Icon(Icons.workspace_premium),
-                  label: const Text('Badges & Achievements'),
+                  label: Text(l.profileBadges),
                 ),
               ]),
               Panel(
@@ -391,9 +422,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Active Target:',
+                          Text(l.profileActiveTarget,
                               style: TextStyle(fontSize: 11, color: kMuted)),
-                          Text(p.targetGoal.isEmpty ? 'Not set' : p.targetGoal,
+                          Text(
+                              p.targetGoal.isEmpty
+                                  ? l.profileNotSet
+                                  : goalName(p.targetGoal),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w700, fontSize: 13)),
                         ]),
@@ -401,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   TextButton(
                     onPressed: () =>
                         Navigator.pushNamed(context, '/classified'),
-                    child: const Text('Track →'),
+                    child: Text(l.profileTrack),
                   ),
                 ]),
               ),
@@ -423,7 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   }
                 },
                 icon: const Icon(Icons.logout, size: 18),
-                label: const Text('Sign Out of Privilege'),
+                label: Text(l.profileSignOut),
               ),
             ],
           ],

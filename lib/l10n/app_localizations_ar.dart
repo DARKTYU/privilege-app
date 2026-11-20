@@ -818,6 +818,515 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get explorerLoadError => 'تعذر تحميل قاعدة بيانات الطعام.';
+
+  @override
+  String get explorerManual => 'لم تجد طعامك؟ أضفه يدويًا';
+
+  @override
+  String get explorerSearch => 'ابحث عن الطعام بالعربية أو الإنجليزية...';
+
+  @override
+  String get explorerClear => 'مسح البحث';
+
+  @override
+  String explorerShowing(String shown, String total) {
+    return 'عرض $shown من $total';
+  }
+
+  @override
+  String get explorerEmpty => 'لم يتم العثور على أطعمة مطابقة';
+
+  @override
+  String get explorerEmptyHint => 'جرب بحثًا آخر أو أزل أحد المرشحات.';
+
+  @override
+  String get explorerDisclaimer => 'القيم الغذائية تقديرية وتقريبية.';
+
+  @override
+  String explorerPer100(String calories) {
+    return 'لكل 100 جم: $calories سعرة';
+  }
+
+  @override
+  String get explorerLog => '+ تسجيل';
+
+  @override
+  String get explorerStandard => 'الكمية القياسية 100 جم';
+
+  @override
+  String get explorerInvalidWeight => 'أدخل وزنًا من 1 إلى 3000 جم.';
+
+  @override
+  String explorerUpdated(String name) {
+    return 'تم تحديث $name.';
+  }
+
+  @override
+  String explorerLogged(String name, String calories) {
+    return 'تم تسجيل $name ($calories سعرة)';
+  }
+
+  @override
+  String explorerSaveError(String error) {
+    return 'تعذر حفظ الطعام: $error';
+  }
+
+  @override
+  String get explorerPortions => 'حصص منزلية وحصص المطاعم';
+
+  @override
+  String get explorerExactWeight => 'الوزن الدقيق (جم)';
+
+  @override
+  String get unitGrams => 'جم';
+
+  @override
+  String explorerNutrient(String name, String amount) {
+    return '$name: $amount';
+  }
+
+  @override
+  String get explorerMeal => 'التسجيل في الوجبة';
+
+  @override
+  String get explorerAdd => '+ إضافة إلى السجل اليومي';
+
+  @override
+  String get explorerSaveChanges => 'حفظ التغييرات';
+
+  @override
+  String get foodFat => 'دهون';
+
+  @override
+  String get foodSnackSingular => 'وجبة خفيفة';
+
+  @override
+  String get groupAmerican => 'أمريكي ولاتيني';
+
+  @override
+  String get groupAsian => 'آسيوي';
+
+  @override
+  String get groupCafes => 'المقاهي والمخابز';
+
+  @override
+  String get groupEgyptian => 'مصري';
+
+  @override
+  String get groupEuropean => 'أوروبي';
+
+  @override
+  String get groupMiddleEastern => 'الشرق الأوسط وأفريقيا';
+
+  @override
+  String get groupRaw => 'مكونات خام وأطعمة رياضية';
+
+  @override
+  String get groupRestaurants => 'المطاعم والوجبات السريعة';
+
+  @override
+  String get groupSnacks => 'وجبات خفيفة';
+
+  @override
+  String get tagProtein => 'عالي البروتين';
+
+  @override
+  String get tagFitness => 'أطعمة رياضية';
+
+  @override
+  String get tagStreet => 'طعام الشارع';
+
+  @override
+  String get tagVegan => 'نباتي';
+
+  @override
+  String get tagKeto => 'مناسب للكيتو';
+
+  @override
+  String get tagLowCarb => 'قليل الكربوهيدرات';
+
+  @override
+  String get tagOils => 'زيوت';
+
+  @override
+  String get tagToppings => 'إضافات';
+
+  @override
+  String get tagDesserts => 'حلويات';
+
+  @override
+  String get tagRaw => 'نيء';
+
+  @override
+  String get tagCooked => 'مطبوخ';
+
+  @override
+  String get profileInvalid =>
+      'أدخل تاريخ ميلاد صحيحًا (العمر 13–100)، والجنس والنشاط والوزن (30–300 كجم) والطول (120–230 سم).';
+
+  @override
+  String profileSaveError(String error) {
+    return 'تعذر حفظ ملفك الشخصي. حاول مرة أخرى.';
+  }
+
+  @override
+  String get profileWeight => 'الوزن (كجم)';
+
+  @override
+  String get profileHeight => 'الطول (سم)';
+
+  @override
+  String get profileChooseBirth => 'اختر تاريخ الميلاد';
+
+  @override
+  String profileBirth(String date) {
+    return 'تاريخ الميلاد: $date';
+  }
+
+  @override
+  String get profileSex => 'الجنس لحساب التقدير';
+
+  @override
+  String get profileMale => 'ذكر';
+
+  @override
+  String get profileFemale => 'أنثى';
+
+  @override
+  String get profileUnspecified => 'أفضل عدم الإفصاح';
+
+  @override
+  String get profileActivity => 'مستوى النشاط';
+
+  @override
+  String get profileSedentary => 'قليل الحركة';
+
+  @override
+  String get profileSedentaryDescription => 'جلوس معظم الوقت وتمارين قليلة.';
+
+  @override
+  String get profileLightDescription => 'تمارين خفيفة 1–3 أيام أسبوعيًا.';
+
+  @override
+  String get profileModerateDescription => 'تمارين 3–5 أيام أسبوعيًا.';
+
+  @override
+  String get profileVeryActive => 'نشط جدًا';
+
+  @override
+  String get profileVeryActiveDescription => 'تمارين شاقة 6–7 أيام أسبوعيًا.';
+
+  @override
+  String get profileAthlete => 'رياضي';
+
+  @override
+  String get profileAthleteDescription => 'تدريب يومي مكثف أو عمل بدني شاق.';
+
+  @override
+  String profileTarget(String target, String estimated) {
+    return 'هدفك اليومي: $target$estimated';
+  }
+
+  @override
+  String profileBmr(String bmr, String maintenance) {
+    return 'الأيض الأساسي: $bmr • الاحتياج للمحافظة: $maintenance';
+  }
+
+  @override
+  String get profileCompleteFields => 'أكمل جميع الحقول للحصول على تقدير شخصي.';
+
+  @override
+  String profileAdjustment(String amount, String minor) {
+    return 'تعديل الهدف: $amount سعرة$minor';
+  }
+
+  @override
+  String get profileMinor => ' (المحافظة لمن هم دون 18 عامًا)';
+
+  @override
+  String get profileDisclaimer => 'التقديرات ليست نصيحة طبية.';
+
+  @override
+  String get profileSave => 'حفظ الملف';
+
+  @override
+  String get memberFree => 'مجانية';
+
+  @override
+  String get memberSilver => 'فضية';
+
+  @override
+  String get memberGold => 'ذهبية';
+
+  @override
+  String get membershipTitle => 'عضوية بريفيلج';
+
+  @override
+  String get membershipLoading => 'جارٍ تحميل العضوية...';
+
+  @override
+  String get membershipUnavailable => 'العضوية غير متاحة';
+
+  @override
+  String get membershipUnavailableConnection =>
+      'العضوية غير متاحة. تحقق من اتصالك.';
+
+  @override
+  String membershipCurrent(String tier) {
+    return 'العضوية الحالية: $tier';
+  }
+
+  @override
+  String membershipProfile(String tier) {
+    return 'عضوية بريفيلج $tier';
+  }
+
+  @override
+  String get membershipRetry => 'إعادة تحميل العضوية';
+
+  @override
+  String get membershipBenefits => 'المتاح في التطبيق';
+
+  @override
+  String get membershipFood => 'تسجيل الطعام والتمارين';
+
+  @override
+  String get membershipCommunity => 'المجتمع ومتابعة الاستمرارية';
+
+  @override
+  String get membershipAcademy => 'أدلة تمارين الأكاديمية';
+
+  @override
+  String get membershipRewards => 'المكافآت والإنجازات';
+
+  @override
+  String get membershipSplits => 'إنشاء التقسيمات الخاصة وحفظها';
+
+  @override
+  String membershipBenefit(String benefit) {
+    return '• $benefit';
+  }
+
+  @override
+  String get membershipComingSoon => 'قريبًا. الدفع غير متاح بعد.';
+
+  @override
+  String get profileTitle => 'ملف الرياضي';
+
+  @override
+  String get profileEdit => 'تعديل الملف';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف بنجاح!';
+
+  @override
+  String get profileFullName => 'الاسم الكامل';
+
+  @override
+  String get profileFullNameHint => 'الاسم الكامل';
+
+  @override
+  String get profileGoal => 'الهدف';
+
+  @override
+  String get profileChooseGoal => 'اختر هدفًا';
+
+  @override
+  String get profileBio => 'نبذة عنك';
+
+  @override
+  String profileHandle(String username) {
+    return '@$username';
+  }
+
+  @override
+  String get profileSaveChanges => 'حفظ التغييرات';
+
+  @override
+  String get profileAddBio => 'أضف نبذة عنك';
+
+  @override
+  String profileQuotedBio(String bio) {
+    return '“$bio”';
+  }
+
+  @override
+  String get profileCurrentWeight => 'الوزن الحالي';
+
+  @override
+  String get profileHeightLabel => 'الطول';
+
+  @override
+  String get profileCalorieGoal => 'هدف السعرات';
+
+  @override
+  String get profileNotSet => 'غير محدد';
+
+  @override
+  String profileKg(String amount) {
+    return '$amount كجم';
+  }
+
+  @override
+  String profileCm(String amount) {
+    return '$amount سم';
+  }
+
+  @override
+  String profileCalorieValue(String amount, String estimated) {
+    return '$amount$estimated';
+  }
+
+  @override
+  String get profileCompleteCalorie => 'أكمل ملف السعرات';
+
+  @override
+  String get profileEditCalorie => 'تعديل ملف السعرات';
+
+  @override
+  String get profileRewards => 'متجر المكافآت';
+
+  @override
+  String get profileBadges => 'الشارات والإنجازات';
+
+  @override
+  String get profileActiveTarget => 'الهدف الحالي:';
+
+  @override
+  String get profileTrack => 'تابع ←';
+
+  @override
+  String get profileSignOut => 'تسجيل الخروج من بريفيلج';
+
+  @override
+  String get alertsUnavailable => 'التنبيهات (التحديثات غير متاحة)';
+
+  @override
+  String get alertsTitle => 'التنبيهات';
+
+  @override
+  String get alertsTryAgain => 'حاول مرة أخرى';
+
+  @override
+  String get notificationSettings => 'إعدادات التنبيهات';
+
+  @override
+  String get alertsMarkRead => 'تحديد الكل كمقروء';
+
+  @override
+  String get alertsEmpty => 'لا توجد تنبيهات جديدة.';
+
+  @override
+  String get alertsGroupMissing => 'هذه المجموعة لم تعد متاحة.';
+
+  @override
+  String get alertsNoDestination => 'لا توجد وجهة لهذا التنبيه.';
+
+  @override
+  String get alertsLikes => 'الإعجابات';
+
+  @override
+  String get alertsComments => 'التعليقات';
+
+  @override
+  String get alertsFriendPosts => 'منشورات الأصدقاء';
+
+  @override
+  String get alertsFriendRequests => 'طلبات الصداقة والقبول والمتابعات';
+
+  @override
+  String get alertSomeone => 'شخص ما';
+
+  @override
+  String alertFriendRequest(String name) {
+    return 'أرسل إليك $name طلب صداقة.';
+  }
+
+  @override
+  String alertFriendAccepted(String name) {
+    return 'قبل $name طلب صداقتك.';
+  }
+
+  @override
+  String alertCommentBody(String name, String body) {
+    return 'علّق $name: $body';
+  }
+
+  @override
+  String alertComment(String name) {
+    return 'علّق $name على منشورك.';
+  }
+
+  @override
+  String alertPostLike(String name) {
+    return 'أعجب $name بمنشورك.';
+  }
+
+  @override
+  String alertCommentLike(String name) {
+    return 'أعجب $name بتعليقك.';
+  }
+
+  @override
+  String alertFollow(String name) {
+    return 'بدأ $name بمتابعتك.';
+  }
+
+  @override
+  String alertFriendPost(String name) {
+    return 'شارك $name منشورًا جديدًا.';
+  }
+
+  @override
+  String alertChallengeInvite(String name) {
+    return 'دعاك $name إلى تحدٍ.';
+  }
+
+  @override
+  String get alertChallengeResult => 'نتائج التحدي جاهزة.';
+
+  @override
+  String get alertBadge => 'حصلت على شارة!';
+
+  @override
+  String get alertAchievement => 'حققت إنجازًا!';
+
+  @override
+  String get alertLevel => 'وصلت إلى مستوى جديد!';
+
+  @override
+  String get alertReward => 'تم استبدال مكافأتك.';
+
+  @override
+  String alertGroupRequest(String name) {
+    return 'طلب $name الانضمام إلى مجموعتك.';
+  }
+
+  @override
+  String alertGroupApproved(String name) {
+    return 'وافق $name على طلبك للانضمام إلى المجموعة.';
+  }
+
+  @override
+  String alertGroupRemoved(String name) {
+    return 'أزالك $name من مجموعة.';
+  }
+
+  @override
+  String alertGroupBanned(String name) {
+    return 'حظرك $name من مجموعة.';
+  }
+
+  @override
+  String alertGroupInvited(String name) {
+    return 'دعاك $name إلى مجموعة.';
+  }
+
+  @override
+  String get alertUnknown => 'لديك تنبيه جديد.';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return 'من $start إلى $end';
   }
@@ -1102,9 +1611,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get usernameTaken => 'اسم المستخدم مستخدم بالفعل.';
-
-  @override
-  String get profileSaveError => 'تعذر حفظ ملفك الشخصي. حاول مرة أخرى.';
 
   @override
   String get sessionExpired => 'يرجى تسجيل الدخول مرة أخرى.';

@@ -1,8 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
 
+import '../l10n_strings.dart';
 import '../logic/calorie_target.dart';
 import '../state.dart';
 import 'calories_food_summary.dart';
+
+class _ArabicWesternDates extends LocalizationsDelegate<MaterialLocalizations> {
+  const _ArabicWesternDates();
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'ar';
+  @override
+  Future<MaterialLocalizations> load(Locale locale) {
+    DateFormat western(DateFormat format) => format..useNativeDigits = false;
+    return SynchronousFuture(MaterialLocalizationAr(
+      fullYearFormat: western(DateFormat.y('ar')),
+      compactDateFormat: western(DateFormat.yMd('ar')),
+      shortDateFormat: western(DateFormat.yMMMd('ar')),
+      mediumDateFormat: western(DateFormat.MMMEd('ar')),
+      longDateFormat: western(DateFormat.yMMMMEEEEd('ar')),
+      yearMonthFormat: western(DateFormat.yMMMM('ar')),
+      shortMonthDayFormat: western(DateFormat.MMMd('ar')),
+      decimalFormat: NumberFormat.decimalPattern('en'),
+      twoDigitZeroPaddedFormat: NumberFormat('00', 'en'),
+    ));
+  }
+
+  @override
+  bool shouldReload(_ArabicWesternDates old) => false;
+}
 
 Future<void> showCalorieProfileSheet(BuildContext context, AppState state) =>
     showModalBottomSheet<void>(
@@ -69,6 +97,11 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
           : DateTime(now.year - 26, now.month, now.day),
       firstDate: first,
       lastDate: now,
+      builder: (context, child) => Localizations.override(
+        context: context,
+        delegates: const [_ArabicWesternDates()],
+        child: child!,
+      ),
     );
     if (date != null && mounted) setState(() => birthDate = date);
   }
@@ -78,8 +111,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
         birthDate == null ||
         sex == null ||
         activity == null) {
-      setState(() => error =
-          'Enter a valid birth date (age 13–100), sex, activity, weight (30–300 kg), and height (120–230 cm).');
+      setState(() => error = strings(context).profileInvalid);
       return;
     }
     setState(() {
@@ -96,7 +128,9 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
       );
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) setState(() => error = 'Could not save your profile: $e');
+      if (mounted) {
+        setState(() => error = strings(context).profileSaveError(e.toString()));
+      }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -105,23 +139,24 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
   @override
   Widget build(BuildContext context) {
     final p = CaloriesPalette(Theme.of(context));
+    final l = strings(context);
     final result = preview;
     final date = birthDate;
-    const descriptions = {
+    final descriptions = {
       TargetActivity.sedentary: (
-        'Sedentary',
-        'Mostly sitting, little exercise.'
+        l.profileSedentary,
+        l.profileSedentaryDescription
       ),
-      TargetActivity.light: ('Light', 'Light exercise 1–3 days per week.'),
-      TargetActivity.moderate: ('Moderate', 'Exercise 3–5 days per week.'),
+      TargetActivity.light: (l.intensityLight, l.profileLightDescription),
+      TargetActivity.moderate: (
+        l.intensityModerate,
+        l.profileModerateDescription
+      ),
       TargetActivity.veryActive: (
-        'Very active',
-        'Hard exercise 6–7 days per week.'
+        l.profileVeryActive,
+        l.profileVeryActiveDescription
       ),
-      TargetActivity.athlete: (
-        'Athlete',
-        'Very demanding daily training or physical work.'
-      ),
+      TargetActivity.athlete: (l.profileAthlete, l.profileAthleteDescription),
     };
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -134,7 +169,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Complete your profile',
+                  Text(l.mergeCompleteProfile,
                       style: TextStyle(
                           color: p.text,
                           fontSize: 20,
@@ -147,8 +182,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                       controller: weight,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      decoration:
-                          const InputDecoration(labelText: 'Weight (kg)'),
+                      decoration: InputDecoration(labelText: l.profileWeight),
                       onChanged: (_) => setState(() {}),
                     )),
                     const SizedBox(width: 8),
@@ -158,8 +192,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                       controller: height,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
-                      decoration:
-                          const InputDecoration(labelText: 'Height (cm)'),
+                      decoration: InputDecoration(labelText: l.profileHeight),
                       onChanged: (_) => setState(() {}),
                     )),
                   ]),
@@ -168,16 +201,17 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                     onPressed: saving ? null : pickDate,
                     icon: const Icon(Icons.calendar_today),
                     label: Text(date == null
-                        ? 'Choose birth date'
-                        : 'Birth date: ${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'),
+                        ? l.profileChooseBirth
+                        : l.profileBirth(
+                            '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}')),
                   ),
                   const SizedBox(height: 8),
-                  Text('Sex for the estimate', style: TextStyle(color: p.text)),
+                  Text(l.profileSex, style: TextStyle(color: p.text)),
                   Wrap(spacing: 8, children: [
                     for (final item in [
-                      (TargetSex.male, 'Male'),
-                      (TargetSex.female, 'Female'),
-                      (TargetSex.unspecified, 'Prefer not to say'),
+                      (TargetSex.male, l.profileMale),
+                      (TargetSex.female, l.profileFemale),
+                      (TargetSex.unspecified, l.profileUnspecified),
                     ])
                       ChoiceChip(
                         label: Text(item.$2),
@@ -189,7 +223,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                       ),
                   ]),
                   const SizedBox(height: 8),
-                  Text('Activity level',
+                  Text(l.profileActivity,
                       style: TextStyle(
                           color: p.text, fontWeight: FontWeight.bold)),
                   RadioGroup<TargetActivity>(
@@ -219,21 +253,31 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                              'Your daily target: ${result.target == null ? 'unavailable' : '${result.target} kcal'}${result.isEstimate ? ' • Estimated' : ''}',
+                              l.profileTarget(
+                                  result.target == null
+                                      ? l.mergeUnavailable.toLowerCase()
+                                      : l.mergeCalories(
+                                          result.target.toString()),
+                                  result.isEstimate ? l.foodEstimated : ''),
                               style: TextStyle(
                                   color: p.accentText,
                                   fontWeight: FontWeight.bold)),
                           Text(
-                              'BMR: ${result.bmr ?? 'unavailable'} • Maintenance: ${result.maintenance ?? 'unavailable'}',
+                              l.profileBmr(
+                                  result.bmr?.toString() ??
+                                      l.mergeUnavailable.toLowerCase(),
+                                  result.maintenance?.toString() ??
+                                      l.mergeUnavailable.toLowerCase()),
                               style: TextStyle(color: p.muted)),
                           Text(
                               result.isEstimate
-                                  ? 'Complete all fields for a personal estimate.'
-                                  : 'Goal adjustment: ${result.target! - result.maintenance! >= 0 ? '+' : ''}${result.target! - result.maintenance!} kcal'
-                                      '${result.age! < 18 ? ' (maintenance for under 18)' : ''}',
+                                  ? l.profileCompleteFields
+                                  : l.profileAdjustment(
+                                      '${result.target! - result.maintenance! >= 0 ? '+' : ''}${result.target! - result.maintenance!}',
+                                      result.age! < 18 ? l.profileMinor : ''),
                               style: TextStyle(color: p.muted)),
                           const SizedBox(height: 4),
-                          Text('Estimates are not medical advice.',
+                          Text(l.profileDisclaimer,
                               style: TextStyle(color: p.muted)),
                         ]),
                   ),
@@ -248,7 +292,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                     style: FilledButton.styleFrom(
                         backgroundColor: p.accent, foregroundColor: p.onAccent),
                     onPressed: saving ? null : save,
-                    child: Text(saving ? 'Saving...' : 'Save profile'),
+                    child: Text(saving ? l.workoutSaving : l.profileSave),
                   ),
                 ]),
           ),
