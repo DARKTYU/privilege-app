@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data.dart';
+import '../l10n_strings.dart';
 import '../logic/workout_estimate.dart';
 import '../services/planner_repository.dart';
 import '../state.dart';
@@ -138,6 +139,50 @@ class _SplitsScreenState extends State<SplitsScreen>
   }
 
   String get splitName => savedSplit?.name ?? split.name;
+  String _builtInName(SplitOption option) {
+    final l = strings(context);
+    switch (option.id) {
+      case 'push':
+        return l.splitPushDay;
+      case 'pull':
+        return l.splitPullDay;
+      case 'legs':
+        return l.splitLegDay;
+      case 'upper':
+        return l.splitUpper;
+      case 'calisthenics':
+        return l.splitCalisthenics;
+      case 'olympic':
+        return l.splitOlympic;
+      case 'basketball':
+        return l.sportBasketball;
+      case 'football':
+        return l.sportFootball;
+      case 'tennis':
+        return l.sportTennis;
+      case 'boxing':
+        return l.sportBoxing;
+      case 'swimming':
+        return l.sportSwimming;
+      case 'sprints':
+        return l.sportSprints;
+      default:
+        return option.name;
+    }
+  }
+
+  String _intensityLabel(WorkoutIntensity intensity) {
+    final l = strings(context);
+    switch (intensity) {
+      case WorkoutIntensity.light:
+        return l.intensityLight;
+      case WorkoutIntensity.moderate:
+        return l.intensityModerate;
+      case WorkoutIntensity.vigorous:
+        return l.intensityVigorous;
+    }
+  }
+
   int? get splitDuration => int.tryParse(splitMinutes.text);
   int? get sportDuration => int.tryParse(sportMinutes.text);
   bool validMinutes(int? value) => value != null && value >= 1 && value <= 600;
@@ -252,7 +297,7 @@ class _SplitsScreenState extends State<SplitsScreen>
         Wrap(spacing: 6, children: [
           for (final item in WorkoutIntensity.values)
             ChoiceChip(
-              label: Text(item.name[0].toUpperCase() + item.name.substring(1)),
+              label: Text(_intensityLabel(item)),
               selected: item == intensity,
               onSelected: (_) => setState(() => onChanged(item)),
             )
@@ -301,7 +346,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                         for (final item in defaultWorkoutSplits)
                           DropdownMenuItem(
                               value: 'built:${item.id}',
-                              child: Text(item.name,
+                              child: Text(_builtInName(item),
                                   overflow: TextOverflow.ellipsis)),
                         for (final item in savedSplits)
                           DropdownMenuItem(
@@ -331,7 +376,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                         for (final item in defaultSports)
                           DropdownMenuItem(
                               value: item.id,
-                              child: Text(item.name,
+                              child: Text(_builtInName(item),
                                   overflow: TextOverflow.ellipsis))
                       ],
                       onChanged: (value) => setState(() {
@@ -354,9 +399,9 @@ class _SplitsScreenState extends State<SplitsScreen>
                     Text(
                         'Combined duration: ${validMinutes(a) && validMinutes(b) ? '${a! + b!} minutes' : 'Unavailable'}'),
                     Text(
-                        '$splitName: ${validMinutes(a) ? '$a min' : 'Invalid duration'}'),
+                        '${savedSplit?.name ?? _builtInName(split)}: ${validMinutes(a) ? '$a min' : 'Invalid duration'}'),
                     Text(
-                        '${sport.name}: ${validMinutes(b) ? '$b min' : 'Invalid duration'}'),
+                        '${_builtInName(sport)}: ${validMinutes(b) ? '$b min' : 'Invalid duration'}'),
                     if (sport.id == 'sprints')
                       const Text(
                           'Track sprint intervals use the HIIT or circuit estimate.'),
@@ -375,9 +420,9 @@ class _SplitsScreenState extends State<SplitsScreen>
                       Text(
                           'Estimated calories burned: ${strengthKcal != null && sportKcal != null ? '${strengthKcal + sportKcal} kcal' : 'Unavailable'}'),
                       Text(
-                          '$splitName: ${strengthKcal == null ? 'Unavailable' : '$strengthKcal kcal'}'),
+                          '${savedSplit?.name ?? _builtInName(split)}: ${strengthKcal == null ? 'Unavailable' : '$strengthKcal kcal'}'),
                       Text(
-                          '${sport.name}: ${sportKcal == null ? 'Unavailable' : '$sportKcal kcal'}'),
+                          '${_builtInName(sport)}: ${sportKcal == null ? 'Unavailable' : '$sportKcal kcal'}'),
                     ],
                     const SizedBox(height: 8),
                     const Text(

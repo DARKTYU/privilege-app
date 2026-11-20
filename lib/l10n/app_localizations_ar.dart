@@ -9,6 +9,51 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get splitPushDay => 'تمرين الدفع';
+
+  @override
+  String get splitPullDay => 'تمرين السحب';
+
+  @override
+  String get splitLegDay => 'تمرين تضخيم الساقين';
+
+  @override
+  String get splitUpper => 'قوة الجزء العلوي';
+
+  @override
+  String get splitCalisthenics => 'تمارين وزن الجسم والجذع';
+
+  @override
+  String get splitOlympic => 'رفع الأثقال الأولمبي';
+
+  @override
+  String get sportBasketball => 'كرة السلة';
+
+  @override
+  String get sportFootball => 'كرة القدم';
+
+  @override
+  String get sportTennis => 'التنس';
+
+  @override
+  String get sportBoxing => 'الملاكمة والفنون القتالية';
+
+  @override
+  String get sportSwimming => 'السباحة';
+
+  @override
+  String get sportSprints => 'فترات العدو السريع';
+
+  @override
+  String get intensityLight => 'خفيف';
+
+  @override
+  String get intensityModerate => 'متوسط';
+
+  @override
+  String get intensityVigorous => 'شديد';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return 'من $start إلى $end';
   }

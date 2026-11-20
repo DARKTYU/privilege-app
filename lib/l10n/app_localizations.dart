@@ -98,6 +98,96 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @splitPushDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Day'**
+  String get splitPushDay;
+
+  /// No description provided for @splitPullDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull Day'**
+  String get splitPullDay;
+
+  /// No description provided for @splitLegDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Leg Day Hypertrophy'**
+  String get splitLegDay;
+
+  /// No description provided for @splitUpper.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper Body Power'**
+  String get splitUpper;
+
+  /// No description provided for @splitCalisthenics.
+  ///
+  /// In en, this message translates to:
+  /// **'Calisthenics & Core'**
+  String get splitCalisthenics;
+
+  /// No description provided for @splitOlympic.
+  ///
+  /// In en, this message translates to:
+  /// **'Olympic Weightlifting'**
+  String get splitOlympic;
+
+  /// No description provided for @sportBasketball.
+  ///
+  /// In en, this message translates to:
+  /// **'Basketball'**
+  String get sportBasketball;
+
+  /// No description provided for @sportFootball.
+  ///
+  /// In en, this message translates to:
+  /// **'Football / Soccer'**
+  String get sportFootball;
+
+  /// No description provided for @sportTennis.
+  ///
+  /// In en, this message translates to:
+  /// **'Tennis'**
+  String get sportTennis;
+
+  /// No description provided for @sportBoxing.
+  ///
+  /// In en, this message translates to:
+  /// **'Boxing / MMA'**
+  String get sportBoxing;
+
+  /// No description provided for @sportSwimming.
+  ///
+  /// In en, this message translates to:
+  /// **'Swimming Laps'**
+  String get sportSwimming;
+
+  /// No description provided for @sportSprints.
+  ///
+  /// In en, this message translates to:
+  /// **'Track Sprint Intervals'**
+  String get sportSprints;
+
+  /// No description provided for @intensityLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get intensityLight;
+
+  /// No description provided for @intensityModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get intensityModerate;
+
+  /// No description provided for @intensityVigorous.
+  ///
+  /// In en, this message translates to:
+  /// **'Vigorous'**
+  String get intensityVigorous;
+
   /// No description provided for @plannerWeekRange.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,20 @@
 {
   "@@locale": "en",
+  "splitPushDay": "Push Day",
+  "splitPullDay": "Pull Day",
+  "splitLegDay": "Leg Day Hypertrophy",
+  "splitUpper": "Upper Body Power",
+  "splitCalisthenics": "Calisthenics & Core",
+  "splitOlympic": "Olympic Weightlifting",
+  "sportBasketball": "Basketball",
+  "sportFootball": "Football / Soccer",
+  "sportTennis": "Tennis",
+  "sportBoxing": "Boxing / MMA",
+  "sportSwimming": "Swimming Laps",
+  "sportSprints": "Track Sprint Intervals",
+  "intensityLight": "Light",
+  "intensityModerate": "Moderate",
+  "intensityVigorous": "Vigorous",
   "plannerWeekRange": "{start} – {end}",
   "@plannerWeekRange": {
     "placeholders": {

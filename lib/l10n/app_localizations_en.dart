@@ -9,6 +9,51 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get splitPushDay => 'Push Day';
+
+  @override
+  String get splitPullDay => 'Pull Day';
+
+  @override
+  String get splitLegDay => 'Leg Day Hypertrophy';
+
+  @override
+  String get splitUpper => 'Upper Body Power';
+
+  @override
+  String get splitCalisthenics => 'Calisthenics & Core';
+
+  @override
+  String get splitOlympic => 'Olympic Weightlifting';
+
+  @override
+  String get sportBasketball => 'Basketball';
+
+  @override
+  String get sportFootball => 'Football / Soccer';
+
+  @override
+  String get sportTennis => 'Tennis';
+
+  @override
+  String get sportBoxing => 'Boxing / MMA';
+
+  @override
+  String get sportSwimming => 'Swimming Laps';
+
+  @override
+  String get sportSprints => 'Track Sprint Intervals';
+
+  @override
+  String get intensityLight => 'Light';
+
+  @override
+  String get intensityModerate => 'Moderate';
+
+  @override
+  String get intensityVigorous => 'Vigorous';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }
