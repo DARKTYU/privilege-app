@@ -141,11 +141,13 @@ test('coach prompt uses app context and gives safe, realistic goal guidance', ()
     /your calorie target in the app is 2,820 kcal/,
     /Calories eaten or burned today represent a partial day/,
     /Never warn about today's total or tell the user to eat more or less because of it unless they ask/,
-    /300 to 500 kcal below the app target for fat loss/,
-    /200 to 300 kcal above it for muscle gain/,
-    /enough information is available to judge safety/,
-    /already includes a deficit or surplus, do not apply another adjustment/,
-    /Never suggest a target below a safe minimum/,
+    /do not guess whether the app calorie target represents maintenance or already includes a deficit or surplus/,
+    /never say it suggests maintenance is higher or lower/,
+    /your target in the app is X kcal; if your goal is fat loss, a deficit of about 300 to 500 kcal below your maintenance is a common starting point, so check what your goal setting is in the app/,
+    /200 to 300 kcal above maintenance/,
+    /Only give a concrete daily calorie suggestion if maintenance and the information needed to judge safety are known/,
+    /never apply an adjustment to the app target without clarifying what it represents/,
+    /never suggest a target below a safe minimum/,
     /adjusting after 2 to 3 weeks/,
     /If no target is supplied, give a general approach and ask for height, weight, age and activity level/,
     /0\.5 to 1 kg per week can mean roughly 3 to 5 months/,
@@ -155,6 +157,30 @@ test('coach prompt uses app context and gives safe, realistic goal guidance', ()
     /shorter timeline[\s\S]*why faster loss is not recommended/,
     /Only point users to screens in that list/,
     /Do not say where to edit personal details unless that screen and function are explicitly listed; say "in the app" instead/,
+  ]) {
+    assert.match(instructions, rule);
+  }
+});
+
+test('coach prompt specifies Arabic app labels, units and direct openings', () => {
+  const instructions = assemblePrompt('كيف أبدأ؟', false, null).system_instruction.parts[0].text;
+  for (const label of [
+    'Home = الرئيسية', 'Splits and Splits & Sports Merge = التمارين',
+    'Calories = السعرات', 'Recipes = الوصفات', 'Community = المجتمع',
+    'Streak Arena = ساحة التحديات', 'Cheat Meals = وجبات المكافأة',
+    'Classified Level = المستوى المصنف', 'Academy = الأكاديمية',
+    'Profile = الملف الشخصي', 'VIP Plans = خطط VIP',
+    'Food Log = سجل الطعام', 'Activity = النشاط',
+  ]) {
+    assert.ok(instructions.includes(label), `Missing app label: ${label}`);
+  }
+  for (const rule of [
+    /Never put English screen names inside an Arabic sentence; the exact app label خطط VIP is the exception/,
+    /In English replies use the English names/,
+    /no Arabic name specified here, refer generally to the app instead of guessing/,
+    /call calories "سعرة" or "سعرات", never "سعر حراري"/,
+    /use "جم" for grams and "كجم" for kilograms/,
+    /Start answers directly with the content, without "Welcome!" or similar openings/,
   ]) {
     assert.match(instructions, rule);
   }

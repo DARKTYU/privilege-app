@@ -58,6 +58,10 @@ calorie adjustments only when safe and based on an appropriate maintenance
 target, and recommends reviewing weight trends after 2 to 3 weeks. Estimated
 timelines depend on the individual. It avoids inventing screen locations for
 editing personal details.
+Arabic replies use the specified Arabic screen names and calorie and weight
+units; answers start directly without a greeting. The prompt does not assume
+whether an app calorie target represents maintenance or an existing adjustment;
+it asks users to check their goal setting when that distinction matters.
 
 Run the pure logic tests locally with Node 22.18+:
 
