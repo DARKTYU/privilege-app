@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../l10n_strings.dart';
+import '../progression_content.dart';
 import '../services/progression_repository.dart';
 import '../services/session_recovery.dart';
 import '../state.dart';
@@ -258,7 +259,11 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(strings(context).rewardConfirm(reward.name)),
+        title: Text(strings(context).rewardConfirm(localizedProgressionContent(
+            rewardTranslations, reward.name,
+            name: reward.name,
+            description: reward.description,
+            arabic: Localizations.localeOf(context).languageCode == 'ar').name)),
         content: Text(strings(context).rewardSpend(reward.cost)),
         actions: [
           TextButton(
@@ -344,10 +349,14 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text(reward.name,
+                          Text(localizedProgressionContent(rewardTranslations, reward.name,
+                              name: reward.name, description: reward.description,
+                              arabic: Localizations.localeOf(context).languageCode == 'ar').name,
                               style:
                                   const TextStyle(fontWeight: FontWeight.w800)),
-                          Text(reward.description),
+                          Text(localizedProgressionContent(rewardTranslations, reward.name,
+                              name: reward.name, description: reward.description,
+                              arabic: Localizations.localeOf(context).languageCode == 'ar').description),
                           Text(strings(context).rewardDetails(
                               reward.cost,
                               _tierName(context, reward.tier),
@@ -423,9 +432,13 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                                 ? Icons.workspace_premium
                                 : Icons.lock_outline,
                             color: badge.earned ? kGold : kMuted),
-                        title: Text(badge.name),
+                        title: Text(localizedProgressionContent(badgeTranslations, badge.code,
+                            name: badge.name, description: badge.description,
+                            arabic: Localizations.localeOf(context).languageCode == 'ar').name),
                         subtitle: Text(strings(context).progressBadgeDetails(
-                            badge.description,
+                            localizedProgressionContent(badgeTranslations, badge.code,
+                                name: badge.name, description: badge.description,
+                                arabic: Localizations.localeOf(context).languageCode == 'ar').description,
                             badge.earned
                                 ? strings(context).progressEarned
                                 : strings(context).progressLocked)),
@@ -444,10 +457,14 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                            Text(item.name,
+                            Text(localizedProgressionContent(achievementTranslations, item.code,
+                                name: item.name, description: item.description,
+                                arabic: Localizations.localeOf(context).languageCode == 'ar').name,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.w800)),
-                            Text(item.description),
+                            Text(localizedProgressionContent(achievementTranslations, item.code,
+                                name: item.name, description: item.description,
+                                arabic: Localizations.localeOf(context).languageCode == 'ar').description),
                             const SizedBox(height: 8),
                             LinearProgressIndicator(
                                 value: (item.progress / item.threshold)

@@ -41,15 +41,18 @@ class StoreReward {
 }
 
 class BadgeProgress {
-  const BadgeProgress(this.name, this.description, this.earned);
+  const BadgeProgress(this.name, this.description, this.earned, {this.code});
   final String name, description;
+  final String? code;
   final bool earned;
 }
 
 class AchievementProgress {
   const AchievementProgress(
-      this.name, this.description, this.progress, this.threshold, this.xp);
+      this.name, this.description, this.progress, this.threshold, this.xp,
+      {this.code});
   final String name, description;
+  final String? code;
   final int progress, threshold, xp;
 }
 
@@ -223,6 +226,7 @@ class ProgressionRepository implements ProgressionDataSource {
               row['name'] as String,
               row['description'] as String,
               ids.contains(row['id']),
+              code: row['code'] as String,
             ))
         .toList();
   }
@@ -250,6 +254,7 @@ class ProgressionRepository implements ProgressionDataSource {
               byId[row['id']] ?? 0,
               (row['threshold'] as num).toInt(),
               (row['xp_award'] as num).toInt(),
+              code: row['code'] as String,
             ))
         .toList();
   }
@@ -278,6 +283,7 @@ class ProgressionRepository implements ProgressionDataSource {
               row['name'] as String,
               row['description'] as String,
               true,
+              code: row['code'] as String,
             ))
         .toList();
   }

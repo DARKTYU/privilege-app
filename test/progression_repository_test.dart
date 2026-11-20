@@ -7,6 +7,82 @@ import 'package:privilege/services/progression_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  test('badge and achievement codes survive own and public repository reads',
+      () async {
+    final mock = MockClient((request) async {
+      final path = request.url.path;
+      Object value;
+      if (path.endsWith('/token')) {
+        value = {
+          'access_token': 'token',
+          'refresh_token': 'refresh',
+          'token_type': 'bearer',
+          'expires_in': 3600,
+          'user': {
+            'id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+            'aud': 'authenticated',
+            'created_at': '2026-01-01T00:00:00Z'
+          }
+        };
+      } else if (path.endsWith('/badges')) {
+        value = [
+          {
+            'id': 'b',
+            'code': 'meals_1',
+            'name': 'Meals 1',
+            'description': 'Consumed meals logged: 1.'
+          }
+        ];
+      } else if (path.endsWith('/user_badges')) {
+        value = [
+          {'badge_id': 'b'}
+        ];
+      } else if (path.endsWith('/achievements')) {
+        value = [
+          {
+            'id': 'a',
+            'code': 'meal_10',
+            'name': 'Meal logger',
+            'description': 'Log 10 consumed meals.',
+            'threshold': 10,
+            'xp_award': 25
+          }
+        ];
+      } else if (path.endsWith('/user_achievements')) {
+        value = [
+          {'achievement_id': 'a', 'progress': 3}
+        ];
+      } else if (path.endsWith('/public_user_badges')) {
+        value = [
+          {
+            'code': 'meals_1',
+            'name': 'Meals 1',
+            'description': 'Consumed meals logged: 1.'
+          }
+        ];
+      } else {
+        return http.Response('Unexpected request', 500);
+      }
+      return http.Response(jsonEncode(value), 200,
+          request: request, headers: {'content-type': 'application/json'});
+    });
+    final client = SupabaseClient('https://example.supabase.co', 'test-key',
+        httpClient: mock,
+        authOptions: const AuthClientOptions(autoRefreshToken: false));
+    await client.auth
+        .signInWithPassword(email: 'a@example.com', password: 'password');
+    final repo = ProgressionRepository(client: client);
+    final badge = (await repo.badges()).single;
+    final achievement = (await repo.achievements()).single;
+    final publicBadge = (await repo.publicBadges('user')).single;
+    expect(badge.code, 'meals_1');
+    expect(badge.earned, isTrue);
+    expect(achievement.code, 'meal_10');
+    expect(achievement.progress, 3);
+    expect(publicBadge.code, 'meals_1');
+    await client.dispose();
+  });
+
   test('activity totals use the same all-time rules as achievements', () async {
     final requests = <http.Request>[];
     final mock = MockClient((request) async {

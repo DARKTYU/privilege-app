@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../l10n_strings.dart';
+import '../progression_content.dart';
 import '../models/community_models.dart';
 import '../models/community_post.dart';
 import '../services/community_repository.dart';
@@ -1534,7 +1535,11 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                           children: [
                             for (final badge in badges)
                               Chip(
-                                  label: Text(badge.name),
+                                  label: Text(localizedProgressionContent(
+                                      badgeTranslations, badge.code,
+                                      name: badge.name,
+                                      description: badge.description,
+                                      arabic: Localizations.localeOf(context).languageCode == 'ar').name),
                                   avatar: Icon(Icons.workspace_premium,
                                       size: 18, color: kGold))
                           ],
