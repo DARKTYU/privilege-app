@@ -43,8 +43,15 @@ once with a 12-second timeout, after all main attempts fail with 429, 5xx or
 timeout. A blank fallback is ignored; a malformed model is rejected before
 quota use. Retries do not consume additional quota. The app aborts after
 100 seconds; network delays outside the function can still cause a timeout.
-The coach is instructed to use plain text, avoid medical advice and
-supplements, and explain calorie totals without adding burned calories back.
+The coach is instructed to answer fitness, nutrition, habit and app questions
+with practical plans in the user's English or Arabic, using plain text. It
+provides general safety guidance rather than diagnosing or treating medical
+conditions, avoids extreme diets and performance-enhancing drugs, and responds
+supportively without numbers or plans when there are signs of an eating
+disorder. Calorie targets must respect safety limits and depend on sufficient
+individual information. It explains calorie totals without adding burned
+calories back. The provider output limit is 1,400 tokens; these prompt
+instructions are not a guarantee of any particular response.
 
 Run the pure logic tests locally with Node 22.18+:
 

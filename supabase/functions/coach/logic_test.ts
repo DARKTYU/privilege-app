@@ -88,14 +88,47 @@ test('prompt never shares context without consent and only includes allowed numb
     context: { calorie_target: 2100, calories_consumed: 500, calories_burned: 100 },
   });
   assert.match(prompt.system_instruction.parts[0].text, /untrusted data/);
-  assert.match(prompt.system_instruction.parts[0].text, /Never diagnose/);
-  assert.equal(prompt.generationConfig.maxOutputTokens, 900);
-  assert.match(prompt.system_instruction.parts[0].text, /under about 150 words/);
-  assert.match(prompt.system_instruction.parts[0].text, /If you are not sure, say so/);
-  assert.match(prompt.system_instruction.parts[0].text, /Politely decline other topics/);
-  assert.match(prompt.system_instruction.parts[0].text, /Burned calories are shown separately and are NOT added back/);
-  assert.match(prompt.system_instruction.parts[0].text, /Use plain text only/);
   assert.deepEqual(JSON.parse(assemblePrompt('hi', true, { calorie_target: -1 }).contents[0].parts[0].text), { message: 'hi' });
+});
+
+test('coach prompt requests helpful plans, language matching and safety limits', () => {
+  const prompt = assemblePrompt('What is the best plan to lose weight in 3 months?', false, null);
+  const instructions = prompt.system_instruction.parts[0].text;
+  for (const rule of [
+    /Answer fitness, nutrition, health habit and app questions directly/,
+    /rather than refusing ordinary requests for plans/,
+    /workout plans and splits for any level/,
+    /0\.25 to 1 percent of body weight per week/,
+    /1 percent as an upper ceiling/,
+    /modest calorie deficit/,
+    /protein target range/,
+    /weekly training outline, daily steps, sleep/,
+    /track progress and adjust/,
+    /Use supplied calorie numbers when relevant and safe/,
+    /age, height, weight, activity and injuries/,
+    /Match the language the user writes, Arabic or English/,
+    /Egyptian Arabic wording/,
+    /Use plain text only: no markdown symbols or tables/,
+    /Never diagnose or treat injuries or illnesses/,
+    /chronic conditions, medication, pregnancy or breastfeeding/,
+    /checking with a doctor/,
+    /signs of an eating disorder[\s\S]*give no numbers or plans/,
+    /steroids or other performance-enhancing drugs/,
+    /very low calorie diets, starvation or purging/,
+    /dangerous dehydration/,
+    /Never recommend a calorie target below a safe minimum/,
+    /do not propose a numeric target without enough information/,
+    /1,200 kcal per day for adult women or 1,500 kcal per day for adult men/,
+    /Do not promise a result/,
+    /If you are not sure, say so/,
+    /Never invent facts, numbers, app features or screens/,
+    /off-topic questions[\s\S]*brief friendly redirect/,
+    /Burned calories are shown separately and are NOT added back/,
+    /Do not comment on, judge or criticise how much the user eats or burns unless they ask/,
+  ]) {
+    assert.match(instructions, rule);
+  }
+  assert.equal(prompt.generationConfig.maxOutputTokens, 1400);
 });
 
 test('emergency bypasses age and exhausted quota after authentication and validation', async () => {
