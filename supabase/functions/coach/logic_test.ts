@@ -131,6 +131,35 @@ test('coach prompt requests helpful plans, language matching and safety limits',
   assert.equal(prompt.generationConfig.maxOutputTokens, 1400);
 });
 
+test('coach prompt uses app context and gives safe, realistic goal guidance', () => {
+  const instructions = assemblePrompt('I want to lose 10 kg', true, {
+    calorie_target: 2820, calories_consumed: 500, calories_burned: 100,
+  }).system_instruction.parts[0].text;
+  for (const rule of [
+    /Context numbers \(calorie target, calories eaten, calories burned\) come from the app, not from the user's message/,
+    /Never say the user mentioned a context number/,
+    /your calorie target in the app is 2,820 kcal/,
+    /Calories eaten or burned today represent a partial day/,
+    /Never warn about today's total or tell the user to eat more or less because of it unless they ask/,
+    /300 to 500 kcal below the app target for fat loss/,
+    /200 to 300 kcal above it for muscle gain/,
+    /enough information is available to judge safety/,
+    /already includes a deficit or surplus, do not apply another adjustment/,
+    /Never suggest a target below a safe minimum/,
+    /adjusting after 2 to 3 weeks/,
+    /If no target is supplied, give a general approach and ask for height, weight, age and activity level/,
+    /0\.5 to 1 kg per week can mean roughly 3 to 5 months/,
+    /may be slower/,
+    /1 percent of body weight per week ceiling/,
+    /ask for the user's weight to give a more precise weekly rate/,
+    /shorter timeline[\s\S]*why faster loss is not recommended/,
+    /Only point users to screens in that list/,
+    /Do not say where to edit personal details unless that screen and function are explicitly listed; say "in the app" instead/,
+  ]) {
+    assert.match(instructions, rule);
+  }
+});
+
 test('emergency bypasses age and exhausted quota after authentication and validation', async () => {
   const originalFetch = globalThis.fetch;
   const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');

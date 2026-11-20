@@ -52,6 +52,12 @@ disorder. Calorie targets must respect safety limits and depend on sufficient
 individual information. It explains calorie totals without adding burned
 calories back. The provider output limit is 1,400 tokens; these prompt
 instructions are not a guarantee of any particular response.
+The prompt identifies supplied numbers as app context and treats today's
+food and activity totals as a partial day. For weight goals it describes
+calorie adjustments only when safe and based on an appropriate maintenance
+target, and recommends reviewing weight trends after 2 to 3 weeks. Estimated
+timelines depend on the individual. It avoids inventing screen locations for
+editing personal details.
 
 Run the pure logic tests locally with Node 22.18+:
 
