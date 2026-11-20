@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/screens/cheats.dart';
 import 'package:privilege/screens/champion.dart';
 import 'package:privilege/services/cravings_repository.dart';
@@ -43,6 +44,37 @@ void main() {
       plannerRepository: FakePlanner(),
       cravingsRepository: meals,
       classifiedChecksRepository: checks);
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('classified pathway fits and persists at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final checks = FakeClassifiedChecks();
+      final state = create(FakeCravings(), checks);
+      addTearDown(state.dispose);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: buildTheme(),
+        home: Scaffold(
+            body: ChampionScreen(
+                state: state, progressionRepository: FakeProgression())),
+      ));
+      await tester.pumpAndSettle();
+      final l =
+          AppLocalizations.of(tester.element(find.byType(ChampionScreen)))!;
+      expect(find.text(l.pathTitle), findsOneWidget);
+      await tapVisible(tester, find.text(l.pathSetGoal));
+      expect(checks.current, {'foundation_goal'});
+      await tapVisible(tester, find.text(l.pathRegister));
+      expect(find.text(l.pathTracked(l.levelBronze)), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('add edit delete and reload; navigation and month limit',
       (tester) async {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
 import '../services/progression_repository.dart';
 import '../services/session_recovery.dart';
 import '../state.dart';
@@ -14,6 +15,49 @@ class ProgressionChanges extends ChangeNotifier {
 }
 
 final progressionChanges = ProgressionChanges();
+
+String localizedLevelName(BuildContext context, String name) {
+  final l = strings(context);
+  return switch (name) {
+    'Beginner' => l.levelBeginner,
+    'Intermediate' => l.levelIntermediate,
+    'Pro' => l.levelPro,
+    'Bronze' => l.levelBronze,
+    'Silver' => l.levelSilver,
+    'Gold' => l.levelGold,
+    'Platinum' => l.levelPlatinum,
+    'Diamond' => l.levelDiamond,
+    'Elite' => l.levelElite,
+    'Champion' => l.levelChampion,
+    _ => name,
+  };
+}
+
+String _tierName(BuildContext context, String name) {
+  final l = strings(context);
+  return switch (name) {
+    'Free' => l.memberFree,
+    'Silver' => l.memberSilver,
+    'Gold' => l.memberGold,
+    _ => name,
+  };
+}
+
+String _localizedRedemptionError(BuildContext context, Object error) {
+  final l = strings(context);
+  if (error is PostgrestException) {
+    final message = error.message.toLowerCase();
+    if (message.contains('insufficient store points')) {
+      return l.rewardErrorPoints;
+    }
+    if (message.contains('out of stock')) return l.rewardErrorStock;
+    if (message.contains('subscription tier')) return l.rewardErrorTier;
+    if (message.contains('at most three')) return l.rewardErrorTokens;
+    if (message.contains('already own')) return l.rewardErrorOwned;
+    if (message.contains('not available')) return l.rewardErrorUnavailable;
+  }
+  return l.rewardErrorGeneral;
+}
 
 class LiveProgress<T> extends StatefulWidget {
   const LiveProgress({
@@ -117,8 +161,10 @@ class _LiveProgressState<T> extends State<LiveProgress<T>> {
           if (snapshot.hasError) {
             debugPrint('Progress load failed: ${snapshot.error}');
             return Column(children: [
-              const Text('Could not load progress. Check your connection.'),
-              TextButton(onPressed: _reload, child: const Text('Retry')),
+              Text(strings(context).progressLoadError),
+              TextButton(
+                  onPressed: _reload,
+                  child: Text(strings(context).plannerRetry)),
             ]);
           }
           return widget.builder(context, snapshot.data as T);
@@ -137,12 +183,14 @@ class LevelProgressPanel extends StatelessWidget {
           load: repository.level,
           builder: (context, level) {
             if (level == null) {
-              return const Text('No levels are available yet.');
+              return Text(strings(context).progressNoLevels);
             }
             return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Level: ${level.name}',
+                  Text(
+                      strings(context).progressLevel(
+                          localizedLevelName(context, level.name)),
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
@@ -152,8 +200,16 @@ class LevelProgressPanel extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(level.nextMinimum == null
-                      ? '${level.xp} XP · Highest level'
-                      : '${level.xp} XP · ${level.nextMinimum! - level.xp < 0 ? 0 : level.nextMinimum! - level.xp} XP to ${level.nextName}'),
+                      ? strings(context).progressHighest(level.xp.toString())
+                      : strings(context).progressNext(
+                          level.xp.toString(),
+                          (level.nextMinimum! - level.xp < 0
+                                  ? 0
+                                  : level.nextMinimum! - level.xp)
+                              .toString(),
+                          level.nextName == null
+                              ? strings(context).pathNotAvailable
+                              : localizedLevelName(context, level.nextName!))),
                 ]);
           },
         ),
@@ -167,7 +223,8 @@ class FreezeTokenCount extends StatelessWidget {
   Widget build(BuildContext context) => LiveProgress<int>(
         repository: repository,
         load: repository.freezeTokens,
-        builder: (_, count) => Text('Freeze tokens: $count'),
+        builder: (context, count) =>
+            Text(strings(context).progressFreeze(count.toString())),
       );
 }
 
@@ -178,7 +235,8 @@ class StorePointsCount extends StatelessWidget {
   Widget build(BuildContext context) => LiveProgress<int>(
         repository: repository,
         load: repository.points,
-        builder: (_, count) => Text('$count store points',
+        builder: (context, count) => Text(
+            strings(context).progressPoints(count.toString()),
             style: TextStyle(
                 color: kGold, fontSize: 13, fontWeight: FontWeight.w800)),
       );
@@ -201,15 +259,15 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Redeem ${reward.name}?'),
-        content: Text('Spend ${reward.cost} store points?'),
+        title: Text(strings(context).rewardConfirm(reward.name)),
+        content: Text(strings(context).rewardSpend(reward.cost.toString())),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: Text(strings(context).plannerCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Redeem')),
+              child: Text(strings(context).rewardRedeem)),
         ],
       ),
     );
@@ -217,21 +275,25 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
     setState(() => _busy = reward.id);
     String? key;
     SharedPreferences? preferences;
+    final l = strings(context);
+    String? localFailure;
     try {
       preferences = await SharedPreferences.getInstance();
       key = 'pending_redemption_${_repository.accountId}_${reward.id}';
       final request = preferences.getString(key) ?? newRedemptionRequestId();
       if (!await preferences.setString(key, request)) {
-        throw StateError('Could not save the redemption request.');
+        localFailure = l.rewardRequestSaveError;
+        throw StateError(l.rewardRequestSaveError);
       }
       await _repository.redeem(reward.id, request);
       if (!await preferences.remove(key)) {
-        throw StateError('Could not clear the completed redemption request.');
+        localFailure = l.rewardRequestClearError;
+        throw StateError(l.rewardRequestClearError);
       }
       progressionChanges.refresh();
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Reward redeemed.')));
+            .showSnackBar(SnackBar(content: Text(l.rewardDone)));
       }
     } catch (error, stack) {
       debugPrint('Reward redemption failed: $error\n$stack');
@@ -245,8 +307,9 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
         }
       }
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(redemptionError(error))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                localFailure ?? _localizedRedemptionError(context, error))));
       }
     } finally {
       if (mounted) setState(() => _busy = null);
@@ -265,17 +328,17 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
               children: [
                 Panel(
                     child: Column(children: [
-                  Text('${store.balance} store points',
+                  Text(
+                      strings(context).progressPoints(store.balance.toString()),
                       style: const TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 18)),
-                  Text('Freeze tokens: ${store.tokens} / 3'),
+                  Text(strings(context)
+                      .rewardFreezeCount(store.tokens.toString())),
                 ])),
-                const Text(
-                    'Digital items only. Themes, frames and titles are saved to your rewards; applying them is not available yet.'),
+                Text(strings(context).rewardInfo),
                 const SizedBox(height: 12),
                 if (store.rewards.isEmpty)
-                  const Panel(
-                      child: Text('No rewards are available right now.'))
+                  Panel(child: Text(strings(context).rewardEmpty))
                 else
                   for (final reward in store.rewards)
                     Panel(
@@ -286,16 +349,22 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                               style:
                                   const TextStyle(fontWeight: FontWeight.w800)),
                           Text(reward.description),
-                          Text(
-                              '${reward.cost} points · ${reward.tier} tier · ${reward.stock == null ? 'Unlimited stock' : '${reward.stock} remaining'}'),
+                          Text(strings(context).rewardDetails(
+                              reward.cost.toString(),
+                              _tierName(context, reward.tier),
+                              reward.stock == null
+                                  ? strings(context).rewardUnlimited
+                                  : strings(context).rewardRemaining(
+                                      reward.stock.toString()))),
                           if (subscriptionTierRank(store.tier) <
                               subscriptionTierRank(reward.tier))
-                            Text('Requires ${reward.tier} tier'),
+                            Text(strings(context).rewardRequires(
+                                _tierName(context, reward.tier))),
                           if (store.balance < reward.cost)
-                            Text(
-                                'Need ${reward.cost - store.balance} more points'),
+                            Text(strings(context).rewardNeedPoints(
+                                (reward.cost - store.balance).toString())),
                           Align(
-                            alignment: Alignment.centerRight,
+                            alignment: AlignmentDirectional.centerEnd,
                             child: FilledButton(
                               onPressed: _busy != null ||
                                       reward.owned ||
@@ -306,12 +375,12 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                                   ? null
                                   : () => _redeem(reward),
                               child: Text(_busy == reward.id
-                                  ? 'Redeeming...'
+                                  ? strings(context).rewardRedeeming
                                   : reward.owned
-                                      ? 'Owned'
+                                      ? strings(context).rewardOwned
                                       : reward.stock == 0
-                                          ? 'Out of stock'
-                                          : 'Redeem'),
+                                          ? strings(context).rewardOutOfStock
+                                          : strings(context).rewardRedeem),
                             ),
                           ),
                         ])),
@@ -337,12 +406,12 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
   Widget build(BuildContext context) => ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          sectionTitle('Badges'),
+          sectionTitle(strings(context).progressBadges),
           LiveProgress<List<BadgeProgress>>(
             repository: _repository,
             load: _repository.badges,
-            builder: (_, badges) => badges.isEmpty
-                ? const Panel(child: Text('No badges available yet.'))
+            builder: (context, badges) => badges.isEmpty
+                ? Panel(child: Text(strings(context).progressNoBadges))
                 : Column(children: [
                     for (final badge in [
                       ...badges.where((badge) => badge.earned),
@@ -356,17 +425,20 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                                 : Icons.lock_outline,
                             color: badge.earned ? kGold : kMuted),
                         title: Text(badge.name),
-                        subtitle: Text(
-                            '${badge.description}\n${badge.earned ? 'Earned' : 'Locked'}'),
+                        subtitle: Text(strings(context).progressBadgeDetails(
+                            badge.description,
+                            badge.earned
+                                ? strings(context).progressEarned
+                                : strings(context).progressLocked)),
                       ))
                   ]),
           ),
-          sectionTitle('Achievements'),
+          sectionTitle(strings(context).progressAchievements),
           LiveProgress<List<AchievementProgress>>(
             repository: _repository,
             load: _repository.achievements,
-            builder: (_, items) => items.isEmpty
-                ? const Panel(child: Text('No achievements available yet.'))
+            builder: (context, items) => items.isEmpty
+                ? Panel(child: Text(strings(context).progressNoAchievements))
                 : Column(children: [
                     for (final item in items)
                       Panel(
@@ -383,10 +455,12 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                                     .clamp(0, 1),
                                 color: kGold,
                                 backgroundColor: kLine),
-                            Text(
-                                '${item.progress} / ${item.threshold} · ${item.xp} XP'),
+                            Text(strings(context).progressAchievementValue(
+                                item.progress.toString(),
+                                item.threshold.toString(),
+                                item.xp.toString())),
                             if (item.progress >= item.threshold)
-                              const Text('Completed'),
+                              Text(strings(context).progressCompleted),
                           ]))
                   ]),
           ),

@@ -1340,6 +1340,293 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alertUnknown => 'You have a new notification.';
 
   @override
+  String get progressLoadError =>
+      'Could not load progress. Check your connection.';
+
+  @override
+  String get progressNoLevels => 'No levels are available yet.';
+
+  @override
+  String get levelBeginner => 'Beginner';
+
+  @override
+  String get levelIntermediate => 'Intermediate';
+
+  @override
+  String get levelPro => 'Pro';
+
+  @override
+  String get levelBronze => 'Bronze';
+
+  @override
+  String get levelSilver => 'Silver';
+
+  @override
+  String get levelGold => 'Gold';
+
+  @override
+  String get levelPlatinum => 'Platinum';
+
+  @override
+  String get levelDiamond => 'Diamond';
+
+  @override
+  String get levelElite => 'Elite';
+
+  @override
+  String get levelChampion => 'Champion';
+
+  @override
+  String progressLevel(String name) {
+    return 'Level: $name';
+  }
+
+  @override
+  String progressHighest(String xp) {
+    return '$xp XP · Highest level';
+  }
+
+  @override
+  String progressNext(String xp, String remaining, String name) {
+    return '$xp XP · $remaining XP to $name';
+  }
+
+  @override
+  String progressFreeze(String count) {
+    return 'Freeze tokens: $count';
+  }
+
+  @override
+  String progressPoints(String count) {
+    return '$count store points';
+  }
+
+  @override
+  String rewardConfirm(String name) {
+    return 'Redeem $name?';
+  }
+
+  @override
+  String rewardSpend(String count) {
+    return 'Spend $count store points?';
+  }
+
+  @override
+  String get rewardRedeem => 'Redeem';
+
+  @override
+  String get rewardRequestSaveError => 'Could not save the redemption request.';
+
+  @override
+  String get rewardRequestClearError =>
+      'Could not clear the completed redemption request.';
+
+  @override
+  String get rewardDone => 'Reward redeemed.';
+
+  @override
+  String rewardFreezeCount(String count) {
+    return 'Freeze tokens: $count / 3';
+  }
+
+  @override
+  String get rewardInfo =>
+      'Digital items only. Themes, frames and titles are saved to your rewards; applying them is not available yet.';
+
+  @override
+  String get rewardEmpty => 'No rewards are available right now.';
+
+  @override
+  String get rewardUnlimited => 'Unlimited stock';
+
+  @override
+  String rewardRemaining(String count) {
+    return '$count remaining';
+  }
+
+  @override
+  String rewardDetails(String cost, String tier, String stock) {
+    return '$cost points · $tier tier · $stock';
+  }
+
+  @override
+  String rewardRequires(String tier) {
+    return 'Requires $tier tier';
+  }
+
+  @override
+  String rewardNeedPoints(String count) {
+    return 'Need $count more points';
+  }
+
+  @override
+  String get rewardRedeeming => 'Redeeming...';
+
+  @override
+  String get rewardOwned => 'Owned';
+
+  @override
+  String get rewardOutOfStock => 'Out of stock';
+
+  @override
+  String get rewardErrorPoints => 'Not enough store points.';
+
+  @override
+  String get rewardErrorStock => 'This reward is out of stock.';
+
+  @override
+  String get rewardErrorTier =>
+      'Your subscription tier does not qualify for this reward.';
+
+  @override
+  String get rewardErrorTokens => 'You can hold at most three freeze tokens.';
+
+  @override
+  String get rewardErrorOwned => 'You already own this item.';
+
+  @override
+  String get rewardErrorUnavailable => 'This reward is no longer available.';
+
+  @override
+  String get rewardErrorGeneral =>
+      'Could not confirm redemption. Check your connection and retry.';
+
+  @override
+  String get progressBadges => 'Badges';
+
+  @override
+  String get progressNoBadges => 'No badges available yet.';
+
+  @override
+  String get progressEarned => 'Earned';
+
+  @override
+  String get progressLocked => 'Locked';
+
+  @override
+  String progressBadgeDetails(String description, String status) {
+    return '$description\n$status';
+  }
+
+  @override
+  String get progressAchievements => 'Achievements';
+
+  @override
+  String get progressNoAchievements => 'No achievements available yet.';
+
+  @override
+  String progressAchievementValue(
+      String progress, String threshold, String xp) {
+    return '$progress / $threshold · $xp XP';
+  }
+
+  @override
+  String get progressCompleted => 'Completed';
+
+  @override
+  String pathSaveError(String error) {
+    return 'Could not save checklist: $error';
+  }
+
+  @override
+  String pathTracked(String value) {
+    return 'Tracked by the app · $value';
+  }
+
+  @override
+  String get pathSelfReported => 'Self-reported, not verified';
+
+  @override
+  String get pathOutside => 'Done outside the app';
+
+  @override
+  String get pathLoading => 'Loading';
+
+  @override
+  String get pathTitle => 'Your pathway';
+
+  @override
+  String get pathDisclaimer =>
+      'Self-reported progress, not verified or certified';
+
+  @override
+  String get pathLoadingChecks => 'Loading checklist...';
+
+  @override
+  String pathLoadError(String error) {
+    return 'Could not load checklist: $error';
+  }
+
+  @override
+  String get pathFoundation => 'Foundation';
+
+  @override
+  String get pathLongestStreak => 'Longest streak (all time)';
+
+  @override
+  String pathDays(String days) {
+    return '$days days';
+  }
+
+  @override
+  String get pathSetGoal => 'Set a personal training goal';
+
+  @override
+  String get pathLearnBasics => 'Learn the basics of your chosen sport';
+
+  @override
+  String get pathNovice => 'Novice';
+
+  @override
+  String get pathWorkouts => 'Workouts logged (all time)';
+
+  @override
+  String get pathRoutine => 'Practice a consistent routine';
+
+  @override
+  String get pathCoach => 'Ask a qualified coach for feedback';
+
+  @override
+  String get pathCompetitor => 'Competitor-ready';
+
+  @override
+  String get pathMeals => 'Consumed meals logged (all time)';
+
+  @override
+  String get pathSkills => 'Practice your event skills';
+
+  @override
+  String get pathRequirements => 'Review an event organizer’s requirements';
+
+  @override
+  String get pathNational => 'National level';
+
+  @override
+  String get pathAppLevel => 'App level';
+
+  @override
+  String get pathNotAvailable => 'Not available';
+
+  @override
+  String get pathMilestone => 'Plan your next training milestone';
+
+  @override
+  String get pathEvents => 'Explore national events and their rules';
+
+  @override
+  String get pathPro => 'Pro pathway';
+
+  @override
+  String get pathPreparation => 'Make a long-term preparation plan';
+
+  @override
+  String get pathResearch => 'Research the official pathway for your sport';
+
+  @override
+  String get pathRegister =>
+      'How to register: check the organizer\'s official site for rules and registration';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }

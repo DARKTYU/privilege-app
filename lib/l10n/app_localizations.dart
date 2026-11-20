@@ -2360,6 +2360,492 @@ abstract class AppLocalizations {
   /// **'You have a new notification.'**
   String get alertUnknown;
 
+  /// No description provided for @progressLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load progress. Check your connection.'**
+  String get progressLoadError;
+
+  /// No description provided for @progressNoLevels.
+  ///
+  /// In en, this message translates to:
+  /// **'No levels are available yet.'**
+  String get progressNoLevels;
+
+  /// No description provided for @levelBeginner.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginner'**
+  String get levelBeginner;
+
+  /// No description provided for @levelIntermediate.
+  ///
+  /// In en, this message translates to:
+  /// **'Intermediate'**
+  String get levelIntermediate;
+
+  /// No description provided for @levelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get levelPro;
+
+  /// No description provided for @levelBronze.
+  ///
+  /// In en, this message translates to:
+  /// **'Bronze'**
+  String get levelBronze;
+
+  /// No description provided for @levelSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'Silver'**
+  String get levelSilver;
+
+  /// No description provided for @levelGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Gold'**
+  String get levelGold;
+
+  /// No description provided for @levelPlatinum.
+  ///
+  /// In en, this message translates to:
+  /// **'Platinum'**
+  String get levelPlatinum;
+
+  /// No description provided for @levelDiamond.
+  ///
+  /// In en, this message translates to:
+  /// **'Diamond'**
+  String get levelDiamond;
+
+  /// No description provided for @levelElite.
+  ///
+  /// In en, this message translates to:
+  /// **'Elite'**
+  String get levelElite;
+
+  /// No description provided for @levelChampion.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get levelChampion;
+
+  /// No description provided for @progressLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level: {name}'**
+  String progressLevel(String name);
+
+  /// No description provided for @progressHighest.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP · Highest level'**
+  String progressHighest(String xp);
+
+  /// No description provided for @progressNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{xp} XP · {remaining} XP to {name}'**
+  String progressNext(String xp, String remaining, String name);
+
+  /// No description provided for @progressFreeze.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze tokens: {count}'**
+  String progressFreeze(String count);
+
+  /// No description provided for @progressPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} store points'**
+  String progressPoints(String count);
+
+  /// No description provided for @rewardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem {name}?'**
+  String rewardConfirm(String name);
+
+  /// No description provided for @rewardSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend {count} store points?'**
+  String rewardSpend(String count);
+
+  /// No description provided for @rewardRedeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get rewardRedeem;
+
+  /// No description provided for @rewardRequestSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the redemption request.'**
+  String get rewardRequestSaveError;
+
+  /// No description provided for @rewardRequestClearError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not clear the completed redemption request.'**
+  String get rewardRequestClearError;
+
+  /// No description provided for @rewardDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward redeemed.'**
+  String get rewardDone;
+
+  /// No description provided for @rewardFreezeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Freeze tokens: {count} / 3'**
+  String rewardFreezeCount(String count);
+
+  /// No description provided for @rewardInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital items only. Themes, frames and titles are saved to your rewards; applying them is not available yet.'**
+  String get rewardInfo;
+
+  /// No description provided for @rewardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No rewards are available right now.'**
+  String get rewardEmpty;
+
+  /// No description provided for @rewardUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited stock'**
+  String get rewardUnlimited;
+
+  /// No description provided for @rewardRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remaining'**
+  String rewardRemaining(String count);
+
+  /// No description provided for @rewardDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'{cost} points · {tier} tier · {stock}'**
+  String rewardDetails(String cost, String tier, String stock);
+
+  /// No description provided for @rewardRequires.
+  ///
+  /// In en, this message translates to:
+  /// **'Requires {tier} tier'**
+  String rewardRequires(String tier);
+
+  /// No description provided for @rewardNeedPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Need {count} more points'**
+  String rewardNeedPoints(String count);
+
+  /// No description provided for @rewardRedeeming.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeeming...'**
+  String get rewardRedeeming;
+
+  /// No description provided for @rewardOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get rewardOwned;
+
+  /// No description provided for @rewardOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get rewardOutOfStock;
+
+  /// No description provided for @rewardErrorPoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough store points.'**
+  String get rewardErrorPoints;
+
+  /// No description provided for @rewardErrorStock.
+  ///
+  /// In en, this message translates to:
+  /// **'This reward is out of stock.'**
+  String get rewardErrorStock;
+
+  /// No description provided for @rewardErrorTier.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription tier does not qualify for this reward.'**
+  String get rewardErrorTier;
+
+  /// No description provided for @rewardErrorTokens.
+  ///
+  /// In en, this message translates to:
+  /// **'You can hold at most three freeze tokens.'**
+  String get rewardErrorTokens;
+
+  /// No description provided for @rewardErrorOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'You already own this item.'**
+  String get rewardErrorOwned;
+
+  /// No description provided for @rewardErrorUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This reward is no longer available.'**
+  String get rewardErrorUnavailable;
+
+  /// No description provided for @rewardErrorGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm redemption. Check your connection and retry.'**
+  String get rewardErrorGeneral;
+
+  /// No description provided for @progressBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges'**
+  String get progressBadges;
+
+  /// No description provided for @progressNoBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'No badges available yet.'**
+  String get progressNoBadges;
+
+  /// No description provided for @progressEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned'**
+  String get progressEarned;
+
+  /// No description provided for @progressLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get progressLocked;
+
+  /// No description provided for @progressBadgeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'{description}\n{status}'**
+  String progressBadgeDetails(String description, String status);
+
+  /// No description provided for @progressAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievements'**
+  String get progressAchievements;
+
+  /// No description provided for @progressNoAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'No achievements available yet.'**
+  String get progressNoAchievements;
+
+  /// No description provided for @progressAchievementValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{progress} / {threshold} · {xp} XP'**
+  String progressAchievementValue(String progress, String threshold, String xp);
+
+  /// No description provided for @progressCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get progressCompleted;
+
+  /// No description provided for @pathSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save checklist: {error}'**
+  String pathSaveError(String error);
+
+  /// No description provided for @pathTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked by the app · {value}'**
+  String pathTracked(String value);
+
+  /// No description provided for @pathSelfReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-reported, not verified'**
+  String get pathSelfReported;
+
+  /// No description provided for @pathOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Done outside the app'**
+  String get pathOutside;
+
+  /// No description provided for @pathLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
+  String get pathLoading;
+
+  /// No description provided for @pathTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pathway'**
+  String get pathTitle;
+
+  /// No description provided for @pathDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-reported progress, not verified or certified'**
+  String get pathDisclaimer;
+
+  /// No description provided for @pathLoadingChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading checklist...'**
+  String get pathLoadingChecks;
+
+  /// No description provided for @pathLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load checklist: {error}'**
+  String pathLoadError(String error);
+
+  /// No description provided for @pathFoundation.
+  ///
+  /// In en, this message translates to:
+  /// **'Foundation'**
+  String get pathFoundation;
+
+  /// No description provided for @pathLongestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak (all time)'**
+  String get pathLongestStreak;
+
+  /// No description provided for @pathDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String pathDays(String days);
+
+  /// No description provided for @pathSetGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a personal training goal'**
+  String get pathSetGoal;
+
+  /// No description provided for @pathLearnBasics.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn the basics of your chosen sport'**
+  String get pathLearnBasics;
+
+  /// No description provided for @pathNovice.
+  ///
+  /// In en, this message translates to:
+  /// **'Novice'**
+  String get pathNovice;
+
+  /// No description provided for @pathWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts logged (all time)'**
+  String get pathWorkouts;
+
+  /// No description provided for @pathRoutine.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice a consistent routine'**
+  String get pathRoutine;
+
+  /// No description provided for @pathCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask a qualified coach for feedback'**
+  String get pathCoach;
+
+  /// No description provided for @pathCompetitor.
+  ///
+  /// In en, this message translates to:
+  /// **'Competitor-ready'**
+  String get pathCompetitor;
+
+  /// No description provided for @pathMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumed meals logged (all time)'**
+  String get pathMeals;
+
+  /// No description provided for @pathSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice your event skills'**
+  String get pathSkills;
+
+  /// No description provided for @pathRequirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Review an event organizer’s requirements'**
+  String get pathRequirements;
+
+  /// No description provided for @pathNational.
+  ///
+  /// In en, this message translates to:
+  /// **'National level'**
+  String get pathNational;
+
+  /// No description provided for @pathAppLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'App level'**
+  String get pathAppLevel;
+
+  /// No description provided for @pathNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get pathNotAvailable;
+
+  /// No description provided for @pathMilestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan your next training milestone'**
+  String get pathMilestone;
+
+  /// No description provided for @pathEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore national events and their rules'**
+  String get pathEvents;
+
+  /// No description provided for @pathPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro pathway'**
+  String get pathPro;
+
+  /// No description provided for @pathPreparation.
+  ///
+  /// In en, this message translates to:
+  /// **'Make a long-term preparation plan'**
+  String get pathPreparation;
+
+  /// No description provided for @pathResearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Research the official pathway for your sport'**
+  String get pathResearch;
+
+  /// No description provided for @pathRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'How to register: check the organizer\'s official site for rules and registration'**
+  String get pathRegister;
+
   /// No description provided for @plannerWeekRange.
   ///
   /// In en, this message translates to:

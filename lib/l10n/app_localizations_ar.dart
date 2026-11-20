@@ -1327,6 +1327,289 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alertUnknown => 'لديك تنبيه جديد.';
 
   @override
+  String get progressLoadError => 'تعذر تحميل التقدم. تحقق من اتصالك.';
+
+  @override
+  String get progressNoLevels => 'لا توجد مستويات متاحة بعد.';
+
+  @override
+  String get levelBeginner => 'مبتدئ';
+
+  @override
+  String get levelIntermediate => 'متوسط';
+
+  @override
+  String get levelPro => 'محترف';
+
+  @override
+  String get levelBronze => 'برونزي';
+
+  @override
+  String get levelSilver => 'فضي';
+
+  @override
+  String get levelGold => 'ذهبي';
+
+  @override
+  String get levelPlatinum => 'بلاتيني';
+
+  @override
+  String get levelDiamond => 'ماسي';
+
+  @override
+  String get levelElite => 'النخبة';
+
+  @override
+  String get levelChampion => 'بطل';
+
+  @override
+  String progressLevel(String name) {
+    return 'المستوى: $name';
+  }
+
+  @override
+  String progressHighest(String xp) {
+    return '$xp نقطة خبرة · أعلى مستوى';
+  }
+
+  @override
+  String progressNext(String xp, String remaining, String name) {
+    return '$xp نقطة خبرة · تبقى $remaining نقطة للوصول إلى $name';
+  }
+
+  @override
+  String progressFreeze(String count) {
+    return 'رموز التجميد: $count';
+  }
+
+  @override
+  String progressPoints(String count) {
+    return '$count نقطة في المتجر';
+  }
+
+  @override
+  String rewardConfirm(String name) {
+    return 'استبدال $name؟';
+  }
+
+  @override
+  String rewardSpend(String count) {
+    return 'استخدام $count نقطة من المتجر؟';
+  }
+
+  @override
+  String get rewardRedeem => 'استبدال';
+
+  @override
+  String get rewardRequestSaveError => 'تعذر حفظ طلب الاستبدال.';
+
+  @override
+  String get rewardRequestClearError => 'تعذر مسح طلب الاستبدال المكتمل.';
+
+  @override
+  String get rewardDone => 'تم استبدال المكافأة.';
+
+  @override
+  String rewardFreezeCount(String count) {
+    return 'رموز التجميد: $count / 3';
+  }
+
+  @override
+  String get rewardInfo =>
+      'عناصر رقمية فقط. تُحفظ السمات والإطارات والألقاب ضمن مكافآتك؛ تطبيقها غير متاح بعد.';
+
+  @override
+  String get rewardEmpty => 'لا توجد مكافآت متاحة حاليًا.';
+
+  @override
+  String get rewardUnlimited => 'مخزون غير محدود';
+
+  @override
+  String rewardRemaining(String count) {
+    return 'المتبقي $count';
+  }
+
+  @override
+  String rewardDetails(String cost, String tier, String stock) {
+    return '$cost نقطة · الفئة $tier · $stock';
+  }
+
+  @override
+  String rewardRequires(String tier) {
+    return 'يتطلب الفئة $tier';
+  }
+
+  @override
+  String rewardNeedPoints(String count) {
+    return 'تحتاج إلى $count نقطة إضافية';
+  }
+
+  @override
+  String get rewardRedeeming => 'جارٍ الاستبدال...';
+
+  @override
+  String get rewardOwned => 'تمتلكها';
+
+  @override
+  String get rewardOutOfStock => 'نفد المخزون';
+
+  @override
+  String get rewardErrorPoints => 'نقاط المتجر غير كافية.';
+
+  @override
+  String get rewardErrorStock => 'نفد مخزون هذه المكافأة.';
+
+  @override
+  String get rewardErrorTier => 'فئة عضويتك لا تؤهلك لهذه المكافأة.';
+
+  @override
+  String get rewardErrorTokens => 'يمكنك امتلاك 3 رموز تجميد كحد أقصى.';
+
+  @override
+  String get rewardErrorOwned => 'تمتلك هذا العنصر بالفعل.';
+
+  @override
+  String get rewardErrorUnavailable => 'لم تعد هذه المكافأة متاحة.';
+
+  @override
+  String get rewardErrorGeneral =>
+      'تعذر تأكيد الاستبدال. تحقق من اتصالك وحاول مجددًا.';
+
+  @override
+  String get progressBadges => 'الشارات';
+
+  @override
+  String get progressNoBadges => 'لا توجد شارات متاحة بعد.';
+
+  @override
+  String get progressEarned => 'مكتسبة';
+
+  @override
+  String get progressLocked => 'مقفلة';
+
+  @override
+  String progressBadgeDetails(String description, String status) {
+    return '$description\n$status';
+  }
+
+  @override
+  String get progressAchievements => 'الإنجازات';
+
+  @override
+  String get progressNoAchievements => 'لا توجد إنجازات متاحة بعد.';
+
+  @override
+  String progressAchievementValue(
+      String progress, String threshold, String xp) {
+    return '$progress / $threshold · $xp نقطة خبرة';
+  }
+
+  @override
+  String get progressCompleted => 'مكتمل';
+
+  @override
+  String pathSaveError(String error) {
+    return 'تعذر حفظ قائمة المتابعة: $error';
+  }
+
+  @override
+  String pathTracked(String value) {
+    return 'يتابعه التطبيق · $value';
+  }
+
+  @override
+  String get pathSelfReported => 'أبلغت عنه بنفسك، غير موثق';
+
+  @override
+  String get pathOutside => 'يتم خارج التطبيق';
+
+  @override
+  String get pathLoading => 'جارٍ التحميل';
+
+  @override
+  String get pathTitle => 'مسارك';
+
+  @override
+  String get pathDisclaimer => 'التقدم مُبلغ عنه ذاتيًا، وغير موثق أو معتمد';
+
+  @override
+  String get pathLoadingChecks => 'جارٍ تحميل قائمة المتابعة...';
+
+  @override
+  String pathLoadError(String error) {
+    return 'تعذر تحميل قائمة المتابعة: $error';
+  }
+
+  @override
+  String get pathFoundation => 'الأساس';
+
+  @override
+  String get pathLongestStreak => 'أطول سلسلة استمرارية';
+
+  @override
+  String pathDays(String days) {
+    return '$days يوم';
+  }
+
+  @override
+  String get pathSetGoal => 'حدد هدفًا شخصيًا للتدريب';
+
+  @override
+  String get pathLearnBasics => 'تعلم أساسيات رياضتك المختارة';
+
+  @override
+  String get pathNovice => 'المبتدئ';
+
+  @override
+  String get pathWorkouts => 'التمارين المسجلة منذ البداية';
+
+  @override
+  String get pathRoutine => 'التزم بروتين منتظم';
+
+  @override
+  String get pathCoach => 'اطلب ملاحظات من مدرب مؤهل';
+
+  @override
+  String get pathCompetitor => 'الاستعداد للمنافسة';
+
+  @override
+  String get pathMeals => 'الوجبات المتناولة المسجلة منذ البداية';
+
+  @override
+  String get pathSkills => 'تدرب على مهارات المنافسة';
+
+  @override
+  String get pathRequirements => 'راجع متطلبات منظم الحدث';
+
+  @override
+  String get pathNational => 'المستوى الوطني';
+
+  @override
+  String get pathAppLevel => 'مستوى التطبيق';
+
+  @override
+  String get pathNotAvailable => 'غير متاح';
+
+  @override
+  String get pathMilestone => 'خطط لمرحلة التدريب التالية';
+
+  @override
+  String get pathEvents => 'استكشف الفعاليات الوطنية وقواعدها';
+
+  @override
+  String get pathPro => 'مسار الاحتراف';
+
+  @override
+  String get pathPreparation => 'ضع خطة استعداد طويلة المدى';
+
+  @override
+  String get pathResearch => 'ابحث عن المسار الرسمي لرياضتك';
+
+  @override
+  String get pathRegister =>
+      'للتسجيل: راجع الموقع الرسمي للمنظم لمعرفة القواعد وطريقة التسجيل';
+
+  @override
   String plannerWeekRange(String start, String end) {
     return 'من $start إلى $end';
   }

@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/screens/progression.dart';
 import 'package:privilege/services/progression_repository.dart';
 import 'package:privilege/ui.dart';
@@ -11,6 +14,57 @@ import 'progression_fake.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
+  test('progression and pathway contain no hardcoded UI literals', () {
+    final pattern = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:sectionTitle|_step|_tracked|_outside)\(\s*|(?:tooltip|labelText|hintText|semanticLabel)\s*:\s*)['"]""");
+    for (final path in [
+      'lib/screens/progression.dart',
+      'lib/screens/champion.dart'
+    ]) {
+      final source = File(path).readAsStringSync();
+      expect(pattern.allMatches(source), isEmpty, reason: path);
+      expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))), reason: path);
+    }
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('progression screens fit at 360 in $language', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = FakeProgression();
+      Widget app(Widget screen) => MaterialApp(
+            locale: Locale(language),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: screen),
+          );
+      await tester.pumpWidget(app(LevelProgressPanel(repository: repo)));
+      await tester.pumpAndSettle();
+      final l =
+          AppLocalizations.of(tester.element(find.byType(LevelProgressPanel)))!;
+      expect(find.text(l.progressLevel(l.levelBronze)), findsOneWidget);
+      expect(find.text(l.progressNext('100', '400', l.levelSilver)),
+          findsOneWidget);
+      await tester.pumpWidget(app(RewardsStoreScreen(repository: repo)));
+      await tester.pumpAndSettle();
+      expect(find.text(l.progressPoints('200')), findsOneWidget);
+      await tester.tap(find.text(l.rewardRedeem));
+      await tester.pumpAndSettle();
+      expect(find.text(l.rewardSpend('50')), findsOneWidget);
+      await tester.tap(find.text(l.plannerCancel));
+      await tester.pumpAndSettle();
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(app(BadgesAchievementsScreen(repository: repo)));
+      await tester.pumpAndSettle();
+      expect(find.text(l.progressBadges.toUpperCase()), findsOneWidget);
+      await tester.ensureVisible(
+          find.text(l.progressAchievementValue('10', '100', '150')));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
   testWidgets('store displays balance, token, tier and redeems a reward',
       (tester) async {
     final repo = FakeProgression();

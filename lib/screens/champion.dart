@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
 import '../services/progression_repository.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -86,8 +87,8 @@ class _ChampionScreenState extends State<ChampionScreen> {
       if (mounted && token == generation && user == state.classifiedAccountId) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(
-              SnackBar(content: Text('Could not save checklist: $e')));
+          ..showSnackBar(SnackBar(
+              content: Text(strings(context).pathSaveError(e.toString()))));
       }
     } finally {
       if (mounted && token == generation) setState(() => saving.remove(key));
@@ -103,13 +104,13 @@ class _ChampionScreenState extends State<ChampionScreen> {
   Widget _tracked(String title, String value) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(title),
-        subtitle: Text('Tracked by the app · $value'),
+        subtitle: Text(strings(context).pathTracked(value)),
       );
 
   Widget _selfReported(String key, String title) => CheckboxListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(title),
-        subtitle: const Text('Self-reported, not verified'),
+        subtitle: Text(strings(context).pathSelfReported),
         value: _reported.contains(key),
         onChanged: loading || loadError != null || saving.contains(key)
             ? null
@@ -119,7 +120,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
   Widget _outside(String title) => ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(title),
-        subtitle: const Text('Done outside the app'),
+        subtitle: Text(strings(context).pathOutside),
       );
 
   Widget _step(String title, List<Widget> children) => Panel(
@@ -140,71 +141,70 @@ class _ChampionScreenState extends State<ChampionScreen> {
   Widget build(BuildContext context) => ListenableBuilder(
         listenable: state,
         builder: (context, _) {
+          final l = strings(context);
           final activity = state.activityLoading
-              ? 'Loading'
+              ? l.pathLoading
               : state.activityError != null
-                  ? 'Unavailable'
+                  ? l.mergeUnavailable
                   : null;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              const Text('Your pathway',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(l.pathTitle,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
-              const Text('Self-reported progress, not verified or certified'),
-              if (loading) const Text('Loading checklist...'),
+              Text(l.pathDisclaimer),
+              if (loading) Text(l.pathLoadingChecks),
               if (loadError != null) ...[
-                Text('Could not load checklist: $loadError'),
-                TextButton(onPressed: _loadChecks, child: const Text('Retry')),
+                Text(l.pathLoadError(loadError!)),
+                TextButton(onPressed: _loadChecks, child: Text(l.plannerRetry)),
               ],
               const SizedBox(height: 12),
-              _step('Foundation', [
-                _tracked('Longest streak (all time)',
-                    activity ?? '${state.longestStreak} days'),
-                _selfReported(
-                    'foundation_goal', 'Set a personal training goal'),
-                _outside('Learn the basics of your chosen sport'),
+              _step(l.pathFoundation, [
+                _tracked(l.pathLongestStreak,
+                    activity ?? l.pathDays(state.longestStreak.toString())),
+                _selfReported('foundation_goal', l.pathSetGoal),
+                _outside(l.pathLearnBasics),
               ]),
-              _step('Novice', [
+              _step(l.pathNovice, [
                 LiveProgress<ActivityCounts>(
                   repository: _progression,
                   load: _progression.activityCounts,
-                  builder: (context, counts) => _tracked(
-                      'Workouts logged (all time)', '${counts.workouts}'),
+                  builder: (context, counts) =>
+                      _tracked(l.pathWorkouts, counts.workouts.toString()),
                 ),
-                _selfReported(
-                    'novice_routine', 'Practice a consistent routine'),
-                _outside('Ask a qualified coach for feedback'),
+                _selfReported('novice_routine', l.pathRoutine),
+                _outside(l.pathCoach),
               ]),
-              _step('Competitor-ready', [
+              _step(l.pathCompetitor, [
                 LiveProgress<ActivityCounts>(
                   repository: _progression,
                   load: _progression.activityCounts,
-                  builder: (context, counts) => _tracked(
-                      'Consumed meals logged (all time)', '${counts.meals}'),
+                  builder: (context, counts) =>
+                      _tracked(l.pathMeals, counts.meals.toString()),
                 ),
-                _selfReported(
-                    'competitor_skills', 'Practice your event skills'),
-                _outside('Review an event organizer’s requirements'),
+                _selfReported('competitor_skills', l.pathSkills),
+                _outside(l.pathRequirements),
               ]),
-              _step('National level', [
+              _step(l.pathNational, [
                 LiveProgress<LevelProgress?>(
                   repository: _progression,
                   load: _progression.level,
-                  builder: (context, level) =>
-                      _tracked('App level', level?.name ?? 'Not available'),
+                  builder: (context, level) => _tracked(
+                      l.pathAppLevel,
+                      level == null
+                          ? l.pathNotAvailable
+                          : localizedLevelName(context, level.name)),
                 ),
-                _selfReported(
-                    'national_milestone', 'Plan your next training milestone'),
-                _outside('Explore national events and their rules'),
+                _selfReported('national_milestone', l.pathMilestone),
+                _outside(l.pathEvents),
               ]),
-              _step('Pro pathway', [
-                _selfReported(
-                    'pro_preparation', 'Make a long-term preparation plan'),
-                _outside('Research the official pathway for your sport'),
+              _step(l.pathPro, [
+                _selfReported('pro_preparation', l.pathPreparation),
+                _outside(l.pathResearch),
               ]),
-              const Text(
-                  "How to register: check the organizer's official site for rules and registration"),
+              Text(l.pathRegister),
             ],
           );
         },
