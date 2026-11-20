@@ -132,21 +132,17 @@ verified recipes **should-have M–L**.
 
 ## 5. AI chat
 
-**What works:** [`chat.dart`](../lib/screens/chat.dart) displays a local
-conversation and explicitly says messages were not sent. Photo and voice
-buttons say “coming soon.”
+**Updated 20 Nov 2026:** [`chat.dart`](../lib/screens/chat.dart) invokes the
+authenticated coach Edge Function. Optional calorie context is shared only
+with device-stored consent; messages go to Google Gemini. Chat history stays
+in screen memory and previous messages are not sent as conversation context.
 
-**Not implemented / risk:** There is no AI service call, model, key, saved
-conversation or photo/voice analysis in this flow. Subscription marketing
-nevertheless promises AI features. For future AI, keep the provider key in a
-server-side secret store (for example an authenticated backend function),
-never in Flutter, Git, an APK or a browser bundle. Add user consent, a clear
-health-data privacy policy, access/rate limits, safe responses and deletion/
-retention rules before sending messages or images to any provider.
-
-**Priority / effort:** align all claims and disable misleading entry points
-**must-have S**; real privacy-reviewed AI **nice-to-have L**, defer for this
-submission.
+**Known limits / risk:** Availability depends on the deployed function,
+configured provider and free-tier quotas; free-tier terms may allow provider
+use of content, so privacy terms and consent require review. The keyword
+emergency check is incomplete and is not a substitute for emergency help.
+Birth dates are self-reported, not verified. AI can be wrong and is not
+medical advice. Photo and voice analysis remain unavailable.
 
 ## 6. Cheat meals
 

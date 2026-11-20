@@ -36,7 +36,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
       final chip = find.text('Community');
-      final fab = find.byTooltip('AI Privilege Bot - coming soon');
+      final fab = find.byTooltip('AI Privilege Bot');
       final nav = find.byType(BottomAppBar);
       final homeEnd =
           find.text('Deleting a split keeps the days already planned.');
