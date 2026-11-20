@@ -408,8 +408,10 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                               day.name.trim().toLowerCase() != 'rest day')
                             Text(day.kind == 'rest'
                                 ? strings(context).plannerRestDay
+                                : day.duration == null
+                                ? strings(context).plannerWorkoutNoDuration('${day.effort}')
                                 : strings(context).plannerWorkoutSummary(
-                                    '${day.duration}', '${day.effort}')),
+                                    day.duration!, '${day.effort}')),
                           if (day.kind == 'workout')
                             Text(state.plannerWorkoutDates.contains(date)
                                 ? strings(context).plannerWorkoutLogged
@@ -487,8 +489,10 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                                 Text(
                                     split.kind == 'rest'
                                         ? strings(context).plannerRest
+                                        : split.duration == null
+                                        ? strings(context).plannerSplitNoDuration('${split.effort}')
                                         : strings(context).plannerSplitSummary(
-                                            '${split.duration}',
+                                            split.duration!,
                                             '${split.effort}'),
                                     style:
                                         Theme.of(context).textTheme.bodySmall),

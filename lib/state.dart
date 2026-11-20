@@ -639,9 +639,9 @@ class AppState extends ChangeNotifier {
       () => _activityRepository.setMealConsumed(id, updated),
       successMessage: updated
           ? savedLanguageStrings()
-              .feedbackLoggedMeal(m.name, m.calories.toString())
+              .feedbackLoggedMeal(m.name, m.calories)
           : savedLanguageStrings()
-              .feedbackUncheckedMeal(m.name, m.calories.toString()),
+              .feedbackUncheckedMeal(m.name, m.calories),
     );
   }
 
@@ -649,7 +649,7 @@ class AppState extends ChangeNotifier {
     await _writeActivity(
       () => _activityRepository.addMeal(item),
       successMessage: savedLanguageStrings()
-          .feedbackAddedMeal(item.name, item.calories.toString()),
+          .feedbackAddedMeal(item.name, item.calories),
     );
   }
 
@@ -729,7 +729,7 @@ class AppState extends ChangeNotifier {
     await _writeActivity(
       () => _activityRepository.removeMeal(id),
       successMessage: savedLanguageStrings()
-          .feedbackRemovedMeal(item.name, item.calories.toString()),
+          .feedbackRemovedMeal(item.name, item.calories),
     );
   }
 
@@ -737,7 +737,7 @@ class AppState extends ChangeNotifier {
     await _writeActivity(
       () => _activityRepository.addWorkout(workout),
       successMessage: savedLanguageStrings()
-          .feedbackAddedWorkout(workout.title, workout.calories.toString()),
+          .feedbackAddedWorkout(workout.title, workout.calories),
     );
   }
 
@@ -748,7 +748,7 @@ class AppState extends ChangeNotifier {
     await _writeActivity(
       () => _activityRepository.removeWorkout(id),
       successMessage: savedLanguageStrings()
-          .feedbackRemovedWorkout(item.title, item.calories.toString()),
+          .feedbackRemovedWorkout(item.title, item.calories),
     );
   }
 
@@ -774,14 +774,14 @@ class AppState extends ChangeNotifier {
       final i = meals.indexWhere((m) => m.consumed && m.calories >= amount);
       if (i == -1) {
         throw StateError(
-            savedLanguageStrings().errorReduceMeal(amount.toString()));
+            savedLanguageStrings().errorReduceMeal(amount));
       }
       final meal = meals[i];
       await _writeActivity(
         () => _activityRepository.setMealCalories(
             meal.id, meal.calories - amount),
         successMessage:
-            savedLanguageStrings().feedbackDeductFood(amount.toString()),
+            savedLanguageStrings().feedbackDeductFood(amount),
       );
     }
   }
@@ -809,7 +809,7 @@ class AppState extends ChangeNotifier {
         () => _activityRepository.setWorkoutCalories(
             workout.id, (workout.calories - amount).clamp(0, 1000000).toInt()),
         successMessage:
-            savedLanguageStrings().feedbackDeductWorkout(amount.toString()),
+            savedLanguageStrings().feedbackDeductWorkout(amount),
       );
     }
   }

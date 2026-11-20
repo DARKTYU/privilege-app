@@ -163,7 +163,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
               const SizedBox(height: 12),
               _step(l.pathFoundation, [
                 _tracked(l.pathLongestStreak,
-                    activity ?? l.pathDays(state.longestStreak.toString())),
+                    activity ?? l.pathDays(state.longestStreak)),
                 _selfReported('foundation_goal', l.pathSetGoal),
                 _outside(l.pathLearnBasics),
               ]),

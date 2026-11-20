@@ -125,7 +125,7 @@ void main() {
       await tester.tap(find.text(l.coachTraining));
       await tester.pumpAndSettle();
       expect(client.requests.single['message'], l.coachTraining);
-      expect(find.text(l.coachRequestsLeft('29')), findsOneWidget);
+      expect(find.text(l.coachRequestsLeft(29)), findsOneWidget);
       expect(find.text(l.coachWelcome), findsNothing);
       expect(tester.takeException(), isNull);
     });

@@ -10,39 +10,11 @@ import 'calories_display_format.dart';
 import 'calories_food_summary.dart';
 
 String _groupName(BuildContext context, String group) {
-  final l = strings(context);
-  return switch (group) {
-    'American & Latin' => l.groupAmerican,
-    'Asian' => l.groupAsian,
-    'Cafes & Bakeries' => l.groupCafes,
-    'Egyptian' => l.groupEgyptian,
-    'European' => l.groupEuropean,
-    'Middle Eastern & African' => l.groupMiddleEastern,
-    'Raw & Fitness Staples' => l.groupRaw,
-    'Restaurants & Fast Food' => l.groupRestaurants,
-    'Snacks' => l.groupSnacks,
-    _ => group,
-  };
+  return localizedFoodGroup(group, strings(context));
 }
 
 String _tagName(BuildContext context, String tag) {
-  final l = strings(context);
-  return switch (tag) {
-    'high-protein' => l.tagProtein,
-    'fitness-staple' => l.tagFitness,
-    'breakfast' => l.foodBreakfast,
-    'street-food' => l.tagStreet,
-    'vegan' => l.tagVegan,
-    'keto-friendly' => l.tagKeto,
-    'low-carb' => l.tagLowCarb,
-    'cooking-oil' => l.tagOils,
-    'topping' => l.tagToppings,
-    'snack' => l.foodSnacks,
-    'dessert' => l.tagDesserts,
-    'raw' => l.tagRaw,
-    'cooked' => l.tagCooked,
-    _ => tag,
-  };
+  return localizedFoodTag(tag, strings(context));
 }
 
 String _foodName(BuildContext context, FoodItem food) =>
@@ -107,21 +79,6 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 categoryGroup: category, tags: tags);
             final availableTags =
                 database.foods.expand((food) => food.tags).toSet();
-            const choices = [
-              'high-protein',
-              'fitness-staple',
-              'breakfast',
-              'street-food',
-              'vegan',
-              'keto-friendly',
-              'low-carb',
-              'cooking-oil',
-              'topping',
-              'snack',
-              'dessert',
-              'raw',
-              'cooked',
-            ];
             return Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
@@ -165,7 +122,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     scrollDirection: Axis.horizontal,
                     children: [
-                      for (final choice in choices)
+                      for (final choice in displayedFoodTags)
                         if (availableTags.contains(choice))
                           _filter(
                               p,
@@ -184,7 +141,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: Text(
-                        l.explorerShowing(results.length.toString(),
+                        l.explorerShowing(results.length,
                             database.foods.length.toString()),
                         style: TextStyle(color: p.muted))),
               ),
@@ -263,7 +220,10 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                           _groupName(context, food.categoryGroup),
                           food.categoryGroup == food.cuisineOrBrand
                               ? ''
-                              : food.cuisineOrBrand),
+                              : foodLabel(food.cuisineOrBrand,
+                                  arabic: Localizations.localeOf(context)
+                                          .languageCode ==
+                                      'ar')),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: p.accentText, fontSize: 10)),
@@ -273,7 +233,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                       style: TextStyle(
                           color: p.text, fontWeight: FontWeight.bold)),
                   Wrap(spacing: 5, children: [
-                    Text(l.explorerPer100(food.per100g.kcal.toStringAsFixed(0)),
+                    Text(l.explorerPer100(food.per100g.kcal.round()),
                         style: TextStyle(color: p.muted, fontSize: 10)),
                     _macroDot(
                         p,
@@ -296,7 +256,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
             SizedBox(
                 width: 100,
                 child: Column(children: [
-                  Text(l.mergeCalories(portion.kcal.toString()),
+                  Text(l.mergeCalories(portion.kcal, portion.kcal.toString()),
                       style: TextStyle(
                           color: p.accentText, fontWeight: FontWeight.bold)),
                   Text(
@@ -425,12 +385,12 @@ class _PortionSheetState extends State<_PortionSheet> {
               ? strings(context)
                   .explorerUpdated(_foodName(context, widget.food))
               : strings(context).explorerLogged(
-                  _foodName(context, widget.food), portion.kcal.toString());
+                  _foodName(context, widget.food), portion.kcal);
       Navigator.pop(context, message);
     } catch (e) {
       if (mounted) {
-        setState(
-            () => error = strings(context).explorerSaveError(friendlyError(e, localizations: strings(context))));
+        setState(() => error = strings(context).explorerSaveError(
+            friendlyError(e, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => saving = false);
@@ -461,7 +421,10 @@ class _PortionSheetState extends State<_PortionSheet> {
                           widget.food.categoryGroup ==
                                   widget.food.cuisineOrBrand
                               ? ''
-                              : widget.food.cuisineOrBrand),
+                              : foodLabel(widget.food.cuisineOrBrand,
+                                  arabic: Localizations.localeOf(context)
+                                          .languageCode ==
+                                      'ar')),
                       style: TextStyle(color: p.muted)),
                   Text(_foodName(context, widget.food),
                       style: TextStyle(

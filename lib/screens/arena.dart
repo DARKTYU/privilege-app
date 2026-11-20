@@ -676,7 +676,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
               Wrap(spacing: 16, runSpacing: 4, children: [
                 Text(
                     strings(context).arenaParticipants(
-                        challenge.participantCount.toString()),
+                        challenge.participantCount),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (challenge.joined)
                   Text(
@@ -833,11 +833,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
                     : '@${row.username}'),
                 subtitle: Text(row.levelName == null
                     ? strings(context)
-                        .arenaCurrentStreak(row.currentStreak.toString())
+                        .arenaCurrentStreak(row.currentStreak)
                     : strings(context).arenaLevelStreak(
                         localizedLevelName(context, row.levelName!),
                         strings(context)
-                            .arenaCurrentStreak(row.currentStreak.toString()))),
+                            .arenaCurrentStreak(row.currentStreak))),
                 trailing: Text(
                   _scoreLabel(_leaderboardMetric, row.score),
                   style: const TextStyle(fontWeight: FontWeight.w700),
@@ -884,7 +884,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   String _scoreLabel(String type, num? score) {
     final value = (score ?? 0).toStringAsFixed(0);
     return type == 'workout_count'
-        ? strings(context).arenaWorkoutsCount(value)
+        ? strings(context).arenaWorkoutsCount(int.parse(value))
         : strings(context).arenaDays(int.parse(value));
   }
 

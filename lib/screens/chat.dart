@@ -618,7 +618,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Text(
                           strings(context)
-                              .coachRequestsLeft(_remaining.toString()),
+                              .coachRequestsLeft(_remaining!),
                           style: TextStyle(color: kMuted, fontSize: 11)),
                     ),
                 ],

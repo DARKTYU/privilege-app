@@ -258,7 +258,7 @@ class ActivityRepository {
       id: row['id'] as String,
       title: row['name'] as String,
       time: savedLanguageStrings()
-          .activityTimeDuration(time, duration.toString()),
+          .activityTimeDuration(time, duration),
       calories: (row['calories_burned'] as num).toInt(),
       type: type,
       durationMin: duration,

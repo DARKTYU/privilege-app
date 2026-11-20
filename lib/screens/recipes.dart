@@ -20,9 +20,7 @@ const Map<String, String> recipePhotoCredits = {};
 enum _FavoriteError { signIn, load, save, deviceSave }
 
 String _recipeName(BuildContext context, Recipe recipe) =>
-    Localizations.localeOf(context).languageCode == 'ar'
-        ? recipe.nameAr
-        : recipe.name;
+    recipe.localizedName(Localizations.localeOf(context).languageCode == 'ar');
 
 String _difficulty(BuildContext context, String difficulty) {
   final l = strings(context);
@@ -36,7 +34,7 @@ String _difficulty(BuildContext context, String difficulty) {
 
 String _recipeSummary(BuildContext context, Recipe recipe) =>
     strings(context).recipeSummary(
-        recipe.minutes.toString(),
+        recipe.minutes,
         _difficulty(context, recipe.difficulty),
         _mealLabel(context, recipe.category));
 
@@ -194,14 +192,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
         toast(
             feedbackContext,
             strings(feedbackContext).recipeLogged(
-                _recipeName(feedbackContext, recipe), p.kcal.toString()));
+                _recipeName(feedbackContext, recipe), p.kcal));
       }
     } catch (e) {
       if (feedbackContext.mounted) {
         ScaffoldMessenger.of(feedbackContext).showSnackBar(
           SnackBar(
-              content:
-                  Text(strings(feedbackContext).recipeLogError(friendlyError(e, localizations: strings(feedbackContext))))),
+              content: Text(strings(feedbackContext).recipeLogError(
+                  friendlyError(e, localizations: strings(feedbackContext))))),
         );
       }
     } finally {
@@ -278,7 +276,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             : l.recipeTargetUnavailable)
                   else ...[
                     Text(l.recipeRemaining(
-                        (remaining! > 0 ? remaining : 0).toString(),
+                        remaining! > 0 ? remaining : 0,
                         (protein! > 0 ? protein : 0).toString())),
                     if (remaining <= 0) Text(l.recipeTargetReached),
                   ],
@@ -389,7 +387,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       const SizedBox(height: 8),
                       if (p != null)
                         Wrap(spacing: 6, runSpacing: 6, children: [
-                          _recipePill(context, l.recipeKcal(p.kcal.toString()),
+                          _recipePill(context, l.recipeKcal(p.kcal),
                               Theme.of(context).colorScheme.secondary),
                           _recipePill(
                               context,
@@ -418,7 +416,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             context,
                             p.kcal <= remaining
                                 ? l.recipeFits
-                                : l.recipeOver((p.kcal - remaining).toString()),
+                                : l.recipeOver(p.kcal - remaining),
                             Theme.of(context).colorScheme.secondary),
                       if (nutrition == null) Text(l.recipeNutritionUnavailable),
                       const SizedBox(height: 8),
@@ -579,6 +577,7 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
     final nutrition = widget.nutrition;
     final p = nutrition?.portion;
     final l = strings(context);
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
     String g(double value) => formatCaloriesGrams(value);
     return Scaffold(
       appBar: AppBar(title: Text(l.recipeDetails)),
@@ -599,7 +598,7 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
           if (p == null)
             Text(l.recipeNutritionUnavailable)
           else ...[
-            Text(l.recipeKcal(p.kcal.toString())),
+            Text(l.recipeKcal(p.kcal)),
             Text(l.recipeMacroLine(g(p.proteinG), g(p.carbsG), g(p.fatG))),
             Text(l.recipeMicroLine(
                 g(p.fiberG), g(p.sugarG), p.sodiumMg.toStringAsFixed(0))),
@@ -607,7 +606,7 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
           const SizedBox(height: 16),
           Text(l.recipeIngredients,
               style: Theme.of(context).textTheme.titleMedium),
-          Text(recipe.description),
+          Text(recipe.localizedDescription(arabic)),
           if (nutrition != null)
             for (final (food, grams) in nutrition.ingredients)
               Padding(
@@ -616,9 +615,7 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(l.recipeIngredientAmount(
-                          Localizations.localeOf(context).languageCode == 'ar'
-                              ? food.nameAr
-                              : food.nameEn,
+                          localizedContent(food.nameEn, food.nameAr, arabic),
                           g(grams))),
                     ]),
               )
@@ -630,7 +627,8 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
           for (var i = 0; i < recipe.steps.length; i++)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(l.recipeStep((i + 1).toString(), recipe.steps[i])),
+              child: Text(l.recipeStep(
+                  (i + 1).toString(), recipe.localizedStep(i, arabic))),
             ),
           const SizedBox(height: 16),
           PrimaryButton(logging ? l.recipeLogging : l.recipeLog,

@@ -461,19 +461,19 @@ class _SplitsScreenState extends State<SplitsScreen>
                       children: [
                     Text(l.mergeCombinedDuration(
                         validMinutes(a) && validMinutes(b)
-                            ? l.mergeMinutes((a! + b!).toString())
+                            ? l.mergeMinutes(a! + b!)
                             : l.mergeUnavailable)),
                     Text(l.mergeNamedValue(
                         savedSplit == null
                             ? _builtInName(split)
                             : _displayStoredName(savedSplit!.name),
                         validMinutes(a)
-                            ? l.mergeShortMinutes(a.toString())
+                            ? l.mergeShortMinutes(a!)
                             : l.mergeInvalidDuration)),
                     Text(l.mergeNamedValue(
                         _builtInName(sport),
                         validMinutes(b)
-                            ? l.mergeShortMinutes(b.toString())
+                            ? l.mergeShortMinutes(b!)
                             : l.mergeInvalidDuration)),
                     if (sport.id == 'sprints') Text(l.mergeSprintEstimate),
                     const SizedBox(height: 8),
@@ -489,7 +489,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                       Text(l.mergeEstimatedCalories(
                           strengthKcal != null && sportKcal != null
                               ? l.mergeCalories(
-                                  (strengthKcal + sportKcal).toString())
+                                  strengthKcal + sportKcal, (strengthKcal + sportKcal).toString())
                               : l.mergeUnavailable)),
                       Text(l.mergeNamedValue(
                           savedSplit == null
@@ -497,12 +497,12 @@ class _SplitsScreenState extends State<SplitsScreen>
                               : _displayStoredName(savedSplit!.name),
                           strengthKcal == null
                               ? l.mergeUnavailable
-                              : l.mergeCalories(strengthKcal.toString()))),
+                              : l.mergeCalories(strengthKcal, strengthKcal.toString()))),
                       Text(l.mergeNamedValue(
                           _builtInName(sport),
                           sportKcal == null
                               ? l.mergeUnavailable
-                              : l.mergeCalories(sportKcal.toString()))),
+                              : l.mergeCalories(sportKcal, sportKcal.toString()))),
                     ],
                     const SizedBox(height: 8),
                     Text(l.mergeEstimateNote),

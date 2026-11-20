@@ -103,7 +103,7 @@ void main() {
           language == 'ar' ? TextDirection.rtl : TextDirection.ltr);
       await tapVisible(
           tester, find.text(l.workoutActivityLabel('🏃', l.workoutRunning)));
-      expect(find.text(l.workoutEstimate('392')), findsOneWidget);
+      expect(find.text(l.workoutEstimate(392)), findsOneWidget);
       final duration = find.byKey(const ValueKey('workout-duration'));
       await tester.ensureVisible(duration);
       await tester.enterText(duration, '0');
@@ -114,7 +114,7 @@ void main() {
       await tapVisible(tester, find.text(l.workoutSave));
       expect(state.saved!.title, 'Running - 30 min');
       expect(state.saved!.calories, 392);
-      expect(find.text(l.workoutSavedTitle(l.workoutRunning, '30')),
+      expect(find.text(l.workoutSavedTitle(l.workoutRunning, 30)),
           findsOneWidget);
       expect(tester.takeException(), isNull);
     });

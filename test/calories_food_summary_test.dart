@@ -62,9 +62,13 @@ class FakeFoodDatabase extends FoodDatabase {
   List<FoodItem> get foods => items;
 }
 
-MealItem manual({bool consumed = true}) => MealItem(
-      id: 'manual',
-      name: 'Manual breakfast',
+MealItem manual(
+        {bool consumed = true,
+        String id = 'manual',
+        String name = 'Manual breakfast'}) =>
+    MealItem(
+      id: id,
+      name: name,
       time: 'now',
       calories: 300,
       proteinGrams: 20,
@@ -147,6 +151,25 @@ void main() {
     await tester.ensureVisible(find.text('Add food'));
     await tester.tap(find.text('Add food'));
     expect(added, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Arabic food log translates only exact default names',
+      (tester) async {
+    final state = FakeCaloriesState()
+      ..meals.addAll([
+        manual(name: 'High-Protein Fuel'),
+        manual(id: 'renamed', name: 'High-Protein Fuel custom'),
+        manual(id: 'quick', name: 'Quick Calorie Snack'),
+      ]);
+    addTearDown(state.dispose);
+    await showSummary(tester, state, language: 'ar', width: 360);
+    final l =
+        AppLocalizations.of(tester.element(find.byType(CaloriesFoodSummary)))!;
+    expect(find.text(l.defaultHighProteinFuel), findsOneWidget);
+    expect(find.text(l.defaultQuickCalorieSnack), findsOneWidget);
+    expect(find.text('High-Protein Fuel custom'), findsOneWidget);
+    expect(state.meals.first.name, 'High-Protein Fuel');
     expect(tester.takeException(), isNull);
   });
 

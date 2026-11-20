@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/data.dart';
 import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/screens/academy.dart';
 import 'package:privilege/screens/cheats.dart';
@@ -42,17 +43,39 @@ void main() {
       final l =
           AppLocalizations.of(tester.element(find.byType(AcademyScreen)))!;
       expect(find.text(l.academyAllGuides), findsOneWidget);
-      expect(find.text(l.academyBurn('120', '15')), findsOneWidget);
+      expect(find.text(l.academyBurn(120, 15)), findsOneWidget);
       expect(find.text(l.levelBeginner), findsWidgets);
-      await tester.tap(find.text('Barbell Bench Press'));
+      final guide = guides.first;
+      final ar = language == 'ar';
+      expect(find.text(guide.localizedSubCategory(ar).toUpperCase()),
+          findsOneWidget);
+      expect(find.text(l.academyMuscles(guide.localizedMuscles(ar).join(', '))),
+          findsOneWidget);
+      await tester.tap(find.text(guide.localizedTitle(ar)));
       await tester.pumpAndSettle();
       expect(find.text(l.academyDisclaimer), findsOneWidget);
       expect(find.text(l.academyCues.toUpperCase()), findsOneWidget);
+      expect(find.text(guide.localizedCues(ar).first), findsOneWidget);
+      expect(
+          find.text(ar ? guide.cues.first : guide.cuesAr.first), findsNothing);
+      await tester.scrollUntilVisible(
+          find.text(guide.localizedMistakes(ar).first), 150,
+          scrollable: find
+              .descendant(
+                  of: find.byType(DraggableScrollableSheet),
+                  matching: find.byType(Scrollable))
+              .first);
+      expect(find.text(guide.localizedMistakes(ar).first), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField), 'pillars');
       await tester.pumpAndSettle();
       expect(find.text(l.academyLifetime), findsOneWidget);
+      await tester.enterText(find.byType(TextField), guides.first.titleAr);
+      await tester.pumpAndSettle();
+      expect(find.byWidgetPredicate(
+          (widget) => widget is Text && widget.data == guide.localizedTitle(ar)),
+          findsOneWidget);
       await tester.enterText(find.byType(TextField), 'no guide matches this');
       await tester.pumpAndSettle();
       expect(find.text(l.academyEmpty), findsOneWidget);
@@ -81,7 +104,7 @@ void main() {
       await tester.pumpAndSettle();
       final l = AppLocalizations.of(tester.element(find.byType(CheatsScreen)))!;
       expect(find.byTooltip(l.cravingPreviousMonth), findsOneWidget);
-      expect(find.text(l.cravingUsed('0')), findsOneWidget);
+      expect(find.text(l.cravingUsed(0)), findsOneWidget);
       await tester.ensureVisible(find.byType(TextField));
       await tester.enterText(find.byType(TextField), 'Pizza');
       tester.testTextInput.hide();
@@ -90,7 +113,7 @@ void main() {
       await tester.tap(find.text(l.cravingAdd));
       await tester.pumpAndSettle();
       expect(repo.current.single.notes, 'Pizza');
-      expect(find.text(l.cravingUsed('1')), findsOneWidget);
+      expect(find.text(l.cravingUsed(1)), findsOneWidget);
       await tester.ensureVisible(find.text(l.cravingEdit));
       await tester.pumpAndSettle();
       await tester.tap(find.text(l.cravingEdit));

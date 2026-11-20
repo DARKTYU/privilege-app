@@ -627,7 +627,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 label: post.likedByMe
                     ? strings(context).communityUnlikePost
                     : strings(context).communityLikePost,
-                child: Text(post.likeCount.toString()),
+                value: strings(context).communityLikeCount(post.likeCount),
+                child: Text(strings(context).communityLikeCount(post.likeCount)),
               ),
             ),
             TextButton.icon(
@@ -635,7 +636,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
               icon: const Icon(Icons.mode_comment_outlined, size: 19),
               label: Semantics(
                 label: strings(context).communityOpenComments,
-                child: Text(post.commentCount.toString()),
+                value: strings(context).communityCommentCount(post.commentCount),
+                child: Text(strings(context).communityCommentCount(post.commentCount)),
               ),
             ),
           ]),
@@ -1361,8 +1363,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           TextButton(
                                             onPressed: () =>
                                                 _showLikers(comment),
-                                            child: Text(
-                                                comment.likeCount.toString()),
+                                            child: Text(strings(context)
+                                                .communityLikeCount(comment.likeCount)),
                                           ),
                                       ]),
                                 );
@@ -1511,11 +1513,11 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                         strings(context).arenaDays(profile.currentStreak)),
                     _stat(strings(context).communityBest,
                         strings(context).arenaDays(profile.longestStreak)),
-                    _stat(strings(context).communityPosts,
+                    _stat(strings(context).communityPostCountLabel(profile.postCount),
                         profile.postCount.toString()),
-                    _stat(strings(context).communityFriends,
+                    _stat(strings(context).communityFriendCountLabel(profile.friendCount),
                         profile.friendCount.toString()),
-                    _stat(strings(context).communityFollowers,
+                    _stat(strings(context).communityFollowerCountLabel(profile.followerCount),
                         profile.followerCount.toString()),
                   ],
                 ),

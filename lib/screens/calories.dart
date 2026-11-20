@@ -162,9 +162,9 @@ Widget _burnTile(BuildContext context, CaloriesPalette palette, BurnItem b,
       .where((item) => b.title == '${item.label} - ${b.durationMin} min')
       .firstOrNull;
   final title = generated == null
-      ? b.title
+      ? defaultActivityName(b.title, l)
       : l.workoutSavedTitle(
-          localizedWorkoutActivityName(l, generated), b.durationMin.toString());
+          localizedWorkoutActivityName(l, generated), b.durationMin);
   return _activityCard(
     palette,
     Row(children: [
@@ -192,10 +192,10 @@ Widget _burnTile(BuildContext context, CaloriesPalette palette, BurnItem b,
           Text(b.createdAt != null
                   ? l.activityTimeDuration(
                       formatActivityTime(b.createdAt!, l),
-                      b.durationMin.toString())
+                      b.durationMin)
                   : b.time == 'Just now' ? l.justNow : b.time,
               style: TextStyle(fontSize: 11, color: palette.muted)),
-          Text(strings(context).burnedAmount(fmt(b.calories)),
+          Text(strings(context).burnedAmount(b.calories, fmt(b.calories)),
               style: TextStyle(
                   color: palette.text,
                   fontWeight: FontWeight.w800,
@@ -495,7 +495,7 @@ class ActivityTab extends StatelessWidget {
                               color: p.text,
                               fontSize: 28,
                               fontWeight: FontWeight.w800)),
-                      Text(l.burnTarget(t.burnTarget.toString()),
+                      Text(l.burnTarget(t.burnTarget),
                           style: TextStyle(fontSize: 10, color: p.muted)),
                     ]),
                   ]),
@@ -513,13 +513,13 @@ class ActivityTab extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _legend(p, kRed,
-                            l.totalBurn(t.totalBurnedCalories.toString())),
+                            l.totalBurn(t.totalBurnedCalories)),
                         const SizedBox(height: 4),
                         _legend(p, kGold,
-                            l.strengthBurn(t.strengthBurnCalories.toString())),
+                            l.strengthBurn(t.strengthBurnCalories)),
                         const SizedBox(height: 4),
                         _legend(p, kCyan,
-                            l.cardioBurn(t.cardioBurnCalories.toString())),
+                            l.cardioBurn(t.cardioBurnCalories)),
                       ]),
                 ),
                 const SizedBox(height: 12),
@@ -543,12 +543,12 @@ class ActivityTab extends StatelessWidget {
               p,
               Column(children: [
                 _stat(p, l.strengthBurnLabel,
-                    l.mergeCalories(t.strengthBurnCalories.toString()), kGold),
+                    l.mergeCalories(t.strengthBurnCalories, t.strengthBurnCalories.toString()), kGold),
                 _stat(p, l.cardioBurnLabel,
-                    l.mergeCalories(t.cardioBurnCalories.toString()), kCyan),
+                    l.mergeCalories(t.cardioBurnCalories, t.cardioBurnCalories.toString()), kCyan),
               ]),
             ),
-            _title(p, l.workoutLogs(s.burns.length.toString())),
+            _title(p, l.workoutLogs(s.burns.length)),
             for (final b in s.burns)
               _burnTile(context, p, b,
                   onRemove: () =>

@@ -106,7 +106,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(state.portion!.grams, 200);
       expect(state.label, '200g custom');
-      expect(find.text(l.explorerLogged(name, state.portion!.kcal.toString())),
+      expect(find.text(l.explorerLogged(name, state.portion!.kcal)),
           findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -137,6 +137,76 @@ void main() {
     final filtered = FoodDatabase()
         .search('', categoryGroup: group, tags: ['high-protein']).length;
     expect(find.text('Showing $filtered of 275'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Arabic cuisine appears on cards and details and is searchable',
+      (tester) async {
+    final state = _FakeState();
+    addTearDown(state.dispose);
+    await setup(tester, state, language: 'ar', size: const Size(360, 640));
+    final input = find.byKey(const ValueKey('food-search'));
+    await tester.enterText(input, 'مشويات أمريكية');
+    await tester.pumpAndSettle();
+    final food = FoodDatabase().search('American BBQ').first;
+    expect(find.text(food.nameAr), findsWidgets);
+    expect(find.textContaining('مشويات أمريكية'), findsWidgets);
+    await tester.tap(find.text(food.nameAr).first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('مشويات أمريكية'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Arabic activity log translates default workouts only',
+      (tester) async {
+    final state = _FakeState()
+      ..burns.addAll([
+        const BurnItem(
+            id: 'a',
+            title: 'Athletic Training',
+            time: 'now',
+            calories: 100,
+            type: BurnType.cardio,
+            durationMin: 10,
+            icon: ''),
+        const BurnItem(
+            id: 'b',
+            title: 'Athletic Training custom',
+            time: 'now',
+            calories: 100,
+            type: BurnType.cardio,
+            durationMin: 10,
+            icon: ''),
+        const BurnItem(
+            id: 'c',
+            title: 'Quick Exercise Burn',
+            time: 'now',
+            calories: 100,
+            type: BurnType.cardio,
+            durationMin: 10,
+            icon: ''),
+      ]);
+    addTearDown(state.dispose);
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ar'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: buildTheme(),
+      home: Scaffold(body: ActivityTab(state: state)),
+    ));
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.of(tester.element(find.byType(ActivityTab)))!;
+    await tester.scrollUntilVisible(find.text(l.defaultAthleticTraining), 200);
+    expect(find.text(l.defaultAthleticTraining), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Athletic Training custom'), 200);
+    expect(find.text('Athletic Training custom'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text(l.defaultQuickExerciseBurn), 200);
+    expect(find.text(l.defaultQuickExerciseBurn), findsOneWidget);
+    expect(state.burns.first.title, 'Athletic Training');
     expect(tester.takeException(), isNull);
   });
 

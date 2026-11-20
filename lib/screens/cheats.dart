@@ -351,7 +351,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
         ],
       )),
       if (available) ...[
-        Text(l.cravingUsed(meals.length.toString())),
+        Text(l.cravingUsed(meals.length)),
         if (meals.length >= 2) Text(l.cravingMonthlyLimit),
         const SizedBox(height: 12),
         TextField(

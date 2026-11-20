@@ -200,13 +200,12 @@ class LevelProgressPanel extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(level.nextMinimum == null
-                      ? strings(context).progressHighest(level.xp.toString())
+                      ? strings(context).progressHighest(level.xp)
                       : strings(context).progressNext(
-                          level.xp.toString(),
-                          (level.nextMinimum! - level.xp < 0
-                                  ? 0
-                                  : level.nextMinimum! - level.xp)
-                              .toString(),
+                          level.xp,
+                          level.nextMinimum! - level.xp < 0
+                              ? 0
+                              : level.nextMinimum! - level.xp,
                           level.nextName == null
                               ? strings(context).pathNotAvailable
                               : localizedLevelName(context, level.nextName!))),
@@ -224,7 +223,7 @@ class FreezeTokenCount extends StatelessWidget {
         repository: repository,
         load: repository.freezeTokens,
         builder: (context, count) =>
-            Text(strings(context).progressFreeze(count.toString())),
+            Text(strings(context).progressFreeze(count)),
       );
 }
 
@@ -236,7 +235,7 @@ class StorePointsCount extends StatelessWidget {
         repository: repository,
         load: repository.points,
         builder: (context, count) => Text(
-            strings(context).progressPoints(count.toString()),
+            strings(context).progressPoints(count),
             style: TextStyle(
                 color: kGold, fontSize: 13, fontWeight: FontWeight.w800)),
       );
@@ -260,7 +259,7 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(strings(context).rewardConfirm(reward.name)),
-        content: Text(strings(context).rewardSpend(reward.cost.toString())),
+        content: Text(strings(context).rewardSpend(reward.cost)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -329,11 +328,11 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                 Panel(
                     child: Column(children: [
                   Text(
-                      strings(context).progressPoints(store.balance.toString()),
+                      strings(context).progressPoints(store.balance),
                       style: const TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 18)),
                   Text(strings(context)
-                      .rewardFreezeCount(store.tokens.toString())),
+                      .rewardFreezeCount(store.tokens)),
                 ])),
                 Text(strings(context).rewardInfo),
                 const SizedBox(height: 12),
@@ -350,19 +349,19 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                                   const TextStyle(fontWeight: FontWeight.w800)),
                           Text(reward.description),
                           Text(strings(context).rewardDetails(
-                              reward.cost.toString(),
+                              reward.cost,
                               _tierName(context, reward.tier),
                               reward.stock == null
                                   ? strings(context).rewardUnlimited
                                   : strings(context).rewardRemaining(
-                                      reward.stock.toString()))),
+                                      reward.stock!))),
                           if (subscriptionTierRank(store.tier) <
                               subscriptionTierRank(reward.tier))
                             Text(strings(context).rewardRequires(
                                 _tierName(context, reward.tier))),
                           if (store.balance < reward.cost)
                             Text(strings(context).rewardNeedPoints(
-                                (reward.cost - store.balance).toString())),
+                                reward.cost - store.balance)),
                           Align(
                             alignment: AlignmentDirectional.centerEnd,
                             child: FilledButton(
@@ -458,7 +457,7 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                             Text(strings(context).progressAchievementValue(
                                 item.progress.toString(),
                                 item.threshold.toString(),
-                                item.xp.toString())),
+                                item.xp)),
                             if (item.progress >= item.threshold)
                               Text(strings(context).progressCompleted),
                           ]))

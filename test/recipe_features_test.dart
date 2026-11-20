@@ -85,7 +85,7 @@ void main() {
           findsNothing);
       expect(
           find.text(
-              l.recipeSummary('20', l.recipeDifficultyEasyMedium, l.foodLunch)),
+              l.recipeSummary(20, l.recipeDifficultyEasyMedium, l.foodLunch)),
           findsOneWidget);
       await tester.ensureVisible(find.byTooltip(l.recipeAddFavorite));
       await tester.pumpAndSettle();
@@ -99,7 +99,7 @@ void main() {
       expect(logged!.name, recipe.name);
       expect(logged!.category, recipe.category);
       expect(logged!.servingLabel, 'Recipe');
-      expect(find.text(l.recipeLogged(name, logged!.calories.toString())),
+      expect(find.text(l.recipeLogged(name, logged!.calories)),
           findsOneWidget);
       await tester.ensureVisible(find.text(name));
       await tester.pumpAndSettle();
@@ -107,6 +107,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l.recipeDetails), findsOneWidget);
       expect(find.text(name), findsOneWidget);
+      final description = recipe.localizedDescription(language == 'ar');
+      await tester.scrollUntilVisible(find.text(description), 150);
+      expect(find.text(description), findsOneWidget);
+      expect(
+          find.text(
+              language == 'ar' ? recipe.description : recipe.descriptionAr),
+          findsNothing);
       final ingredient =
           calculateRecipeNutrition(recipe, db.foods)!.ingredients.first;
       final ingredientName =
@@ -117,7 +124,14 @@ void main() {
       expect(find.text(ingredientText), findsOneWidget);
       await tester.scrollUntilVisible(find.text(l.recipeHowToCook), 200);
       await tester.pumpAndSettle();
-      expect(find.text(l.recipeStep('1', recipe.steps.first)), findsOneWidget);
+      expect(
+          find.text(
+              l.recipeStep('1', recipe.localizedStep(0, language == 'ar'))),
+          findsOneWidget);
+      expect(
+          find.text(l.recipeStep('1',
+              language == 'ar' ? recipe.steps.first : recipe.stepsAr.first)),
+          findsNothing);
       expect(tester.takeException(), isNull);
     });
   }

@@ -95,31 +95,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorLogInSetup => 'Please log in again to finish setup.';
 
   @override
-  String errorReduceMeal(String amount) {
-    return 'There is no logged meal to reduce by $amount kcal.';
+  String errorReduceMeal(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'There is no logged meal to reduce by $_temp0.';
   }
 
   @override
   String get errorReduceWorkout => 'There is no logged workout to reduce.';
 
   @override
-  String activityTimeDuration(String time, String minutes) {
-    return '$time • ${minutes}m';
+  String activityTimeDuration(String time, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '${minutes}m',
+      one: '${minutes}m',
+    );
+    return '$time • $_temp0';
   }
 
   @override
-  String feedbackLoggedMeal(String name, String calories) {
-    return 'Logged $name (+$calories kcal)!';
+  String feedbackLoggedMeal(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Logged $name (+$_temp0)!';
   }
 
   @override
-  String feedbackUncheckedMeal(String name, String calories) {
-    return 'Unchecked $name (-$calories kcal)!';
+  String feedbackUncheckedMeal(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Unchecked $name (-$_temp0)!';
   }
 
   @override
-  String feedbackAddedMeal(String name, String calories) {
-    return 'Added meal $name (+$calories kcal)!';
+  String feedbackAddedMeal(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Added meal $name (+$_temp0)!';
   }
 
   @override
@@ -128,28 +158,58 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String feedbackRemovedMeal(String name, String calories) {
-    return 'Removed $name (-$calories kcal)!';
+  String feedbackRemovedMeal(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Removed $name (-$_temp0)!';
   }
 
   @override
-  String feedbackAddedWorkout(String name, String calories) {
-    return 'Added workout $name (-$calories kcal burn)!';
+  String feedbackAddedWorkout(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal burn',
+      one: '$calories kcal burn',
+    );
+    return 'Added workout $name (-$_temp0)!';
   }
 
   @override
-  String feedbackRemovedWorkout(String name, String calories) {
-    return 'Removed $name (-$calories kcal burn)!';
+  String feedbackRemovedWorkout(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal burn',
+      one: '$calories kcal burn',
+    );
+    return 'Removed $name (-$_temp0)!';
   }
 
   @override
-  String feedbackDeductFood(String amount) {
-    return 'Deducted $amount kcal from food intake!';
+  String feedbackDeductFood(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Deducted $_temp0 from food intake!';
   }
 
   @override
-  String feedbackDeductWorkout(String amount) {
-    return 'Deducted $amount kcal from workout burn!';
+  String feedbackDeductWorkout(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Deducted $_temp0 from workout burn!';
   }
 
   @override
@@ -780,6 +840,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get communityFollowers => 'Followers';
 
   @override
+  String communityPostCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Posts',
+      one: 'Posts',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityFriendCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Friends',
+      one: 'Friends',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityFollowerCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Followers',
+      one: 'Followers',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityLikeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      one: '$count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String communityCommentCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count',
+      one: '$count',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get communityNoBadges => 'No badges earned yet.';
 
   @override
@@ -818,8 +933,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String arenaWorkoutsCount(String count) {
-    return '$count workouts';
+  String arenaWorkoutsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count workouts',
+      one: '$count workouts',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -940,8 +1061,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String arenaParticipants(String count) {
-    return '$count participants';
+  String arenaParticipants(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count participants',
+      one: '$count participants',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -993,8 +1120,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arenaNoRanked => 'No activity has been ranked for this filter.';
 
   @override
-  String arenaCurrentStreak(String count) {
-    return 'Current streak: $count';
+  String arenaCurrentStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Current streak: $count',
+      one: 'Current streak: $count',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1166,8 +1299,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coachResponding => 'Coach is responding…';
 
   @override
-  String coachRequestsLeft(String count) {
-    return 'Requests left today: $count';
+  String coachRequestsLeft(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Requests left today: $count',
+      one: 'Requests left today: $count',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1235,8 +1374,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeDeviceSaveError => 'The device did not save the favorite.';
 
   @override
-  String recipeLogged(String name, String kcal) {
-    return 'Logged $name ($kcal kcal)';
+  String recipeLogged(String name, int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      kcal,
+      locale: localeName,
+      other: '$kcal kcal',
+      one: '$kcal kcal',
+    );
+    return 'Logged $name ($_temp0)';
   }
 
   @override
@@ -1261,8 +1406,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeTargetUnavailable => 'Daily target unavailable.';
 
   @override
-  String recipeRemaining(String kcal, String protein) {
-    return 'Remaining today: $kcal kcal · $protein g protein';
+  String recipeRemaining(int kcal, String protein) {
+    String _temp0 = intl.Intl.pluralLogic(
+      kcal,
+      locale: localeName,
+      other: '$kcal kcal',
+      one: '$kcal kcal',
+    );
+    return 'Remaining today: $_temp0 · $protein g protein';
   }
 
   @override
@@ -1305,8 +1456,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeAddFavorite => 'Add favorite';
 
   @override
-  String recipeKcal(String amount) {
-    return '$amount kcal';
+  String recipeKcal(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1315,8 +1472,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String recipeSummary(String minutes, String difficulty, String meal) {
-    return '$minutes min · $difficulty · $meal';
+  String recipeSummary(int minutes, String difficulty, String meal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '$minutes min',
+    );
+    return '$_temp0 · $difficulty · $meal';
   }
 
   @override
@@ -1332,8 +1495,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipeEstimated => 'Estimated from ingredients';
 
   @override
-  String recipeOver(String kcal) {
-    return 'Over by $kcal kcal';
+  String recipeOver(int kcal) {
+    String _temp0 = intl.Intl.pluralLogic(
+      kcal,
+      locale: localeName,
+      other: '$kcal kcal',
+      one: '$kcal kcal',
+    );
+    return 'Over by $_temp0';
   }
 
   @override
@@ -1443,8 +1612,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cravingSunday => 'S';
 
   @override
-  String cravingUsed(String count) {
-    return '$count of 2 used this month';
+  String cravingUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of 2 used this month',
+      one: '$count of 2 used this month',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1520,8 +1695,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String academyBurn(String kcal, String minutes) {
-    return 'about $kcal kcal / $minutes mins';
+  String academyBurn(int kcal, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      kcal,
+      locale: localeName,
+      other: '$kcal kcal',
+      one: '$kcal kcal',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes mins',
+      one: '$minutes mins',
+    );
+    return 'about $_temp0 / $_temp1';
   }
 
   @override
@@ -1696,13 +1883,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String plannerWorkoutSummary(String minutes, String effort) {
-    return 'Workout · $minutes min · $effort% effort';
+  String plannerWorkoutSummary(int minutes, String effort) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '$minutes min',
+    );
+    return 'Workout · $_temp0 · $effort% effort';
   }
 
   @override
-  String plannerSplitSummary(String minutes, String effort) {
-    return '$minutes min · $effort% effort';
+  String plannerSplitSummary(int minutes, String effort) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '$minutes min',
+    );
+    return '$_temp0 · $effort% effort';
+  }
+
+  @override
+  String plannerWorkoutNoDuration(String effort) {
+    return 'Workout · null min · $effort% effort';
+  }
+
+  @override
+  String plannerSplitNoDuration(String effort) {
+    return 'null min · $effort% effort';
   }
 
   @override
@@ -1873,13 +2082,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String mergeMinutes(String minutes) {
-    return '$minutes minutes';
+  String mergeMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '$minutes minutes',
+    );
+    return '$_temp0';
   }
 
   @override
-  String mergeShortMinutes(String minutes) {
-    return '$minutes min';
+  String mergeShortMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '$minutes min',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1888,8 +2109,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String mergeCalories(String calories) {
-    return '$calories kcal';
+  String mergeCalories(int count, String calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1926,8 +2153,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String burnedAmount(String amount) {
-    return '$amount kcal burned';
+  String burnedAmount(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount kcal burned',
+      one: '$amount kcal burned',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1994,8 +2227,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burned => 'Burned';
 
   @override
-  String burnTarget(String amount) {
-    return '/ $amount kcal target';
+  String burnTarget(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal target',
+      one: '$amount kcal target',
+    );
+    return '/ $_temp0';
   }
 
   @override
@@ -2005,18 +2244,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burnRingNote => 'Each ring uses the daily burn goal.';
 
   @override
-  String totalBurn(String amount) {
-    return 'Total burn ($amount kcal)';
+  String totalBurn(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Total burn ($_temp0)';
   }
 
   @override
-  String strengthBurn(String amount) {
-    return 'Strength burn ($amount kcal)';
+  String strengthBurn(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Strength burn ($_temp0)';
   }
 
   @override
-  String cardioBurn(String amount) {
-    return 'Cardio burn ($amount kcal)';
+  String cardioBurn(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Cardio burn ($_temp0)';
   }
 
   @override
@@ -2038,8 +2295,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burnTypeMobility => 'mobility';
 
   @override
-  String workoutLogs(String count) {
-    return 'Workout Logs ($count)';
+  String workoutLogs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Workout Logs ($count)',
+      one: 'Workout Logs ($count)',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2106,8 +2369,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String workoutSavedTitle(String name, String minutes) {
-    return '$name - $minutes min';
+  String workoutSavedTitle(String name, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '$minutes min',
+    );
+    return '$name - $_temp0';
   }
 
   @override
@@ -2121,8 +2390,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Estimate unavailable — enter calories manually.';
 
   @override
-  String workoutEstimate(String amount) {
-    return '≈ $amount kcal burned';
+  String workoutEstimate(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount kcal burned',
+      one: '$amount kcal burned',
+    );
+    return '≈ $_temp0';
   }
 
   @override
@@ -2168,8 +2443,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get foodEstimated => ' • Estimated';
 
   @override
-  String foodGoalSummary(String goal, String estimated, String count) {
-    return 'Goal: $goal$estimated • Logged items: $count';
+  String foodGoalSummary(String goal, String estimated, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Logged items: $count',
+      one: 'Logged items: $count',
+    );
+    return 'Goal: $goal$estimated • $_temp0';
   }
 
   @override
@@ -2253,8 +2534,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String foodGroupTotals(String calories, String protein) {
-    return '$calories kcal • ${protein}g P';
+  String foodGroupTotals(int calories, String protein) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return '$_temp0 • ${protein}g P';
   }
 
   @override
@@ -2301,8 +2588,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String foodCaloriesLines(String amount) {
-    return '$amount\nkcal';
+  String foodCaloriesLines(int amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      amount,
+      locale: localeName,
+      other: '$amount\nkcal',
+      one: '$amount\nkcal',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2361,8 +2654,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explorerClear => 'Clear search';
 
   @override
-  String explorerShowing(String shown, String total) {
-    return 'Showing $shown of $total';
+  String explorerShowing(int shown, String total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      shown,
+      locale: localeName,
+      other: 'Showing $shown of $total',
+      one: 'Showing $shown of $total',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2376,8 +2675,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nutrition values are approximate estimates.';
 
   @override
-  String explorerPer100(String calories) {
-    return 'Per 100 g: $calories kcal';
+  String explorerPer100(int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Per 100 g: $_temp0';
   }
 
   @override
@@ -2395,8 +2700,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String explorerLogged(String name, String calories) {
-    return 'Logged $name ($calories kcal)';
+  String explorerLogged(String name, int calories) {
+    String _temp0 = intl.Intl.pluralLogic(
+      calories,
+      locale: localeName,
+      other: '$calories kcal',
+      one: '$calories kcal',
+    );
+    return 'Logged $name ($_temp0)';
   }
 
   @override
@@ -2571,8 +2882,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Complete all fields for a personal estimate.';
 
   @override
-  String profileAdjustment(String amount, String minor) {
-    return 'Goal adjustment: $amount kcal$minor';
+  String profileAdjustment(int count, String amount, String minor) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$amount kcal',
+      one: '$amount kcal',
+    );
+    return 'Goal adjustment: $_temp0$minor';
   }
 
   @override
@@ -2904,23 +3221,53 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String progressHighest(String xp) {
-    return '$xp XP · Highest level';
+  String progressHighest(int xp) {
+    String _temp0 = intl.Intl.pluralLogic(
+      xp,
+      locale: localeName,
+      other: '$xp XP',
+      one: '$xp XP',
+    );
+    return '$_temp0 · Highest level';
   }
 
   @override
-  String progressNext(String xp, String remaining, String name) {
-    return '$xp XP · $remaining XP to $name';
+  String progressNext(int xp, int remaining, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      xp,
+      locale: localeName,
+      other: '$xp XP',
+      one: '$xp XP',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      remaining,
+      locale: localeName,
+      other: '$remaining XP',
+      one: '$remaining XP',
+    );
+    return '$_temp0 · $_temp1 to $name';
   }
 
   @override
-  String progressFreeze(String count) {
-    return 'Freeze tokens: $count';
+  String progressFreeze(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Freeze tokens: $count',
+      one: 'Freeze tokens: $count',
+    );
+    return '$_temp0';
   }
 
   @override
-  String progressPoints(String count) {
-    return '$count store points';
+  String progressPoints(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count store points',
+      one: '$count store points',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2929,8 +3276,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String rewardSpend(String count) {
-    return 'Spend $count store points?';
+  String rewardSpend(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Spend $count store points?',
+      one: 'Spend $count store points?',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2947,8 +3300,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardDone => 'Reward redeemed.';
 
   @override
-  String rewardFreezeCount(String count) {
-    return 'Freeze tokens: $count / 3';
+  String rewardFreezeCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Freeze tokens: $count / 3',
+      one: 'Freeze tokens: $count / 3',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -2962,13 +3321,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardUnlimited => 'Unlimited stock';
 
   @override
-  String rewardRemaining(String count) {
-    return '$count remaining';
+  String rewardRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count remaining',
+      one: '$count remaining',
+    );
+    return '$_temp0';
   }
 
   @override
-  String rewardDetails(String cost, String tier, String stock) {
-    return '$cost points · $tier tier · $stock';
+  String rewardDetails(int cost, String tier, String stock) {
+    String _temp0 = intl.Intl.pluralLogic(
+      cost,
+      locale: localeName,
+      other: '$cost points',
+      one: '$cost points',
+    );
+    return '$_temp0 · $tier tier · $stock';
   }
 
   @override
@@ -2977,8 +3348,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String rewardNeedPoints(String count) {
-    return 'Need $count more points';
+  String rewardNeedPoints(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Need $count more points',
+      one: 'Need $count more points',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3037,9 +3414,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressNoAchievements => 'No achievements available yet.';
 
   @override
-  String progressAchievementValue(
-      String progress, String threshold, String xp) {
-    return '$progress / $threshold · $xp XP';
+  String progressAchievementValue(String progress, String threshold, int xp) {
+    String _temp0 = intl.Intl.pluralLogic(
+      xp,
+      locale: localeName,
+      other: '$xp XP',
+      one: '$xp XP',
+    );
+    return '$progress / $threshold · $_temp0';
   }
 
   @override
@@ -3086,8 +3468,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pathLongestStreak => 'Longest streak (all time)';
 
   @override
-  String pathDays(String days) {
-    return '$days days';
+  String pathDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days',
+      one: '$days days',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3152,6 +3540,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }
+
+  @override
+  String get defaultHighProteinFuel => 'High-Protein Fuel';
+
+  @override
+  String get defaultAthleticTraining => 'Athletic Training';
+
+  @override
+  String get defaultQuickCalorieSnack => 'Quick Calorie Snack';
+
+  @override
+  String get defaultQuickExerciseBurn => 'Quick Exercise Burn';
 
   @override
   String get language => 'Language';

@@ -378,7 +378,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     appState.targetCalories > 0
                                         ? l.profileCalorieValue(
                                             l.mergeCalories(
-                                                fmt(appState.targetCalories)),
+                                                appState.targetCalories, fmt(appState.targetCalories)),
                                             appState.calorieTarget.isEstimate
                                                 ? l.foodEstimated
                                                 : '')

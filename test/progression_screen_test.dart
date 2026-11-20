@@ -45,14 +45,14 @@ void main() {
       final l =
           AppLocalizations.of(tester.element(find.byType(LevelProgressPanel)))!;
       expect(find.text(l.progressLevel(l.levelBronze)), findsOneWidget);
-      expect(find.text(l.progressNext('100', '400', l.levelSilver)),
+      expect(find.text(l.progressNext(100, 400, l.levelSilver)),
           findsOneWidget);
       await tester.pumpWidget(app(RewardsStoreScreen(repository: repo)));
       await tester.pumpAndSettle();
-      expect(find.text(l.progressPoints('200')), findsOneWidget);
+      expect(find.text(l.progressPoints(200)), findsOneWidget);
       await tester.tap(find.text(l.rewardRedeem));
       await tester.pumpAndSettle();
-      expect(find.text(l.rewardSpend('50')), findsOneWidget);
+      expect(find.text(l.rewardSpend(50)), findsOneWidget);
       await tester.tap(find.text(l.plannerCancel));
       await tester.pumpAndSettle();
       await tester.pumpWidget(const SizedBox());
@@ -60,7 +60,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text(l.progressBadges.toUpperCase()), findsOneWidget);
       await tester.ensureVisible(
-          find.text(l.progressAchievementValue('10', '100', '150')));
+          find.text(l.progressAchievementValue('10', '100', 150)));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });

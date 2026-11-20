@@ -213,7 +213,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                 Wrap(spacing: 8, children: [
                   for (final minutes in [15, 30, 45, 60, 90])
                     ChoiceChip(
-                      label: Text(l.mergeShortMinutes(minutes.toString())),
+                      label: Text(l.mergeShortMinutes(minutes)),
                       selected: int.tryParse(duration.text) == minutes,
                       selectedColor: p.accent.withAlpha(55),
                       onSelected: saving
@@ -241,7 +241,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                 Text(
                     currentEstimate == null
                         ? l.workoutEstimateUnavailable
-                        : l.workoutEstimate(currentEstimate.toString()),
+                        : l.workoutEstimate(currentEstimate),
                     style: TextStyle(
                         color: p.accentText,
                         fontWeight: FontWeight.bold,

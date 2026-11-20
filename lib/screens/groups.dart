@@ -1684,7 +1684,8 @@ class _GroupPostState extends State<_GroupPost> {
                         semanticLabel: liked
                             ? strings(context).communityUnlikePost
                             : strings(context).communityLikePost),
-                    label: Text(snapshot.data!.length.toString())),
+                    label: Text(strings(context)
+                        .communityLikeCount(snapshot.data!.length))),
                 TextButton(
                     onPressed: () async {
                       await Navigator.push(

@@ -121,12 +121,12 @@ void main() {
       await tester.tap(find.text(l.mergeSavedName(l.plannerPush)));
       await tester.pumpAndSettle();
       await visible(
-          tester, find.text(l.mergeEstimatedCalories(l.mergeCalories('920'))));
-      expect(find.text(l.mergeCombinedDuration(l.mergeMinutes('120'))),
+          tester, find.text(l.mergeEstimatedCalories(l.mergeCalories(920, '920'))));
+      expect(find.text(l.mergeCombinedDuration(l.mergeMinutes(120))),
           findsOneWidget);
       expect(
           find.text(
-              l.mergeNamedValue(l.plannerPush, l.mergeShortMinutes('60'))),
+              l.mergeNamedValue(l.plannerPush, l.mergeShortMinutes(60))),
           findsOneWidget);
       expect(find.text(l.mergeEstimateNote), findsOneWidget);
       await tap(tester, find.text(l.mergePlanDate));

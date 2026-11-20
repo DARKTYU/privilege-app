@@ -304,13 +304,13 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                   Text(
                                       l.foodGoalSummary(
                                           goal > 0
-                                              ? l.mergeCalories(fmt(goal))
+                                              ? l.mergeCalories(goal, fmt(goal))
                                               : l.mergeUnavailable
                                                   .toLowerCase(),
                                           state.calorieTarget.isEstimate
                                               ? l.foodEstimated
                                               : '',
-                                          consumed.length.toString()),
+                                          consumed.length),
                                       style: TextStyle(
                                           color: palette.muted, fontSize: 11)),
                                 ])),
@@ -610,8 +610,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                 Text(
                     strings(context).foodGroupTotals(
                         active
-                            .fold<int>(0, (v, m) => v + m.calories)
-                            .toString(),
+                            .fold<int>(0, (v, m) => v + m.calories),
                         active
                             .fold<int>(0, (v, m) => v + m.proteinGrams)
                             .toString()),
@@ -641,7 +640,9 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
     final arabic = Localizations.localeOf(context).languageCode == 'ar';
     final name = meal.source == 'food_db' && arabic && food != null
         ? food.nameAr
-        : meal.name;
+        : meal.source == 'food_db'
+            ? meal.name
+            : defaultActivityName(meal.name, l);
     String serving() {
       final label = meal.servingLabel;
       if (label == null) {
@@ -736,7 +737,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                   width: 46,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(l.foodCaloriesLines(meal.calories.toString()),
+                    child: Text(l.foodCaloriesLines(meal.calories),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: p.text,

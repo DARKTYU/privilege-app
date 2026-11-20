@@ -15,21 +15,11 @@ class _AcademyScreenState extends State<AcademyScreen> {
   String _category = 'all';
   String _query = '';
 
-  String _difficulty(BuildContext context, String value) {
-    final l = strings(context);
-    return switch (value) {
-      'Beginner' => l.levelBeginner,
-      'Intermediate' => l.levelIntermediate,
-      'Pro' => l.levelPro,
-      _ => value,
-    };
-  }
-
   String _burnRate(BuildContext context, String value) {
     final l = strings(context);
     if (value == 'Lifetime Knowledge') return l.academyLifetime;
     final match = RegExp(r'^(\d+) kcal / (\d+) mins$').firstMatch(value);
-    return match == null ? value : l.academyBurn(match[1]!, match[2]!);
+    return match == null ? value : l.academyBurn(int.parse(match[1]!), int.parse(match[2]!));
   }
 
   IconData _guideIcon(ExerciseGuide guide) {
@@ -65,16 +55,20 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text(g.title,
+                    Text(
+                        g.localizedTitle(
+                            Localizations.localeOf(ctx).languageCode == 'ar'),
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.w800)),
-                    Text(g.subCategory),
+                    Text(g.localizedSubCategory(
+                        Localizations.localeOf(ctx).languageCode == 'ar')),
                   ])),
             ]),
             const SizedBox(height: 12),
             Text(strings(ctx).academyDisclaimer),
             sectionTitle(strings(ctx).academyCues),
-            for (final c in g.cues)
+            for (final c in g.localizedCues(
+                Localizations.localeOf(ctx).languageCode == 'ar'))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -90,7 +84,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
                     ]),
               ),
             sectionTitle(strings(ctx).academyMistakes),
-            for (final m in g.mistakes)
+            for (final m in g.localizedMistakes(
+                Localizations.localeOf(ctx).languageCode == 'ar'))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
@@ -117,6 +112,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
   @override
   Widget build(BuildContext context) {
     final l = strings(context);
+    final arabic = Localizations.localeOf(context).languageCode == 'ar';
     final tabs = [
       ('all', l.academyAllGuides),
       ('gym', l.academyGymLifts),
@@ -128,7 +124,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
       final cat = _category == 'all' || g.category == _category;
       final match = g.title.toLowerCase().contains(q) ||
           g.subCategory.toLowerCase().contains(q) ||
-          g.muscles.any((m) => m.toLowerCase().contains(q));
+          g.muscles.any((m) => m.toLowerCase().contains(q)) ||
+          g.titleAr.toLowerCase().contains(q) ||
+          g.subCategoryAr.toLowerCase().contains(q) ||
+          g.musclesAr.any((m) => m.toLowerCase().contains(q));
       return cat && match;
     }).toList();
 
@@ -183,20 +182,26 @@ class _AcademyScreenState extends State<AcademyScreen> {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(g.subCategory.toUpperCase(),
+                                    Text(
+                                        g
+                                            .localizedSubCategory(arabic)
+                                            .toUpperCase(),
                                         style: TextStyle(
                                             fontSize: 10,
                                             color: kGold,
                                             fontWeight: FontWeight.w800)),
-                                    Text(g.title,
+                                    Text(g.localizedTitle(arabic),
                                         style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800)),
-                                    Text(_difficulty(context, g.difficulty),
+                                    Text(g.localizedDifficulty(arabic),
                                         style: TextStyle(
                                             color: kMuted, fontSize: 11)),
                                     const SizedBox(height: 4),
-                                    Text(l.academyMuscles(g.muscles.join(', ')),
+                                    Text(
+                                        l.academyMuscles(g
+                                            .localizedMuscles(arabic)
+                                            .join(', ')),
                                         style: TextStyle(
                                             fontSize: 12, color: kMuted)),
                                     const SizedBox(height: 8),

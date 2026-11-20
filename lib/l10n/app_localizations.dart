@@ -251,8 +251,8 @@ abstract class AppLocalizations {
   /// No description provided for @errorReduceMeal.
   ///
   /// In en, this message translates to:
-  /// **'There is no logged meal to reduce by {amount} kcal.'**
-  String errorReduceMeal(String amount);
+  /// **'There is no logged meal to reduce by {amount, plural, one{{amount} kcal} other{{amount} kcal}}.'**
+  String errorReduceMeal(int amount);
 
   /// No description provided for @errorReduceWorkout.
   ///
@@ -263,26 +263,26 @@ abstract class AppLocalizations {
   /// No description provided for @activityTimeDuration.
   ///
   /// In en, this message translates to:
-  /// **'{time} • {minutes}m'**
-  String activityTimeDuration(String time, String minutes);
+  /// **'{time} • {minutes, plural, one{{minutes}m} other{{minutes}m}}'**
+  String activityTimeDuration(String time, int minutes);
 
   /// No description provided for @feedbackLoggedMeal.
   ///
   /// In en, this message translates to:
-  /// **'Logged {name} (+{calories} kcal)!'**
-  String feedbackLoggedMeal(String name, String calories);
+  /// **'Logged {name} (+{calories, plural, one{{calories} kcal} other{{calories} kcal}})!'**
+  String feedbackLoggedMeal(String name, int calories);
 
   /// No description provided for @feedbackUncheckedMeal.
   ///
   /// In en, this message translates to:
-  /// **'Unchecked {name} (-{calories} kcal)!'**
-  String feedbackUncheckedMeal(String name, String calories);
+  /// **'Unchecked {name} (-{calories, plural, one{{calories} kcal} other{{calories} kcal}})!'**
+  String feedbackUncheckedMeal(String name, int calories);
 
   /// No description provided for @feedbackAddedMeal.
   ///
   /// In en, this message translates to:
-  /// **'Added meal {name} (+{calories} kcal)!'**
-  String feedbackAddedMeal(String name, String calories);
+  /// **'Added meal {name} (+{calories, plural, one{{calories} kcal} other{{calories} kcal}})!'**
+  String feedbackAddedMeal(String name, int calories);
 
   /// No description provided for @feedbackUpdated.
   ///
@@ -293,32 +293,32 @@ abstract class AppLocalizations {
   /// No description provided for @feedbackRemovedMeal.
   ///
   /// In en, this message translates to:
-  /// **'Removed {name} (-{calories} kcal)!'**
-  String feedbackRemovedMeal(String name, String calories);
+  /// **'Removed {name} (-{calories, plural, one{{calories} kcal} other{{calories} kcal}})!'**
+  String feedbackRemovedMeal(String name, int calories);
 
   /// No description provided for @feedbackAddedWorkout.
   ///
   /// In en, this message translates to:
-  /// **'Added workout {name} (-{calories} kcal burn)!'**
-  String feedbackAddedWorkout(String name, String calories);
+  /// **'Added workout {name} (-{calories, plural, one{{calories} kcal burn} other{{calories} kcal burn}})!'**
+  String feedbackAddedWorkout(String name, int calories);
 
   /// No description provided for @feedbackRemovedWorkout.
   ///
   /// In en, this message translates to:
-  /// **'Removed {name} (-{calories} kcal burn)!'**
-  String feedbackRemovedWorkout(String name, String calories);
+  /// **'Removed {name} (-{calories, plural, one{{calories} kcal burn} other{{calories} kcal burn}})!'**
+  String feedbackRemovedWorkout(String name, int calories);
 
   /// No description provided for @feedbackDeductFood.
   ///
   /// In en, this message translates to:
-  /// **'Deducted {amount} kcal from food intake!'**
-  String feedbackDeductFood(String amount);
+  /// **'Deducted {amount, plural, one{{amount} kcal} other{{amount} kcal}} from food intake!'**
+  String feedbackDeductFood(int amount);
 
   /// No description provided for @feedbackDeductWorkout.
   ///
   /// In en, this message translates to:
-  /// **'Deducted {amount} kcal from workout burn!'**
-  String feedbackDeductWorkout(String amount);
+  /// **'Deducted {amount, plural, one{{amount} kcal} other{{amount} kcal}} from workout burn!'**
+  String feedbackDeductWorkout(int amount);
 
   /// No description provided for @groupTitle.
   ///
@@ -863,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @groupsMemberCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  /// **'{count, plural, one{1 member} other{{count} members}}'**
   String groupsMemberCount(int count);
 
   /// No description provided for @groupsMember.
@@ -1460,6 +1460,36 @@ abstract class AppLocalizations {
   /// **'Followers'**
   String get communityFollowers;
 
+  /// No description provided for @communityPostCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Posts} other{Posts}}'**
+  String communityPostCountLabel(int count);
+
+  /// No description provided for @communityFriendCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Friends} other{Friends}}'**
+  String communityFriendCountLabel(int count);
+
+  /// No description provided for @communityFollowerCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Followers} other{Followers}}'**
+  String communityFollowerCountLabel(int count);
+
+  /// No description provided for @communityLikeCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count}} other{{count}}}'**
+  String communityLikeCount(int count);
+
+  /// No description provided for @communityCommentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count}} other{{count}}}'**
+  String communityCommentCount(int count);
+
   /// No description provided for @communityNoBadges.
   ///
   /// In en, this message translates to:
@@ -1523,8 +1553,8 @@ abstract class AppLocalizations {
   /// No description provided for @arenaWorkoutsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} workouts'**
-  String arenaWorkoutsCount(String count);
+  /// **'{count, plural, one{{count} workouts} other{{count} workouts}}'**
+  String arenaWorkoutsCount(int count);
 
   /// No description provided for @arenaNoPrizesRule.
   ///
@@ -1733,8 +1763,8 @@ abstract class AppLocalizations {
   /// No description provided for @arenaParticipants.
   ///
   /// In en, this message translates to:
-  /// **'{count} participants'**
-  String arenaParticipants(String count);
+  /// **'{count, plural, one{{count} participants} other{{count} participants}}'**
+  String arenaParticipants(int count);
 
   /// No description provided for @arenaScore.
   ///
@@ -1823,8 +1853,8 @@ abstract class AppLocalizations {
   /// No description provided for @arenaCurrentStreak.
   ///
   /// In en, this message translates to:
-  /// **'Current streak: {count}'**
-  String arenaCurrentStreak(String count);
+  /// **'{count, plural, one{Current streak: {count}} other{Current streak: {count}}}'**
+  String arenaCurrentStreak(int count);
 
   /// No description provided for @arenaLevelStreak.
   ///
@@ -2093,8 +2123,8 @@ abstract class AppLocalizations {
   /// No description provided for @coachRequestsLeft.
   ///
   /// In en, this message translates to:
-  /// **'Requests left today: {count}'**
-  String coachRequestsLeft(String count);
+  /// **'{count, plural, one{Requests left today: {count}} other{Requests left today: {count}}}'**
+  String coachRequestsLeft(int count);
 
   /// No description provided for @coachInputHint.
   ///
@@ -2201,8 +2231,8 @@ abstract class AppLocalizations {
   /// No description provided for @recipeLogged.
   ///
   /// In en, this message translates to:
-  /// **'Logged {name} ({kcal} kcal)'**
-  String recipeLogged(String name, String kcal);
+  /// **'Logged {name} ({kcal, plural, one{{kcal} kcal} other{{kcal} kcal}})'**
+  String recipeLogged(String name, int kcal);
 
   /// No description provided for @recipeLogError.
   ///
@@ -2243,8 +2273,8 @@ abstract class AppLocalizations {
   /// No description provided for @recipeRemaining.
   ///
   /// In en, this message translates to:
-  /// **'Remaining today: {kcal} kcal · {protein} g protein'**
-  String recipeRemaining(String kcal, String protein);
+  /// **'Remaining today: {kcal, plural, one{{kcal} kcal} other{{kcal} kcal}} · {protein} g protein'**
+  String recipeRemaining(int kcal, String protein);
 
   /// No description provided for @recipeTargetReached.
   ///
@@ -2327,8 +2357,8 @@ abstract class AppLocalizations {
   /// No description provided for @recipeKcal.
   ///
   /// In en, this message translates to:
-  /// **'{amount} kcal'**
-  String recipeKcal(String amount);
+  /// **'{amount, plural, one{{amount} kcal} other{{amount} kcal}}'**
+  String recipeKcal(int amount);
 
   /// No description provided for @recipeMacro.
   ///
@@ -2339,8 +2369,8 @@ abstract class AppLocalizations {
   /// No description provided for @recipeSummary.
   ///
   /// In en, this message translates to:
-  /// **'{minutes} min · {difficulty} · {meal}'**
-  String recipeSummary(String minutes, String difficulty, String meal);
+  /// **'{minutes, plural, one{{minutes} min} other{{minutes} min}} · {difficulty} · {meal}'**
+  String recipeSummary(int minutes, String difficulty, String meal);
 
   /// No description provided for @recipeDifficultyEasy.
   ///
@@ -2369,8 +2399,8 @@ abstract class AppLocalizations {
   /// No description provided for @recipeOver.
   ///
   /// In en, this message translates to:
-  /// **'Over by {kcal} kcal'**
-  String recipeOver(String kcal);
+  /// **'Over by {kcal, plural, one{{kcal} kcal} other{{kcal} kcal}}'**
+  String recipeOver(int kcal);
 
   /// No description provided for @recipeNutritionUnavailable.
   ///
@@ -2555,8 +2585,8 @@ abstract class AppLocalizations {
   /// No description provided for @cravingUsed.
   ///
   /// In en, this message translates to:
-  /// **'{count} of 2 used this month'**
-  String cravingUsed(String count);
+  /// **'{count, plural, one{{count} of 2 used this month} other{{count} of 2 used this month}}'**
+  String cravingUsed(int count);
 
   /// No description provided for @cravingMonthlyLimit.
   ///
@@ -2687,8 +2717,8 @@ abstract class AppLocalizations {
   /// No description provided for @academyBurn.
   ///
   /// In en, this message translates to:
-  /// **'about {kcal} kcal / {minutes} mins'**
-  String academyBurn(String kcal, String minutes);
+  /// **'about {kcal, plural, one{{kcal} kcal} other{{kcal} kcal}} / {minutes, plural, one{{minutes} mins} other{{minutes} mins}}'**
+  String academyBurn(int kcal, int minutes);
 
   /// No description provided for @academyLifetime.
   ///
@@ -3011,14 +3041,26 @@ abstract class AppLocalizations {
   /// No description provided for @plannerWorkoutSummary.
   ///
   /// In en, this message translates to:
-  /// **'Workout · {minutes} min · {effort}% effort'**
-  String plannerWorkoutSummary(String minutes, String effort);
+  /// **'Workout · {minutes, plural, one{{minutes} min} other{{minutes} min}} · {effort}% effort'**
+  String plannerWorkoutSummary(int minutes, String effort);
 
   /// No description provided for @plannerSplitSummary.
   ///
   /// In en, this message translates to:
-  /// **'{minutes} min · {effort}% effort'**
-  String plannerSplitSummary(String minutes, String effort);
+  /// **'{minutes, plural, one{{minutes} min} other{{minutes} min}} · {effort}% effort'**
+  String plannerSplitSummary(int minutes, String effort);
+
+  /// No description provided for @plannerWorkoutNoDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout · null min · {effort}% effort'**
+  String plannerWorkoutNoDuration(String effort);
+
+  /// No description provided for @plannerSplitNoDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'null min · {effort}% effort'**
+  String plannerSplitNoDuration(String effort);
 
   /// No description provided for @plannerEditName.
   ///
@@ -3311,14 +3353,14 @@ abstract class AppLocalizations {
   /// No description provided for @mergeMinutes.
   ///
   /// In en, this message translates to:
-  /// **'{minutes} minutes'**
-  String mergeMinutes(String minutes);
+  /// **'{minutes, plural, one{{minutes} minutes} other{{minutes} minutes}}'**
+  String mergeMinutes(int minutes);
 
   /// No description provided for @mergeShortMinutes.
   ///
   /// In en, this message translates to:
-  /// **'{minutes} min'**
-  String mergeShortMinutes(String minutes);
+  /// **'{minutes, plural, one{{minutes} min} other{{minutes} min}}'**
+  String mergeShortMinutes(int minutes);
 
   /// No description provided for @mergeNamedValue.
   ///
@@ -3329,8 +3371,8 @@ abstract class AppLocalizations {
   /// No description provided for @mergeCalories.
   ///
   /// In en, this message translates to:
-  /// **'{calories} kcal'**
-  String mergeCalories(String calories);
+  /// **'{count, plural, one{{calories} kcal} other{{calories} kcal}}'**
+  String mergeCalories(int count, String calories);
 
   /// No description provided for @mergeEstimatedCalories.
   ///
@@ -3383,8 +3425,8 @@ abstract class AppLocalizations {
   /// No description provided for @burnedAmount.
   ///
   /// In en, this message translates to:
-  /// **'{amount} kcal burned'**
-  String burnedAmount(String amount);
+  /// **'{count, plural, one{{amount} kcal burned} other{{amount} kcal burned}}'**
+  String burnedAmount(int count, String amount);
 
   /// No description provided for @deleteNamed.
   ///
@@ -3509,8 +3551,8 @@ abstract class AppLocalizations {
   /// No description provided for @burnTarget.
   ///
   /// In en, this message translates to:
-  /// **'/ {amount} kcal target'**
-  String burnTarget(String amount);
+  /// **'/ {amount, plural, one{{amount} kcal target} other{{amount} kcal target}}'**
+  String burnTarget(int amount);
 
   /// No description provided for @burnGoalNote.
   ///
@@ -3527,20 +3569,20 @@ abstract class AppLocalizations {
   /// No description provided for @totalBurn.
   ///
   /// In en, this message translates to:
-  /// **'Total burn ({amount} kcal)'**
-  String totalBurn(String amount);
+  /// **'Total burn ({amount, plural, one{{amount} kcal} other{{amount} kcal}})'**
+  String totalBurn(int amount);
 
   /// No description provided for @strengthBurn.
   ///
   /// In en, this message translates to:
-  /// **'Strength burn ({amount} kcal)'**
-  String strengthBurn(String amount);
+  /// **'Strength burn ({amount, plural, one{{amount} kcal} other{{amount} kcal}})'**
+  String strengthBurn(int amount);
 
   /// No description provided for @cardioBurn.
   ///
   /// In en, this message translates to:
-  /// **'Cardio burn ({amount} kcal)'**
-  String cardioBurn(String amount);
+  /// **'Cardio burn ({amount, plural, one{{amount} kcal} other{{amount} kcal}})'**
+  String cardioBurn(int amount);
 
   /// No description provided for @burnStats.
   ///
@@ -3581,8 +3623,8 @@ abstract class AppLocalizations {
   /// No description provided for @workoutLogs.
   ///
   /// In en, this message translates to:
-  /// **'Workout Logs ({count})'**
-  String workoutLogs(String count);
+  /// **'{count, plural, one{Workout Logs ({count})} other{Workout Logs ({count})}}'**
+  String workoutLogs(int count);
 
   /// No description provided for @workoutInvalidDuration.
   ///
@@ -3701,8 +3743,8 @@ abstract class AppLocalizations {
   /// No description provided for @workoutSavedTitle.
   ///
   /// In en, this message translates to:
-  /// **'{name} - {minutes} min'**
-  String workoutSavedTitle(String name, String minutes);
+  /// **'{name} - {minutes, plural, one{{minutes} min} other{{minutes} min}}'**
+  String workoutSavedTitle(String name, int minutes);
 
   /// No description provided for @justNow.
   ///
@@ -3725,8 +3767,8 @@ abstract class AppLocalizations {
   /// No description provided for @workoutEstimate.
   ///
   /// In en, this message translates to:
-  /// **'≈ {amount} kcal burned'**
-  String workoutEstimate(String amount);
+  /// **'≈ {amount, plural, one{{amount} kcal burned} other{{amount} kcal burned}}'**
+  String workoutEstimate(int amount);
 
   /// No description provided for @workoutFormula.
   ///
@@ -3815,8 +3857,8 @@ abstract class AppLocalizations {
   /// No description provided for @foodGoalSummary.
   ///
   /// In en, this message translates to:
-  /// **'Goal: {goal}{estimated} • Logged items: {count}'**
-  String foodGoalSummary(String goal, String estimated, String count);
+  /// **'Goal: {goal}{estimated} • {count, plural, one{Logged items: {count}} other{Logged items: {count}}}'**
+  String foodGoalSummary(String goal, String estimated, int count);
 
   /// No description provided for @foodProtein.
   ///
@@ -3959,8 +4001,8 @@ abstract class AppLocalizations {
   /// No description provided for @foodGroupTotals.
   ///
   /// In en, this message translates to:
-  /// **'{calories} kcal • {protein}g P'**
-  String foodGroupTotals(String calories, String protein);
+  /// **'{calories, plural, one{{calories} kcal} other{{calories} kcal}} • {protein}g P'**
+  String foodGroupTotals(int calories, String protein);
 
   /// No description provided for @foodNoItems.
   ///
@@ -4019,8 +4061,8 @@ abstract class AppLocalizations {
   /// No description provided for @foodCaloriesLines.
   ///
   /// In en, this message translates to:
-  /// **'{amount}\nkcal'**
-  String foodCaloriesLines(String amount);
+  /// **'{amount, plural, one{{amount}\nkcal} other{{amount}\nkcal}}'**
+  String foodCaloriesLines(int amount);
 
   /// No description provided for @foodEditPortion.
   ///
@@ -4109,8 +4151,8 @@ abstract class AppLocalizations {
   /// No description provided for @explorerShowing.
   ///
   /// In en, this message translates to:
-  /// **'Showing {shown} of {total}'**
-  String explorerShowing(String shown, String total);
+  /// **'{shown, plural, one{Showing {shown} of {total}} other{Showing {shown} of {total}}}'**
+  String explorerShowing(int shown, String total);
 
   /// No description provided for @explorerEmpty.
   ///
@@ -4133,8 +4175,8 @@ abstract class AppLocalizations {
   /// No description provided for @explorerPer100.
   ///
   /// In en, this message translates to:
-  /// **'Per 100 g: {calories} kcal'**
-  String explorerPer100(String calories);
+  /// **'Per 100 g: {calories, plural, one{{calories} kcal} other{{calories} kcal}}'**
+  String explorerPer100(int calories);
 
   /// No description provided for @explorerLog.
   ///
@@ -4163,8 +4205,8 @@ abstract class AppLocalizations {
   /// No description provided for @explorerLogged.
   ///
   /// In en, this message translates to:
-  /// **'Logged {name} ({calories} kcal)'**
-  String explorerLogged(String name, String calories);
+  /// **'Logged {name} ({calories, plural, one{{calories} kcal} other{{calories} kcal}})'**
+  String explorerLogged(String name, int calories);
 
   /// No description provided for @explorerSaveError.
   ///
@@ -4481,8 +4523,8 @@ abstract class AppLocalizations {
   /// No description provided for @profileAdjustment.
   ///
   /// In en, this message translates to:
-  /// **'Goal adjustment: {amount} kcal{minor}'**
-  String profileAdjustment(String amount, String minor);
+  /// **'Goal adjustment: {count, plural, one{{amount} kcal} other{{amount} kcal}}{minor}'**
+  String profileAdjustment(int count, String amount, String minor);
 
   /// No description provided for @profileMinor.
   ///
@@ -5045,26 +5087,26 @@ abstract class AppLocalizations {
   /// No description provided for @progressHighest.
   ///
   /// In en, this message translates to:
-  /// **'{xp} XP · Highest level'**
-  String progressHighest(String xp);
+  /// **'{xp, plural, one{{xp} XP} other{{xp} XP}} · Highest level'**
+  String progressHighest(int xp);
 
   /// No description provided for @progressNext.
   ///
   /// In en, this message translates to:
-  /// **'{xp} XP · {remaining} XP to {name}'**
-  String progressNext(String xp, String remaining, String name);
+  /// **'{xp, plural, one{{xp} XP} other{{xp} XP}} · {remaining, plural, one{{remaining} XP} other{{remaining} XP}} to {name}'**
+  String progressNext(int xp, int remaining, String name);
 
   /// No description provided for @progressFreeze.
   ///
   /// In en, this message translates to:
-  /// **'Freeze tokens: {count}'**
-  String progressFreeze(String count);
+  /// **'{count, plural, one{Freeze tokens: {count}} other{Freeze tokens: {count}}}'**
+  String progressFreeze(int count);
 
   /// No description provided for @progressPoints.
   ///
   /// In en, this message translates to:
-  /// **'{count} store points'**
-  String progressPoints(String count);
+  /// **'{count, plural, one{{count} store points} other{{count} store points}}'**
+  String progressPoints(int count);
 
   /// No description provided for @rewardConfirm.
   ///
@@ -5075,8 +5117,8 @@ abstract class AppLocalizations {
   /// No description provided for @rewardSpend.
   ///
   /// In en, this message translates to:
-  /// **'Spend {count} store points?'**
-  String rewardSpend(String count);
+  /// **'{count, plural, one{Spend {count} store points?} other{Spend {count} store points?}}'**
+  String rewardSpend(int count);
 
   /// No description provided for @rewardRedeem.
   ///
@@ -5105,8 +5147,8 @@ abstract class AppLocalizations {
   /// No description provided for @rewardFreezeCount.
   ///
   /// In en, this message translates to:
-  /// **'Freeze tokens: {count} / 3'**
-  String rewardFreezeCount(String count);
+  /// **'{count, plural, one{Freeze tokens: {count} / 3} other{Freeze tokens: {count} / 3}}'**
+  String rewardFreezeCount(int count);
 
   /// No description provided for @rewardInfo.
   ///
@@ -5129,14 +5171,14 @@ abstract class AppLocalizations {
   /// No description provided for @rewardRemaining.
   ///
   /// In en, this message translates to:
-  /// **'{count} remaining'**
-  String rewardRemaining(String count);
+  /// **'{count, plural, one{{count} remaining} other{{count} remaining}}'**
+  String rewardRemaining(int count);
 
   /// No description provided for @rewardDetails.
   ///
   /// In en, this message translates to:
-  /// **'{cost} points · {tier} tier · {stock}'**
-  String rewardDetails(String cost, String tier, String stock);
+  /// **'{cost, plural, one{{cost} points} other{{cost} points}} · {tier} tier · {stock}'**
+  String rewardDetails(int cost, String tier, String stock);
 
   /// No description provided for @rewardRequires.
   ///
@@ -5147,8 +5189,8 @@ abstract class AppLocalizations {
   /// No description provided for @rewardNeedPoints.
   ///
   /// In en, this message translates to:
-  /// **'Need {count} more points'**
-  String rewardNeedPoints(String count);
+  /// **'{count, plural, one{Need {count} more points} other{Need {count} more points}}'**
+  String rewardNeedPoints(int count);
 
   /// No description provided for @rewardRedeeming.
   ///
@@ -5255,8 +5297,8 @@ abstract class AppLocalizations {
   /// No description provided for @progressAchievementValue.
   ///
   /// In en, this message translates to:
-  /// **'{progress} / {threshold} · {xp} XP'**
-  String progressAchievementValue(String progress, String threshold, String xp);
+  /// **'{progress} / {threshold} · {xp, plural, one{{xp} XP} other{{xp} XP}}'**
+  String progressAchievementValue(String progress, String threshold, int xp);
 
   /// No description provided for @progressCompleted.
   ///
@@ -5333,8 +5375,8 @@ abstract class AppLocalizations {
   /// No description provided for @pathDays.
   ///
   /// In en, this message translates to:
-  /// **'{days} days'**
-  String pathDays(String days);
+  /// **'{days, plural, one{{days} days} other{{days} days}}'**
+  String pathDays(int days);
 
   /// No description provided for @pathSetGoal.
   ///
@@ -5455,6 +5497,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{start} – {end}'**
   String plannerWeekRange(String start, String end);
+
+  /// No description provided for @defaultHighProteinFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'High-Protein Fuel'**
+  String get defaultHighProteinFuel;
+
+  /// No description provided for @defaultAthleticTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletic Training'**
+  String get defaultAthleticTraining;
+
+  /// No description provided for @defaultQuickCalorieSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Calorie Snack'**
+  String get defaultQuickCalorieSnack;
+
+  /// No description provided for @defaultQuickExerciseBurn.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Exercise Burn'**
+  String get defaultQuickExerciseBurn;
 
   /// No description provided for @language.
   ///

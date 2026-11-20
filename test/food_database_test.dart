@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/logic/food_nutrition.dart';
 import 'package:privilege/services/food_database.dart';
+import 'package:privilege/l10n/app_localizations_ar.dart';
+import 'package:privilege/l10n/app_localizations_en.dart';
 
 class _CountingBundle extends CachingAssetBundle {
   int reads = 0;
@@ -48,6 +50,56 @@ void main() {
     expect(() => database.foods.clear(), throwsUnsupportedError);
     expect(database.foods.first.servings, isNotEmpty);
     expect(database.foods.first.dataSource, isNotEmpty);
+  });
+
+  test('all stored categories and displayed cuisines have lookup entries', () {
+    final categories = database.foods.map((f) => f.category).toSet();
+    final cuisines = database.foods.map((f) => f.cuisineOrBrand).toSet();
+    expect(categories, hasLength(10));
+    expect(cuisines, hasLength(118));
+    for (final value in {...categories, ...cuisines}) {
+      expect(foodLabelsAr.containsKey(value), isTrue, reason: value);
+      expect(foodLabelsAr[value]!.trim(), isNotEmpty, reason: value);
+    }
+    expect(foodLabel('American BBQ', arabic: true), 'مشويات أمريكية');
+    expect(foodLabel('Chinese Fine Dining', arabic: true), 'مطبخ صيني راقٍ');
+    expect(foodLabel('Unknown label', arabic: true), 'Unknown label');
+    expect(foodLabel('American BBQ', arabic: false), 'American BBQ');
+  });
+
+  test(
+      'search indexes displayed category, cuisine and tag labels in both languages',
+      () {
+    final en = AppLocalizationsEn();
+    final ar = AppLocalizationsAr();
+    for (final food in database.foods) {
+      for (final term in [
+        localizedFoodGroup(food.categoryGroup, ar),
+        foodLabel(food.cuisineOrBrand, arabic: true),
+        food.cuisineOrBrand,
+        ...food.tags.where(displayedFoodTags.contains).expand(
+            (tag) => [localizedFoodTag(tag, ar), localizedFoodTag(tag, en)]),
+      ]) {
+        expect(database.search(term).map((f) => f.id), contains(food.id),
+            reason: '${food.id}: $term');
+      }
+    }
+  });
+
+  test('only exact default names are translated', () {
+    final ar = AppLocalizationsAr();
+    final en = AppLocalizationsEn();
+    for (final (name, translation) in [
+      ('High-Protein Fuel', ar.defaultHighProteinFuel),
+      ('Athletic Training', ar.defaultAthleticTraining),
+      ('Quick Calorie Snack', ar.defaultQuickCalorieSnack),
+      ('Quick Exercise Burn', ar.defaultQuickExerciseBurn),
+    ]) {
+      expect(defaultActivityName(name, ar), translation);
+      expect(defaultActivityName(name, en), name);
+      expect(defaultActivityName('$name custom', ar), '$name custom');
+      expect(defaultActivityName(name.toLowerCase(), ar), name.toLowerCase());
+    }
   });
 
   test('concurrent loads read the asset only once', () async {

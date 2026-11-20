@@ -257,7 +257,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                                   result.target == null
                                       ? l.mergeUnavailable.toLowerCase()
                                       : l.mergeCalories(
-                                          result.target.toString()),
+                                          result.target!, result.target.toString()),
                                   result.isEstimate ? l.foodEstimated : ''),
                               style: TextStyle(
                                   color: p.accentText,
@@ -273,6 +273,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                               result.isEstimate
                                   ? l.profileCompleteFields
                                   : l.profileAdjustment(
+                                      (result.target! - result.maintenance!).abs(),
                                       '${result.target! - result.maintenance! >= 0 ? '+' : ''}${result.target! - result.maintenance!}',
                                       result.age! < 18 ? l.profileMinor : ''),
                               style: TextStyle(color: p.muted)),

@@ -42,7 +42,7 @@ void main() {
       await tester.pumpAndSettle();
       final l = AppLocalizations.of(tester.element(find.byType(ArenaScreen)))!;
       expect(find.text(l.arenaYourActivity.toUpperCase()), findsOneWidget);
-      expect(find.text(l.progressFreeze('1')), findsOneWidget);
+      expect(find.text(l.progressFreeze(1)), findsOneWidget);
       await tester.ensureVisible(find.byTooltip(l.arenaCreateChallenge));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip(l.arenaCreateChallenge));
