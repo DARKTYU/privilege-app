@@ -1,6 +1,6 @@
 # Coach Edge Function
 
-The app is not connected yet. Apply `supabase/coach_quota.sql` manually first
+The Flutter app calls this function. Apply `supabase/coach_quota.sql` manually
 only when you are ready; never run the isolated test against a real project.
 
 In Supabase Dashboard > Edge Functions > Secrets, add:
@@ -34,7 +34,14 @@ a fixed reply without an age check, quota consumption or AI call. For that reply
 `remaining` and `reset_at` are null. Keyword checks are limited, not a safety
 guarantee; the system prompt is an additional layer for non-matching messages.
 Birth dates are self-reported, so the age check is not age verification.
-The function logs only error codes for server errors, not request or response data.
+Server-error logs contain codes and, for provider failures, safe status/reason
+or error-name metadata and attempt count; they do not contain request data.
+Gemini has a 25-second first-attempt timeout and a 20-second retry timeout,
+with a one-second delay and no second quota charge. Earlier authentication,
+profile and quota requests add time, so the app's 65-second abort may occur
+before the function finishes.
+The coach is instructed to use plain text, avoid medical advice and
+supplements, and explain calorie totals without adding burned calories back.
 
 Run the pure logic tests locally with Node 22.18+:
 

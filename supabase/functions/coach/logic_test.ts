@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { ageError, assemblePrompt, emergencyResponse, handler, isAdult, quotaDenial, quotaResponse, validateMessage } from './index.ts';
 
@@ -13,20 +14,38 @@ test('message validation trims, rejects invalid and counts Unicode characters', 
 test('emergency replies are fixed and cover examples in both languages', () => {
   for (const phrase of [
     'I want to kill myself', 'I want to die', 'I have chest pain',
-    'I have difficulty breathing', 'I can’t breathe',
+    'I have difficulty breathing', 'I can’t breathe', 'end it all',
+    'take my own life', "don't want to live", 'no reason to live',
+    'hurting myself', 'cut myself', 'cutting myself', 'having a heart attack',
+    'having a stroke', 'passed out', 'fainted', 'bleeding heavily', 'bleeding badly',
   ]) {
     assert.match(emergencyResponse(phrase)!, /emergency services/);
   }
   for (const phrase of [
     'أريد الانتحار', 'لا أستطيع التنفس', 'هقتل نفسي', 'عايزة أموت',
     'هموت نفسي', 'صدري بيوجعني', 'وجع في صدري', 'مش قادرة أتنفس',
-    'مش عارف آخد نفسي', 'ضيق في التنفس',
+    'مش عارف آخد نفسي', 'ضيق في التنفس', 'هنتحر', 'هانتحر',
+    'مش عايز اعيش', 'مش عايزه اعيش', 'اخلص على نفسي',
+    'أزمة قلبية', 'جلطة', 'اغمي علي', 'نزيف شديد',
   ]) {
     assert.match(emergencyResponse(phrase)!, /الطوارئ/);
   }
   assert.equal(emergencyResponse('How do I train my legs?'), null);
+  assert.equal(emergencyResponse('high protein breakfast'), null);
+  assert.equal(emergencyResponse('فطار فيه بروتين'), null);
 });
 
+test('function and Dart emergency regex patterns remain identical', () => {
+  const dart = readFileSync(new URL('../../../lib/logic/coach_safety.dart', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('./index.ts', import.meta.url), 'utf8');
+  const englishDart = dart.match(/final _english = RegExp\(\s*r"([^"]+)"/);
+  const arabicDart = dart.match(/final _arabic = RegExp\(\s*r'([^']+)'/);
+  const englishTs = source.match(/const english = \/(.+)\/i;/);
+  const arabicTs = source.match(/const arabic = \/(.+)\//);
+  assert.ok(englishDart && englishTs && arabicDart && arabicTs);
+  assert.equal(englishDart[1], englishTs[1]);
+  assert.equal(arabicDart[1], arabicTs[1]);
+});
 test('age check fails closed for missing, invalid and underage dates', () => {
   const now = new Date('2026-11-20T12:00:00Z');
   assert.equal(isAdult('2008-11-20', now), true);
@@ -73,7 +92,9 @@ test('prompt never shares context without consent and only includes allowed numb
   assert.equal(prompt.generationConfig.maxOutputTokens, 900);
   assert.match(prompt.system_instruction.parts[0].text, /under about 150 words/);
   assert.match(prompt.system_instruction.parts[0].text, /If you are not sure, say so/);
-  assert.match(prompt.system_instruction.parts[0].text, /Politely decline topics unrelated/);
+  assert.match(prompt.system_instruction.parts[0].text, /Politely decline other topics/);
+  assert.match(prompt.system_instruction.parts[0].text, /Burned calories are shown separately and are NOT added back/);
+  assert.match(prompt.system_instruction.parts[0].text, /Use plain text only/);
   assert.deepEqual(JSON.parse(assemblePrompt('hi', true, { calorie_target: -1 }).contents[0].parts[0].text), { message: 'hi' });
 });
 
@@ -270,12 +291,14 @@ test('provider failures log only status, safe reason or error name', async (t) =
 
     const retryTest = async () => {
       const originalFetch = globalThis.fetch;
+      const originalTimeout = AbortSignal.timeout;
       const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
       const originalError = console.error;
       const logs: unknown[][] = [];
       let quotaCalls = 0;
       let providerCalls = 0;
       let statuses: number[] = [];
+      const timeouts: number[] = [];
       const env: Record<string, string> = {
         SUPABASE_URL: 'https://example.invalid',
         SUPABASE_SERVICE_ROLE_KEY: 'test-only',
@@ -286,6 +309,10 @@ test('provider failures log only status, safe reason or error name', async (t) =
         configurable: true, value: { env: { get: (name: string) => env[name] } },
       });
       console.error = (...args: unknown[]) => { logs.push(args); };
+      AbortSignal.timeout = (milliseconds: number) => {
+        timeouts.push(milliseconds);
+        return originalTimeout(milliseconds);
+      };
       globalThis.fetch = async (input) => {
         const url = String(input);
         if (url.endsWith('/auth/v1/user')) {
@@ -313,10 +340,12 @@ test('provider failures log only status, safe reason or error name', async (t) =
           quotaCalls = 0;
           providerCalls = 0;
           logs.length = 0;
+          timeouts.length = 0;
           const response = await invoke();
           assert.equal(response.status, expectedStatus);
           assert.equal(quotaCalls, 1);
           assert.equal(providerCalls, expectedCalls);
+          assert.deepEqual(timeouts.slice(3), expectedCalls === 2 ? [25000, 20000] : [25000]);
           const body = await response.json();
           if (expectedStatus === 200) {
             assert.equal(body.reply, 'Hello');
@@ -328,6 +357,7 @@ test('provider failures log only status, safe reason or error name', async (t) =
         }
       } finally {
         globalThis.fetch = originalFetch;
+        AbortSignal.timeout = originalTimeout;
         console.error = originalError;
         if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
         else Reflect.deleteProperty(globalThis, 'Deno');
