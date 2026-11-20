@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'progression_fake.dart';
 import 'calories_test_database.dart';
+import 'planner_fake.dart';
 
 Widget _app(Widget child) =>
     MaterialApp(theme: buildTheme(), home: Scaffold(body: child));
@@ -189,17 +190,15 @@ void main() {
     expect(find.text('Not saved yet'), findsOneWidget);
   });
 
-  testWidgets('planner does not change a day or claim it saved a split',
+  testWidgets('planner starts without invented days or unsaved claims',
       (tester) async {
     _tallScreen(tester);
-    await tester.pumpWidget(_app(const PlanScreen()));
-    final before = tester.widgetList<Text>(find.text('Workout Days')).length;
-    await tester.tap(find.text('Add Split'));
-    await tester.pump();
-    expect(tester.widgetList<Text>(find.text('Workout Days')).length, before);
-    expect(find.text('Not saved yet'), findsOneWidget);
-    final button = tester.widget<PrimaryButton>(find.byType(PrimaryButton));
-    expect(button.onPressed, isNull);
+    final state = AppState(plannerRepository: FakePlanner());
+    addTearDown(state.dispose);
+    await tester.pumpWidget(_app(PlanScreen(state: state)));
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing planned for this day.'), findsOneWidget);
+    expect(find.text('Create your first split'), findsOneWidget);
     expect(find.textContaining('Added'), findsNothing);
   });
 
@@ -223,7 +222,8 @@ void main() {
         SubscriptionScreen(progressionRepository: FakeProgression()),
     'splits': () => SplitsScreen(progressionRepository: FakeProgression()),
     'cheat meals': () => const CheatsScreen(),
-    'planner': () => const PlanScreen(),
+    'planner': () =>
+        PlanScreen(state: AppState(plannerRepository: FakePlanner())),
     'recipes': () => RecipesScreen(
         accountId: () => 'user-a',
         database: CaloriesTestDatabase(FoodDatabase())),

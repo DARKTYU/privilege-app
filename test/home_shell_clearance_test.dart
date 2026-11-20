@@ -9,6 +9,7 @@ import 'package:privilege/state.dart';
 import 'package:privilege/ui.dart';
 
 import 'progression_fake.dart';
+import 'planner_fake.dart';
 
 void main() {
   setUpAll(() async => FoodDatabase().load());
@@ -30,13 +31,15 @@ void main() {
         ),
         home: HomeShell(
             alertBell: const SizedBox(height: 32),
-            progressionRepository: FakeProgression()),
+            progressionRepository: FakeProgression(),
+            plannerState: AppState(plannerRepository: FakePlanner())),
       ));
       await tester.pumpAndSettle();
       final chip = find.text('Community');
       final fab = find.byTooltip('AI Privilege Bot - coming soon');
       final nav = find.byType(BottomAppBar);
-      final homeEnd = find.text('Quick Add');
+      final homeEnd =
+          find.text('Deleting a split keeps the days already planned.');
       await tester.scrollUntilVisible(homeEnd, 250,
           scrollable: find
               .descendant(

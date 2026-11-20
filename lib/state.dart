@@ -15,16 +15,146 @@ import 'services/activity_repository.dart';
 import 'services/food_database.dart';
 import 'services/supabase_auth_service.dart';
 import 'services/session_recovery.dart';
+import 'services/planner_repository.dart';
 
 /// Port of FitnessContext.tsx plus profile, subscription and streak-arena state.
 class AppState extends ChangeNotifier {
-  AppState({ActivityRepository? activityRepository, FoodDatabase? foodDatabase})
+  AppState(
+      {ActivityRepository? activityRepository,
+      FoodDatabase? foodDatabase,
+      PlannerDataSource? plannerRepository})
       : _activityRepository = activityRepository ?? ActivityRepository(),
-        _foodDatabase = foodDatabase ?? FoodDatabase();
+        _foodDatabase = foodDatabase ?? FoodDatabase(),
+        _plannerRepository = plannerRepository ?? PlannerRepository();
 
   Timer? _toastTimer;
   final ActivityRepository _activityRepository;
   final FoodDatabase _foodDatabase;
+  final PlannerDataSource _plannerRepository;
+  int _plannerGeneration = 0;
+  int _plannerAccountGeneration = 0;
+  bool _plannerSaving = false;
+  bool plannerLoading = false;
+  String? plannerError;
+  String? plannerToday;
+  String? plannerStart, plannerEnd;
+  List<PlannerSplit> plannerSplits = [];
+  List<PlannerDay> plannerDays = [];
+  Set<String> plannerWorkoutDates = {};
+
+  Future<String> plannerLocalToday() => _plannerRepository.today();
+
+  Future<void> loadPlanner(String start, String end) async {
+    final user = _plannerRepository.accountId;
+    final generation = ++_plannerGeneration;
+    plannerLoading = true;
+    plannerError = null;
+    notifyListeners();
+    try {
+      if (user == null) throw StateError('Please log in again.');
+      final result = await _plannerRepository.load(start, end);
+      if (generation != _plannerGeneration ||
+          user != _plannerRepository.accountId) {
+        return;
+      }
+      plannerToday = result.today;
+      plannerStart = start;
+      plannerEnd = end;
+      plannerSplits = List.unmodifiable(result.splits);
+      plannerDays = List.unmodifiable(result.days);
+      plannerWorkoutDates = Set.unmodifiable(result.workoutDates);
+    } catch (error) {
+      if (generation == _plannerGeneration &&
+          user == _plannerRepository.accountId) {
+        plannerError = error.toString();
+      }
+    } finally {
+      if (generation == _plannerGeneration &&
+          user == _plannerRepository.accountId) {
+        plannerLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<T> _plannerWrite<T>(
+      Future<T> Function() action, void Function(T) apply) async {
+    if (_plannerSaving) {
+      throw StateError('A planner save is already in progress.');
+    }
+    final user = _plannerRepository.accountId;
+    if (user == null) throw StateError('Please log in again.');
+    final accountGeneration = _plannerAccountGeneration;
+    _plannerSaving = true;
+    try {
+      final result = await action();
+      if (user == _plannerRepository.accountId &&
+          accountGeneration == _plannerAccountGeneration) {
+        _plannerGeneration++;
+        plannerLoading = false;
+        apply(result);
+        notifyListeners();
+      }
+      return result;
+    } finally {
+      _plannerSaving = false;
+    }
+  }
+
+  Future<void> createPlannerSplits(List<PlannerSplit> splits) async {
+    await _plannerWrite(() => _plannerRepository.createSplits(splits),
+        (created) {
+      plannerSplits = List.unmodifiable([...plannerSplits, ...created]);
+    });
+  }
+
+  Future<void> editPlannerSplit(PlannerSplit split) async {
+    await _plannerWrite(() => _plannerRepository.updateSplit(split), (saved) {
+      plannerSplits = List.unmodifiable([
+        for (final item in plannerSplits)
+          if (item.id == saved.id) saved else item
+      ]);
+    });
+  }
+
+  Future<void> deletePlannerSplit(String id) async {
+    await _plannerWrite(() => _plannerRepository.deleteSplit(id), (_) {
+      plannerSplits =
+          List.unmodifiable(plannerSplits.where((item) => item.id != id));
+    });
+  }
+
+  Future<void> savePlannerDay(PlannerDay day) async {
+    await _plannerWrite(() => _plannerRepository.saveDay(day), (saved) {
+      if (plannerStart != null &&
+          plannerEnd != null &&
+          saved.date.compareTo(plannerStart!) >= 0 &&
+          saved.date.compareTo(plannerEnd!) <= 0) {
+        plannerDays = List.unmodifiable(
+            [...plannerDays.where((item) => item.date != saved.date), saved]);
+      }
+    });
+  }
+
+  Future<void> planDayFromSplit(String date, PlannerSplit split) =>
+      savePlannerDay(PlannerDay(
+          date: date,
+          name: split.name,
+          kind: split.kind,
+          sourceSplitId: split.id,
+          duration: split.duration,
+          effort: split.effort));
+  Future<void> markPlannerRest(String date) =>
+      savePlannerDay(PlannerDay(date: date, name: 'Rest day', kind: 'rest'));
+  Future<void> editPlannerDay(PlannerDay day) => savePlannerDay(day);
+
+  Future<void> removePlannerDay(String date) async {
+    await _plannerWrite(() => _plannerRepository.deleteDay(date), (_) {
+      plannerDays =
+          List.unmodifiable(plannerDays.where((item) => item.date != date));
+    });
+  }
+
   int _activityGeneration = 0;
   int _activityLoadGeneration = 0;
   String? _activityUserId;
@@ -96,6 +226,7 @@ class AppState extends ChangeNotifier {
   }
 
   void _applyAccount(AccountData a) {
+    _clearPlanner();
     final p = a.profile;
     email = a.email;
     profile = defaultUserProfile.copyWith(
@@ -134,6 +265,7 @@ class AppState extends ChangeNotifier {
 
   void _clearAccount() {
     _activityGeneration++;
+    _clearPlanner();
     _activityUserId = null;
     authNotice = null;
     loggedIn = false;
@@ -144,6 +276,19 @@ class AppState extends ChangeNotifier {
     profilePhotoBase64 = null;
     _resetLocalData();
     notifyListeners();
+  }
+
+  void _clearPlanner() {
+    _plannerGeneration++;
+    _plannerAccountGeneration++;
+    plannerSplits = [];
+    plannerDays = [];
+    plannerWorkoutDates = {};
+    plannerToday = null;
+    plannerStart = null;
+    plannerEnd = null;
+    plannerLoading = false;
+    plannerError = null;
   }
 
   Future<void> setProfilePhoto(Uint8List bytes) async {

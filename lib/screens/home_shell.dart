@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../ui.dart';
 import '../services/progression_repository.dart';
+import '../state.dart';
 import 'alerts.dart';
 import 'calories.dart';
 import 'plan.dart';
@@ -9,9 +10,14 @@ import 'profile.dart';
 import 'splits.dart';
 
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, this.alertBell, this.progressionRepository});
+  const HomeShell(
+      {super.key,
+      this.alertBell,
+      this.progressionRepository,
+      this.plannerState});
   final Widget? alertBell;
   final ProgressionDataSource? progressionRepository;
+  final AppState? plannerState;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -90,7 +96,7 @@ class _HomeShellState extends State<HomeShell> {
               child: IndexedStack(
                 index: _i,
                 children: [
-                  const PlanScreen(),
+                  PlanScreen(state: widget.plannerState),
                   SplitsScreen(
                       progressionRepository: widget.progressionRepository),
                   const CaloriesSection(),
