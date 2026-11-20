@@ -7,6 +7,7 @@ In Supabase Dashboard > Edge Functions > Secrets, add:
 
 - `GEMINI_API_KEY`: your private Gemini API key.
 - `COACH_MODEL`: the Gemini model ID you have chosen and verified is available.
+- `COACH_FALLBACK_MODEL`: optional alternative model ID.
 - `COACH_DAILY_LIMIT`: a positive whole number (optional; defaults to 30).
 
 Supabase supplies `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` to Edge
@@ -36,10 +37,12 @@ guarantee; the system prompt is an additional layer for non-matching messages.
 Birth dates are self-reported, so the age check is not age verification.
 Server-error logs contain codes and, for provider failures, safe status/reason
 or error-name metadata and attempt count; they do not contain request data.
-Gemini has a 25-second first-attempt timeout and a 20-second retry timeout,
-with a one-second delay and no second quota charge. Earlier authentication,
-profile and quota requests add time, so the app's 65-second abort may occur
-before the function finishes.
+Gemini has a 20-second first-attempt timeout and two 12-second retries, with
+one- and two-second delays. Eligible failures can invoke the optional fallback
+once with a 12-second timeout, after all main attempts fail with 429, 5xx or
+timeout. A blank fallback is ignored; a malformed model is rejected before
+quota use. Retries do not consume additional quota. The app aborts after
+100 seconds; network delays outside the function can still cause a timeout.
 The coach is instructed to use plain text, avoid medical advice and
 supplements, and explain calorie totals without adding burned calories back.
 

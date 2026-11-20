@@ -217,6 +217,10 @@ export async function handler(request: Request): Promise<Response> {
     if (!/^[a-zA-Z0-9._-]+$/.test(model)) {
       return json(503, { error: 'provider_model_invalid' });
     }
+    const fallbackModel = Deno.env.get('COACH_FALLBACK_MODEL')?.trim();
+    if (fallbackModel && !/^[a-zA-Z0-9._-]+$/.test(fallbackModel)) {
+      return json(503, { error: 'provider_model_invalid' });
+    }
 
     const rawLimit = Deno.env.get('COACH_DAILY_LIMIT') ?? '30';
     if (!/^[1-9]\d*$/.test(rawLimit) || !Number.isSafeInteger(Number(rawLimit)) || Number(rawLimit) > 10000) {
@@ -237,39 +241,67 @@ export async function handler(request: Request): Promise<Response> {
     if (denial) return json(429, denial);
 
     let provider: Response | undefined;
+    let result: { candidates?: { content?: { parts?: JsonObject[] } }[] } | undefined;
+    let failureName = '';
     let attempts = 0;
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    let fallbackEligible = true;
+    const callProvider = (selectedModel: string, timeout: number) =>
+      fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
+        signal: AbortSignal.timeout(timeout),
+      });
+    for (let attempt = 1; attempt <= 3; attempt++) {
       attempts = attempt;
+      provider = undefined;
+      failureName = '';
       try {
-        provider = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-          body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
-          signal: AbortSignal.timeout(attempt === 1 ? 25000 : 20000),
-        });
+        provider = await callProvider(model, attempt === 1 ? 20000 : 12000);
+        if (provider.ok) result = await provider.json();
       } catch (error) {
-        if (attempt === 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          continue;
-        }
+        if (error instanceof SyntaxError) return json(502, { error: 'provider_unavailable' });
+        provider = undefined;
         const name = error instanceof Error ? error.name : '';
-        const safeName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
+        failureName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
           ? name : 'UnknownError';
-        console.error(`coach_error provider_unavailable error=${safeName} attempts=${attempt}`);
-        if (name === 'TimeoutError' || name === 'AbortError') {
-          return json(504, { error: 'provider_timeout' }, false);
-        }
-        return json(502, { error: 'provider_unavailable' }, false);
+        if (name !== 'TimeoutError' && name !== 'AbortError') fallbackEligible = false;
       }
-      if (provider.ok || attempt === 2 || ![429, 500, 502, 503, 504].includes(provider.status)) {
+      if (provider && provider.status !== 429 && (provider.status < 500 || provider.status > 599)) {
+        fallbackEligible = false;
+      }
+      if (provider?.ok || (provider && ![429, 500, 502, 503, 504].includes(provider.status))) {
         break;
       }
-      if (provider.body) {
-        void provider.body.cancel().catch(() => {});
+      if (attempt < 3) {
+        if (provider?.body) void provider.body.cancel().catch(() => {});
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    if (!provider) return json(502, { error: 'provider_unavailable' });
+    if (fallbackModel && fallbackEligible && attempts === 3 && !provider?.ok) {
+      if (provider?.body) void provider.body.cancel().catch(() => {});
+      console.log('coach_fallback_used');
+      attempts++;
+      provider = undefined;
+      failureName = '';
+      try {
+        provider = await callProvider(fallbackModel, 12000);
+        if (provider.ok) result = await provider.json();
+      } catch (error) {
+        if (error instanceof SyntaxError) return json(502, { error: 'provider_unavailable' });
+        provider = undefined;
+        const name = error instanceof Error ? error.name : '';
+        failureName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
+          ? name : 'UnknownError';
+      }
+    }
+    if (!provider) {
+      console.error(`coach_error provider_unavailable error=${failureName} attempts=${attempts}`);
+      if (failureName === 'TimeoutError' || failureName === 'AbortError') {
+        return json(504, { error: 'provider_timeout' }, false);
+      }
+      return json(502, { error: 'provider_unavailable' }, false);
+    }
     if (!provider.ok) {
       let reason = '';
       try {
@@ -285,10 +317,9 @@ export async function handler(request: Request): Promise<Response> {
       return json(502, { error: 'provider_unavailable' }, false);
     }
     try {
-      const result = await provider.json();
-      const parts = result.candidates?.[0]?.content?.parts;
+      const parts = result?.candidates?.[0]?.content?.parts;
       const reply = Array.isArray(parts)
-        ? parts.filter((part: JsonObject) => typeof part.text === 'string' && part.thought !== true)
+        ? parts.filter((part: JsonObject) => part && typeof part.text === 'string' && part.thought !== true)
           .map((part: JsonObject) => part.text).join('').trim()
         : '';
       if (!reply) return json(502, { error: 'provider_no_reply' });

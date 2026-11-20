@@ -233,6 +233,9 @@ void main() {
       await start(tester, client);
       await send(tester, 'Hi');
       expect(find.textContaining(entry.value), findsOneWidget);
+      if (entry.key != 'provider_unavailable') {
+        expect(find.text('Try again / حاول مرة أخرى'), findsNothing);
+      }
       if (entry.key == 'quota_exceeded') {
         expect(find.textContaining('Resets:'), findsOneWidget);
       }
@@ -241,6 +244,28 @@ void main() {
       }
     });
   }
+
+  testWidgets('retry resends the failed message once per tap', (tester) async {
+    final client = FakeCoach()..error = const CoachException('unavailable');
+    await start(tester, client);
+    await send(tester, 'My question');
+    expect(find.text('Try again / حاول مرة أخرى'), findsOneWidget);
+    client.error = null;
+    client.pending = Completer<CoachReply>();
+    await tester.enterText(find.byType(TextField), 'Draft');
+    await tester.tap(find.text('Try again / حاول مرة أخرى'));
+    await tester.pump();
+    expect(client.requests.length, 2);
+    expect(client.requests.last['message'], 'My question');
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Draft');
+    final retry = tester.widget<TextButton>(
+        find.widgetWithText(TextButton, 'Try again / حاول مرة أخرى'));
+    expect(retry.onPressed, isNull);
+    client.pending!.complete(const CoachReply('Recovered', 10, null));
+    await tester.pumpAndSettle();
+    expect(find.text('Recovered'), findsOneWidget);
+  });
 
   testWidgets('emergency replies are local in English and Egyptian Arabic',
       (tester) async {

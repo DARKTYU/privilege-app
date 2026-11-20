@@ -294,11 +294,14 @@ test('provider failures log only status, safe reason or error name', async (t) =
       const originalTimeout = AbortSignal.timeout;
       const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
       const originalError = console.error;
+      const originalLog = console.log;
       const logs: unknown[][] = [];
+      const info: unknown[][] = [];
       let quotaCalls = 0;
       let providerCalls = 0;
-      let statuses: number[] = [];
+      let statuses: (number | string)[] = [];
       const timeouts: number[] = [];
+      const models: string[] = [];
       const env: Record<string, string> = {
         SUPABASE_URL: 'https://example.invalid',
         SUPABASE_SERVICE_ROLE_KEY: 'test-only',
@@ -309,6 +312,7 @@ test('provider failures log only status, safe reason or error name', async (t) =
         configurable: true, value: { env: { get: (name: string) => env[name] } },
       });
       console.error = (...args: unknown[]) => { logs.push(args); };
+      console.log = (...args: unknown[]) => { info.push(args); };
       AbortSignal.timeout = (milliseconds: number) => {
         timeouts.push(milliseconds);
         return originalTimeout(milliseconds);
@@ -323,8 +327,16 @@ test('provider failures log only status, safe reason or error name', async (t) =
           quotaCalls++;
           return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
         }
+        models.push(url);
         const status = statuses[providerCalls++];
+        if (status === 'network') throw new TypeError('private network detail');
+        if (status === 'body-timeout') {
+          const response = Response.json({});
+          response.json = async () => { throw new DOMException('private detail', 'TimeoutError'); };
+          return response;
+        }
         if (status === 200) return Response.json({ candidates: [{ content: { parts: [{ text: 'Hello' }] } }] });
+        if (typeof status !== 'number') throw new Error('Unexpected mocked status');
         return Response.json({ error: { status: 'UNAVAILABLE' } }, { status });
       };
       const invoke = () => handler(new Request('https://example.invalid', {
@@ -334,18 +346,21 @@ test('provider failures log only status, safe reason or error name', async (t) =
       }));
       try {
         for (const [sequence, expectedStatus, expectedCalls] of [
-          [[503, 200], 200, 2], [[503, 503], 502, 2], [[404], 502, 1], [[400], 502, 1],
-        ] as [number[], number, number][]) {
+          [[503, 503, 200], 200, 3], [['body-timeout', 200], 200, 2],
+          [[503, 503, 503], 502, 3], [[404], 502, 1], [[400], 502, 1],
+          [[401], 502, 1], [[403], 502, 1],
+        ] as [(number | string)[], number, number][]) {
           statuses = sequence;
           quotaCalls = 0;
           providerCalls = 0;
           logs.length = 0;
           timeouts.length = 0;
+          models.length = 0;
           const response = await invoke();
           assert.equal(response.status, expectedStatus);
           assert.equal(quotaCalls, 1);
           assert.equal(providerCalls, expectedCalls);
-          assert.deepEqual(timeouts.slice(3), expectedCalls === 2 ? [25000, 20000] : [25000]);
+          assert.deepEqual(timeouts.slice(3), [20000, 12000, 12000].slice(0, expectedCalls));
           const body = await response.json();
           if (expectedStatus === 200) {
             assert.equal(body.reply, 'Hello');
@@ -355,10 +370,50 @@ test('provider failures log only status, safe reason or error name', async (t) =
             assert.deepEqual(logs, [[`coach_error provider_unavailable status=${sequence.at(-1)} reason=UNAVAILABLE attempts=${expectedCalls}`]]);
           }
         }
+        env.COACH_FALLBACK_MODEL = 'fallback-model';
+        statuses = [503, 503, 503, 200];
+        quotaCalls = 0;
+        providerCalls = 0;
+        logs.length = 0;
+        info.length = 0;
+        timeouts.length = 0;
+        models.length = 0;
+        const fallback = await invoke();
+        assert.equal(fallback.status, 200);
+        assert.equal((await fallback.json()).reply, 'Hello');
+        assert.equal(quotaCalls, 1);
+        assert.equal(providerCalls, 4);
+        assert.match(models[3], /\/fallback-model:generateContent$/);
+        assert.deepEqual(timeouts.slice(3), [20000, 12000, 12000, 12000]);
+        assert.deepEqual(info, [['coach_fallback_used']]);
+        assert.deepEqual(logs, []);
+        statuses = [404];
+        providerCalls = 0;
+        info.length = 0;
+        const notFound = await invoke();
+        assert.equal(notFound.status, 502);
+        assert.equal(providerCalls, 1);
+        assert.deepEqual(info, []);
+        statuses = ['network', 503, 503];
+        providerCalls = 0;
+        info.length = 0;
+        const network = await invoke();
+        assert.equal(network.status, 502);
+        assert.equal(providerCalls, 3);
+        assert.deepEqual(info, []);
+        env.COACH_FALLBACK_MODEL = '../invalid';
+        quotaCalls = 0;
+        providerCalls = 0;
+        const invalid = await invoke();
+        assert.equal(invalid.status, 503);
+        assert.equal((await invalid.json()).error, 'provider_model_invalid');
+        assert.equal(quotaCalls, 0);
+        assert.equal(providerCalls, 0);
       } finally {
         globalThis.fetch = originalFetch;
         AbortSignal.timeout = originalTimeout;
         console.error = originalError;
+        console.log = originalLog;
         if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
         else Reflect.deleteProperty(globalThis, 'Deno');
       }
@@ -386,8 +441,8 @@ test('provider failures log only status, safe reason or error name', async (t) =
     try {
       providerResult = Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'private provider detail' } }, { status: 429 });
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable status=429 reason=RESOURCE_EXHAUSTED attempts=2']]);
-      assert.equal(providerCalls, 2);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=429 reason=RESOURCE_EXHAUSTED attempts=3']]);
+      assert.equal(providerCalls, 3);
       assert.equal(quotaCalls, 1);
       logs.length = 0;
       providerResult = Response.json({ error: { status: 'BAD status private' } }, { status: 400 });
@@ -396,21 +451,21 @@ test('provider failures log only status, safe reason or error name', async (t) =
       logs.length = 0;
       providerResult = new Response('private response body', { status: 503 });
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable status=503 attempts=2']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=503 attempts=3']]);
       logs.length = 0;
       providerResult = new TypeError('private exception message');
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable error=TypeError attempts=2']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=TypeError attempts=3']]);
       logs.length = 0;
       providerResult = new Error('private exception message');
       providerResult.name = 'TimeoutError';
       assert.equal((await invoke()).status, 504);
-      assert.deepEqual(logs, [['coach_error provider_unavailable error=TimeoutError attempts=2']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=TimeoutError attempts=3']]);
       logs.length = 0;
       providerResult = new Error('private exception message');
       providerResult.name = 'private sensitive data';
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable error=UnknownError attempts=2']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=UnknownError attempts=3']]);
     } finally {
       globalThis.fetch = originalFetch;
       console.error = originalError;

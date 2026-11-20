@@ -32,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final _input = TextEditingController();
   final _scroll = ScrollController();
-  final List<({bool bot, String text})> _messages = [];
+  final List<({bool bot, String text, String? retry})> _messages = [];
   late final CoachClient _client = widget.client ?? SupabaseCoachClient();
   late final AppState _state = widget.state ?? appState;
   bool _consent = false;
@@ -147,7 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _send([String? preset]) async {
+  Future<void> _send([String? preset, bool isRetry = false]) async {
     final text = (preset ?? _input.text).trim();
     if (_sending ||
         _savingConsent ||
@@ -159,9 +159,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final generation = _chatGeneration;
     final account = _client.accountId;
     final shareRequested = _consent;
-    _input.clear();
+    if (!isRetry) _input.clear();
     setState(() {
-      _messages.add((bot: false, text: text));
+      if (!isRetry) _messages.add((bot: false, text: text, retry: null));
       _sending = true;
       _remaining = null;
     });
@@ -169,7 +169,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final emergency = coachEmergencyReply(text);
     if (emergency != null) {
       setState(() {
-        _messages.add((bot: true, text: emergency));
+        _messages.add((bot: true, text: emergency, retry: null));
         _sending = false;
       });
       _scrollToEnd();
@@ -212,7 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
       setState(() {
-        _messages.add((bot: true, text: reply.text));
+        _messages.add((bot: true, text: reply.text, retry: null));
         _remaining = reply.remaining;
       });
     } on CoachException catch (error) {
@@ -221,15 +221,29 @@ class _ChatScreenState extends State<ChatScreen> {
           account != _client.accountId) {
         return;
       }
-      setState(() => _messages.add((bot: true, text: _errorText(error))));
+      final retryable = !{
+        'authentication_required',
+        'registered_user_required',
+        'birth_date_required',
+        'underage',
+        'quota_exceeded',
+      }.contains(error.code);
+      setState(() => _messages.add((
+            bot: true,
+            text: _errorText(error),
+            retry: retryable ? text : null
+          )));
     } catch (_) {
       if (!mounted ||
           generation != _chatGeneration ||
           account != _client.accountId) {
         return;
       }
-      setState(() => _messages.add(
-          (bot: true, text: _errorText(const CoachException('unavailable')))));
+      setState(() => _messages.add((
+            bot: true,
+            text: _errorText(const CoachException('unavailable')),
+            retry: text
+          )));
     } finally {
       if (mounted) {
         setState(() => _sending = false);
@@ -268,7 +282,8 @@ class _ChatScreenState extends State<ChatScreen> {
     return TextSpan(children: spans);
   }
 
-  Widget _bubble(({bool bot, String text}) message, {bool notice = false}) {
+  Widget _bubble(({bool bot, String text, String? retry}) message,
+      {bool notice = false}) {
     final bubble = Container(
       constraints: const BoxConstraints(maxWidth: 290),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -289,15 +304,31 @@ class _ChatScreenState extends State<ChatScreen> {
                     textAlign: TextAlign.right),
               ],
             )
-          : message.bot && message.text.contains('**')
-              ? SelectableText.rich(_coachText(message.text),
-                  textDirection: containsArabic(message.text)
-                      ? TextDirection.rtl
-                      : TextDirection.ltr)
-              : SelectableText(message.text,
-                  textDirection: containsArabic(message.text)
-                      ? TextDirection.rtl
-                      : TextDirection.ltr),
+          : message.retry != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(message.text,
+                        textDirection: containsArabic(message.text)
+                            ? TextDirection.rtl
+                            : TextDirection.ltr),
+                    TextButton(
+                      onPressed: _sending || _savingConsent || !_consentReady
+                          ? null
+                          : () => _send(message.retry, true),
+                      child: const Text('Try again / حاول مرة أخرى'),
+                    ),
+                  ],
+                )
+              : message.bot && message.text.contains('**')
+                  ? SelectableText.rich(_coachText(message.text),
+                      textDirection: containsArabic(message.text)
+                          ? TextDirection.rtl
+                          : TextDirection.ltr)
+                  : SelectableText(message.text,
+                      textDirection: containsArabic(message.text)
+                          ? TextDirection.rtl
+                          : TextDirection.ltr),
     );
     return Align(
       alignment: message.bot ? Alignment.centerLeft : Alignment.centerRight,
@@ -349,7 +380,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: _scroll,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _bubble((bot: true, text: ''), notice: true),
+                  _bubble((bot: true, text: '', retry: null), notice: true),
                   for (final message in _messages) _bubble(message),
                   if (_sending)
                     const Padding(

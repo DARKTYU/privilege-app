@@ -59,7 +59,7 @@ class SupabaseCoachClient implements CoachClient {
     final session = client.auth.currentSession;
     if (session == null) throw const CoachException('authentication_required');
     final abort = Completer<void>();
-    final timer = Timer(const Duration(seconds: 65), abort.complete);
+    final timer = Timer(const Duration(seconds: 100), abort.complete);
     try {
       final response = await client.functions
           .invoke(
@@ -68,7 +68,7 @@ class SupabaseCoachClient implements CoachClient {
             body: body,
             abortSignal: abort.future,
           )
-          .timeout(const Duration(seconds: 66));
+          .timeout(const Duration(seconds: 101));
       final data = _map(response.data);
       if (response.status < 200 ||
           response.status >= 300 ||
