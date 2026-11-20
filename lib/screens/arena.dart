@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
+import '../logic/localized_dates.dart';
 import '../models/arena_models.dart';
 import '../models/community_models.dart';
 import '../services/arena_repository.dart';
@@ -197,32 +199,39 @@ class _ArenaScreenState extends State<ArenaScreen> {
     final descriptionController = TextEditingController();
     String type = 'streak';
     int duration = 7;
-    final form = await showDialog<(String, String, String, int)>(
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<(String, String, String, int)>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Create a public challenge'),
+          title: Text(strings(context).arenaCreatePublic),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(
                 controller: titleController,
                 maxLength: 80,
-                decoration: const InputDecoration(labelText: 'Challenge name'),
+                decoration: InputDecoration(
+                    labelText: strings(context).arenaChallengeName),
               ),
               TextField(
                 controller: descriptionController,
                 maxLength: 500,
                 maxLines: 2,
-                decoration:
-                    const InputDecoration(labelText: 'Description (optional)'),
+                decoration: InputDecoration(
+                    labelText: strings(context).arenaDescription),
               ),
               DropdownButtonFormField<String>(
                 initialValue: type,
-                decoration: const InputDecoration(labelText: 'Challenge type'),
-                items: const [
-                  DropdownMenuItem(value: 'streak', child: Text('Active days')),
+                isExpanded: true,
+                decoration: InputDecoration(
+                    labelText: strings(context).arenaChallengeType),
+                items: [
                   DropdownMenuItem(
-                      value: 'workout_count', child: Text('Workout count')),
+                      value: 'streak',
+                      child: Text(strings(context).arenaActiveDays)),
+                  DropdownMenuItem(
+                      value: 'workout_count',
+                      child: Text(strings(context).arenaWorkoutCount)),
                 ],
                 onChanged: (value) {
                   if (value != null) setDialogState(() => type = value);
@@ -230,11 +239,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               DropdownButtonFormField<int>(
                 initialValue: duration,
-                decoration: const InputDecoration(labelText: 'Duration'),
-                items: const [
-                  DropdownMenuItem(value: 7, child: Text('7 days')),
-                  DropdownMenuItem(value: 14, child: Text('14 days')),
-                  DropdownMenuItem(value: 30, child: Text('30 days')),
+                isExpanded: true,
+                decoration:
+                    InputDecoration(labelText: strings(context).arenaDuration),
+                items: [
+                  for (final days in [7, 14, 30])
+                    DropdownMenuItem(
+                        value: days,
+                        child: Text(strings(context).arenaDays(days))),
                 ],
                 onChanged: (value) {
                   if (value != null) setDialogState(() => duration = value);
@@ -242,7 +254,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Scores use self-reported activity logs and are unverified. No prizes are awarded.',
+                strings(context).arenaNoPrizesRule,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ]),
@@ -250,7 +262,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel')),
+                child: Text(strings(context).plannerCancel)),
             FilledButton(
               onPressed: () => Navigator.pop(
                 context,
@@ -261,17 +273,19 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   duration
                 ),
               ),
-              child: const Text('Create'),
+              child: Text(strings(context).arenaCreate),
             ),
           ],
         ),
       ),
     );
+    final form = await navigator.push(route);
+    await route.completed;
     titleController.dispose();
     descriptionController.dispose();
-    if (form == null) return;
+    if (!mounted || form == null) return;
     if (form.$1.length < 3) {
-      _message('Challenge name must be at least 3 characters.');
+      _message(strings(context).arenaInvalidName);
       return;
     }
 
@@ -285,7 +299,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
         startDate: start,
         endDate: start.add(Duration(days: form.$4 - 1)),
       );
-      _message('Public challenge created.');
+      if (mounted) _message(strings(context).arenaCreated);
       await _loadChallenges();
     } catch (error) {
       _message(error.toString());
@@ -300,7 +314,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       final friends = await _repository.friends();
       if (!mounted) return;
       if (friends.isEmpty) {
-        _message('Add a friend before creating a 1v1 challenge.');
+        _message(strings(context).arenaNeedFriend);
         return;
       }
       final details = await showDialog<(String, String, String)>(
@@ -316,7 +330,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
         startDate: start,
         endDate: start.add(const Duration(days: 6)),
       );
-      _message('Friend challenge invitation sent.');
+      if (mounted) _message(strings(context).arenaInvitationSent);
       await _loadInvitations();
       setState(() => _challengeScope = 'mine');
       await _loadChallenges();
@@ -337,7 +351,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     setState(() {});
     try {
       await _repository.joinChallenge(challenge.id);
-      _message('You joined the challenge.');
+      if (mounted) _message(strings(context).arenaJoined);
       await _loadChallenges();
     } catch (error) {
       _message(error.toString());
@@ -352,9 +366,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
     setState(() {});
     try {
       await _repository.respondToInvitation(invitation.id, action);
-      _message(action == 'accept'
-          ? 'Challenge accepted.'
-          : 'Challenge invitation declined.');
+      if (mounted) {
+        _message(action == 'accept'
+            ? strings(context).arenaAccepted
+            : strings(context).arenaDeclined);
+      }
       await Future.wait([_loadInvitations(), _loadChallenges()]);
     } catch (error) {
       _message(error.toString());
@@ -384,29 +400,31 @@ class _ArenaScreenState extends State<ArenaScreen> {
             TextButton.icon(
               onPressed: () => Navigator.pushNamed(context, '/rewards'),
               icon: const Icon(Icons.card_giftcard),
-              label: const Text('Rewards Store'),
+              label: Text(strings(context).arenaRewardsStore),
             ),
             TextButton.icon(
               onPressed: () => Navigator.pushNamed(context, '/badges'),
               icon: const Icon(Icons.workspace_premium),
-              label: const Text('Badges & Achievements'),
+              label: Text(strings(context).arenaBadgesAchievements),
             ),
           ]),
           const SizedBox(height: 18),
           Row(children: [
-            Expanded(child: sectionTitle('Arena')),
+            Expanded(child: sectionTitle(strings(context).arenaSection)),
             if (_section == 'challenges')
               PopupMenuButton<String>(
-                tooltip: 'Create challenge',
+                tooltip: strings(context).arenaCreateChallenge,
                 onSelected: (value) {
                   if (value == 'public') unawaited(_createPublicChallenge());
                   if (value == 'friend') unawaited(_createFriendChallenge());
                 },
-                itemBuilder: (_) => const [
+                itemBuilder: (context) => [
                   PopupMenuItem(
-                      value: 'public', child: Text('Public challenge')),
+                      value: 'public',
+                      child: Text(strings(context).arenaPublicChallenge)),
                   PopupMenuItem(
-                      value: 'friend', child: Text('Challenge a friend')),
+                      value: 'friend',
+                      child: Text(strings(context).arenaChallengeFriend)),
                 ],
                 child: _creating
                     ? const SizedBox(
@@ -426,7 +444,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
             _leaderboardSection(),
           const SizedBox(height: 12),
           Text(
-            'Scores use self-reported activity logs and are unverified. There are no cash or real-world prizes.',
+            strings(context).arenaNoCashRule,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: kMuted),
           ),
@@ -436,7 +454,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   Widget _activityStreak() {
     final state = appState;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      sectionTitle('Your activity streak'),
+      sectionTitle(strings(context).arenaYourActivity),
       Panel(
         child: Column(children: [
           if (state.activityError != null) ...[
@@ -444,7 +462,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
             TextButton.icon(
               onPressed: state.loadActivity,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text(strings(context).plannerRetry),
             ),
             const SizedBox(height: 8),
           ],
@@ -460,10 +478,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Your streak: ${state.streak} ${_dayUnit(state.streak)}',
+                  Text(
+                      strings(context).arenaYourStreak(
+                          strings(context).arenaDays(state.streak)),
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   Text(
-                      'Longest streak: ${state.longestStreak} ${_dayUnit(state.longestStreak)}',
+                      strings(context).arenaLongestStreak(
+                          strings(context).arenaDays(state.longestStreak)),
                       style: TextStyle(fontSize: 12, color: kMuted)),
                 ],
               ),
@@ -479,7 +500,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
           ]),
           const SizedBox(height: 10),
           Text(
-            'Log a meal or completed workout to update your streak and earn 10 XP plus 10 store points once per active day.',
+            strings(context).arenaStreakHelp,
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: kMuted),
           ),
@@ -489,15 +510,15 @@ class _ArenaScreenState extends State<ArenaScreen> {
   }
 
   Widget _sectionSelector() => SegmentedButton<String>(
-        segments: const [
+        segments: [
           ButtonSegment(
               value: 'challenges',
-              label: Text('Challenges'),
-              icon: Icon(Icons.sports_martial_arts)),
+              label: Text(strings(context).arenaChallenges),
+              icon: const Icon(Icons.sports_martial_arts)),
           ButtonSegment(
               value: 'leaderboard',
-              label: Text('Leaderboard'),
-              icon: Icon(Icons.leaderboard_outlined)),
+              label: Text(strings(context).arenaLeaderboard),
+              icon: const Icon(Icons.leaderboard_outlined)),
         ],
         selected: {_section},
         onSelectionChanged: (selection) =>
@@ -507,10 +528,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
   Widget _challengeScopeSelector() => Padding(
         padding: const EdgeInsets.only(top: 12),
         child: SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(value: 'open', label: Text('Discover')),
-            ButtonSegment(value: 'mine', label: Text('My challenges')),
-            ButtonSegment(value: 'finished', label: Text('Finished')),
+          segments: [
+            ButtonSegment(
+                value: 'open', label: Text(strings(context).arenaDiscover)),
+            ButtonSegment(
+                value: 'mine', label: Text(strings(context).arenaMyChallenges)),
+            ButtonSegment(
+                value: 'finished', label: Text(strings(context).arenaFinished)),
           ],
           selected: {_challengeScope},
           onSelectionChanged: (selection) {
@@ -532,7 +556,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     }
     if (_invitations.isEmpty) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      sectionTitle('Friend invitations'),
+      sectionTitle(strings(context).arenaFriendInvitations),
       for (final invite in _invitations)
         Panel(
           child:
@@ -541,11 +565,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text(
-              '${invite.inviterFullName ?? invite.inviterUsername} invited you to a ${_metricLabel(invite.type)} 1v1.',
+              strings(context).arenaInvitation(
+                  invite.inviterFullName ?? invite.inviterUsername,
+                  _metricLabel(invite.type)),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             Text(
-                '${_dateLabel(invite.startDate)} – ${_dateLabel(invite.endDate)}',
+                strings(context).arenaDateRange(
+                    _dateLabel(invite.startDate), _dateLabel(invite.endDate)),
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 8),
             Row(children: [
@@ -554,7 +581,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   onPressed: _busyIds.contains(invite.id)
                       ? null
                       : () => _respond(invite, 'decline'),
-                  child: const Text('Decline'),
+                  child: Text(strings(context).arenaDecline),
                 ),
               ),
               const SizedBox(width: 8),
@@ -563,7 +590,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   onPressed: _busyIds.contains(invite.id)
                       ? null
                       : () => _respond(invite, 'accept'),
-                  child: const Text('Accept'),
+                  child: Text(strings(context).arenaAccept),
                 ),
               ),
             ]),
@@ -588,8 +615,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
           const Icon(Icons.emoji_events_outlined, size: 34),
           const SizedBox(height: 8),
           Text(_challengeScope == 'open'
-              ? 'No open challenges yet. Create one to get started.'
-              : 'No challenges to show here yet.'),
+              ? strings(context).arenaNoOpen
+              : strings(context).arenaNoChallenges),
         ]),
       );
     }
@@ -625,8 +652,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                 ),
                 if (challenge.isOneVOne)
-                  const Chip(
-                      visualDensity: VisualDensity.compact, label: Text('1v1')),
+                  Chip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text(strings(context).arenaOneVOne)),
                 Icon(Icons.expand_more,
                     color: _expanded.contains(challenge.id) ? kGold : kMuted),
               ]),
@@ -636,20 +664,31 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ],
               const SizedBox(height: 5),
               Text(
-                '${_metricLabel(challenge.type)} · ${_dateLabel(challenge.startDate)} – ${_dateLabel(challenge.endDate)}',
+                strings(context).arenaChallengeSummary(
+                    _metricLabel(challenge.type),
+                    strings(context).arenaDateRange(
+                        _dateLabel(challenge.startDate),
+                        _dateLabel(challenge.endDate))),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 5),
               Wrap(spacing: 16, runSpacing: 4, children: [
-                Text('${challenge.participantCount} participants',
+                Text(
+                    strings(context).arenaParticipants(
+                        challenge.participantCount.toString()),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (challenge.joined)
                   Text(
-                    'Your score: ${_score(challenge.myScore)} ${_unit(challenge.type, challenge.myScore)}${challenge.myRank == null ? '' : ' · #${challenge.myRank}'}',
+                    challenge.myRank == null
+                        ? strings(context).arenaScore(
+                            _scoreLabel(challenge.type, challenge.myScore))
+                        : strings(context).arenaScoreRank(
+                            _scoreLabel(challenge.type, challenge.myScore),
+                            challenge.myRank.toString()),
                     style: Theme.of(context).textTheme.bodySmall,
                   )
                 else
-                  Text('Created by $title',
+                  Text(strings(context).arenaCreatedBy(title),
                       style: Theme.of(context).textTheme.bodySmall),
               ]),
               if (_challengeScope == 'open' && !challenge.joined) ...[
@@ -661,8 +700,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
                         ? null
                         : () => _join(challenge),
                     child: Text(_busyIds.contains(challenge.id)
-                        ? 'Joining...'
-                        : 'Join challenge'),
+                        ? strings(context).arenaJoining
+                        : strings(context).arenaJoin),
                   ),
                 ),
               ],
@@ -693,9 +732,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
           );
         }
         if (snapshot.data!.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(14),
-            child: Text('No standings yet.'),
+          return Padding(
+            padding: const EdgeInsets.all(14),
+            child: Text(strings(context).arenaNoStandings),
           );
         }
         return Column(children: [
@@ -706,13 +745,12 @@ class _ArenaScreenState extends State<ArenaScreen> {
               leading: CircleAvatar(
                 radius: 16,
                 backgroundColor: row.isMe ? kGold : kCard2,
-                child: Text('${row.rank ?? '-'}'),
+                child: Text(row.rank?.toString() ?? '-'),
               ),
               title: Text(row.fullName?.isNotEmpty == true
                   ? row.fullName!
                   : '@${row.username}'),
-              trailing: Text(
-                  '${_score(row.score)} ${_unit(challenge.type, row.score)}'),
+              trailing: Text(_scoreLabel(challenge.type, row.score)),
             ),
         ]);
       },
@@ -724,15 +762,15 @@ class _ArenaScreenState extends State<ArenaScreen> {
       const SizedBox(height: 12),
       Wrap(spacing: 8, runSpacing: 4, children: [
         _filterChip(
-          label: const {
-            'global': 'Global',
-            'friends': 'Friends',
-            'level': 'My level',
+          label: {
+            'global': strings(context).arenaGlobal,
+            'friends': strings(context).arenaFriends,
+            'level': strings(context).arenaMyLevel,
           }[_leaderboardScope]!,
-          options: const {
-            'Global': 'global',
-            'Friends': 'friends',
-            'My level': 'level',
+          options: {
+            strings(context).arenaGlobal: 'global',
+            strings(context).arenaFriends: 'friends',
+            strings(context).arenaMyLevel: 'level',
           },
           onSelected: (value) {
             setState(() => _leaderboardScope = value);
@@ -740,15 +778,15 @@ class _ArenaScreenState extends State<ArenaScreen> {
           },
         ),
         _filterChip(
-          label: const {
-            'weekly': 'This week',
-            'monthly': 'This month',
-            'all_time': 'All time',
+          label: {
+            'weekly': strings(context).arenaThisWeek,
+            'monthly': strings(context).arenaThisMonth,
+            'all_time': strings(context).arenaAllTime,
           }[_leaderboardPeriod]!,
-          options: const {
-            'This week': 'weekly',
-            'This month': 'monthly',
-            'All time': 'all_time',
+          options: {
+            strings(context).arenaThisWeek: 'weekly',
+            strings(context).arenaThisMonth: 'monthly',
+            strings(context).arenaAllTime: 'all_time',
           },
           onSelected: (value) {
             setState(() => _leaderboardPeriod = value);
@@ -756,8 +794,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
           },
         ),
         _filterChip(
-          label: _leaderboardMetric == 'streak' ? 'Active days' : 'Workouts',
-          options: const {'Active days': 'streak', 'Workouts': 'workout_count'},
+          label: _leaderboardMetric == 'streak'
+              ? strings(context).arenaActiveDays
+              : strings(context).arenaWorkouts,
+          options: {
+            strings(context).arenaActiveDays: 'streak',
+            strings(context).arenaWorkouts: 'workout_count'
+          },
           onSelected: (value) {
             setState(() => _leaderboardMetric = value);
             unawaited(_loadLeaderboard());
@@ -773,7 +816,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       else if (_leaderboardError != null && _leaderboard.isEmpty)
         _errorPanel(_leaderboardError!, _loadLeaderboard)
       else if (_leaderboard.isEmpty)
-        const Panel(child: Text('No activity has been ranked for this filter.'))
+        Panel(child: Text(strings(context).arenaNoRanked))
       else
         Card(
           child: Column(children: [
@@ -782,17 +825,20 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 dense: true,
                 leading: CircleAvatar(
                   backgroundColor: row.isMe ? kGold : kCard2,
-                  child: Text('${row.place}'),
+                  child: Text(row.place.toString()),
                 ),
                 title: Text(row.fullName?.isNotEmpty == true
                     ? row.fullName!
                     : '@${row.username}'),
-                subtitle: Text([
-                  if (row.levelName != null) row.levelName!,
-                  'Current streak: ${row.currentStreak}',
-                ].join(' · ')),
+                subtitle: Text(row.levelName == null
+                    ? strings(context)
+                        .arenaCurrentStreak(row.currentStreak.toString())
+                    : strings(context).arenaLevelStreak(
+                        localizedLevelName(context, row.levelName!),
+                        strings(context)
+                            .arenaCurrentStreak(row.currentStreak.toString()))),
                 trailing: Text(
-                  '${row.score} ${_unit(_leaderboardMetric, row.score)}',
+                  _scoreLabel(_leaderboardMetric, row.score),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
@@ -824,22 +870,26 @@ class _ArenaScreenState extends State<ArenaScreen> {
           TextButton.icon(
             onPressed: () => unawaited(retry()),
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label: Text(strings(context).plannerRetry),
           ),
         ]),
       );
 
-  String _metricLabel(String type) =>
-      type == 'workout_count' ? 'Completed workouts' : 'Active days';
+  String _metricLabel(String type) => type == 'workout_count'
+      ? strings(context).arenaCompletedWorkouts
+      : strings(context).arenaActiveDays;
 
-  String _unit(String type, num? score) =>
-      type == 'workout_count' ? 'workouts' : _dayUnit(score);
+  String _scoreLabel(String type, num? score) {
+    final value = (score ?? 0).toStringAsFixed(0);
+    return type == 'workout_count'
+        ? strings(context).arenaWorkoutsCount(value)
+        : strings(context).arenaDays(int.parse(value));
+  }
 
-  String _dayUnit(num? score) => _score(score) == '1' ? 'day' : 'days';
-
-  String _score(num? score) => (score ?? 0).toStringAsFixed(0);
-
-  String _dateLabel(DateTime date) => '${date.month}/${date.day}/${date.year}';
+  String _dateLabel(DateTime date) {
+    return westernDigits(
+        MaterialLocalizations.of(context).formatMediumDate(date));
+  }
 }
 
 class _FriendChallengeDialog extends StatefulWidget {
@@ -863,17 +913,20 @@ class _FriendChallengeDialogState extends State<_FriendChallengeDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Challenge a friend'),
+        title: Text(strings(context).arenaChallengeFriend),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             TextField(
               controller: _title,
               maxLength: 80,
-              decoration: const InputDecoration(labelText: 'Challenge name'),
+              decoration: InputDecoration(
+                  labelText: strings(context).arenaChallengeName),
             ),
             DropdownButtonFormField<String>(
               initialValue: _friendId,
-              decoration: const InputDecoration(labelText: 'Friend'),
+              isExpanded: true,
+              decoration:
+                  InputDecoration(labelText: strings(context).arenaFriend),
               items: [
                 for (final friend in widget.friends)
                   DropdownMenuItem(
@@ -889,31 +942,36 @@ class _FriendChallengeDialogState extends State<_FriendChallengeDialog> {
             ),
             DropdownButtonFormField<String>(
               initialValue: _type,
-              decoration: const InputDecoration(labelText: 'Metric'),
-              items: const [
-                DropdownMenuItem(value: 'streak', child: Text('Active days')),
+              isExpanded: true,
+              decoration:
+                  InputDecoration(labelText: strings(context).arenaMetric),
+              items: [
                 DropdownMenuItem(
-                    value: 'workout_count', child: Text('Workout count')),
+                    value: 'streak',
+                    child: Text(strings(context).arenaActiveDays)),
+                DropdownMenuItem(
+                    value: 'workout_count',
+                    child: Text(strings(context).arenaWorkoutCount)),
               ],
               onChanged: (value) {
                 if (value != null) setState(() => _type = value);
               },
             ),
             const SizedBox(height: 8),
-            Text('Seven days · Invitation expires automatically.',
+            Text(strings(context).arenaSevenDayInvite,
                 style: Theme.of(context).textTheme.bodySmall),
           ]),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(strings(context).plannerCancel)),
           FilledButton(
             onPressed: () {
               if (_title.text.trim().length < 3) return;
               Navigator.pop(context, (_friendId, _title.text.trim(), _type));
             },
-            child: const Text('Send invitation'),
+            child: Text(strings(context).arenaSendInvitation),
           ),
         ],
       );

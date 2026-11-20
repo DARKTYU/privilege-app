@@ -9,6 +9,450 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String communityUsername(String username) {
+    return '@$username';
+  }
+
+  @override
+  String get communityLikePost => 'Like post';
+
+  @override
+  String get communityUnlikePost => 'Unlike post';
+
+  @override
+  String get communityOpenComments => 'Open comments';
+
+  @override
+  String get communityErrorSignIn => 'Please sign in again.';
+
+  @override
+  String get communityErrorConnection =>
+      'Could not connect. Check your internet connection.';
+
+  @override
+  String get communityErrorTimeout =>
+      'The request timed out. Please try again.';
+
+  @override
+  String get communityErrorEmptyPost =>
+      'Write something before sharing your post.';
+
+  @override
+  String get communityErrorPostLength =>
+      'Posts must be 5000 characters or fewer.';
+
+  @override
+  String get communityErrorImageSize => 'Choose an image smaller than 8 MB.';
+
+  @override
+  String get communityErrorImageType => 'Choose a JPG, PNG, or WebP image.';
+
+  @override
+  String get communityErrorDeleteOwn => 'You can only delete your own post.';
+
+  @override
+  String get communityErrorCommentLength =>
+      'Comments must be 1–2000 characters.';
+
+  @override
+  String get communityPostGone => 'This post is no longer available.';
+
+  @override
+  String get communityPostShared => 'Your post was shared.';
+
+  @override
+  String get communityRequestGone => 'This request is no longer available.';
+
+  @override
+  String get communityRequestAccepted => 'Friend request accepted.';
+
+  @override
+  String get communityRequestRemoved => 'Friend request removed.';
+
+  @override
+  String get communityRequestSent => 'Friend request sent.';
+
+  @override
+  String get communityUnfollowed => 'Unfollowed.';
+
+  @override
+  String get communityFollowing => 'Following.';
+
+  @override
+  String get communityBlocked => 'User blocked.';
+
+  @override
+  String get communityUpdated => 'Updated.';
+
+  @override
+  String get communityDeleteQuestion => 'Delete this post?';
+
+  @override
+  String get communityCannotUndo => 'This cannot be undone.';
+
+  @override
+  String get communityReportSubmitted => 'Report submitted.';
+
+  @override
+  String communityBlockQuestion(String username) {
+    return 'Block @$username?';
+  }
+
+  @override
+  String get communityBlockDetails =>
+      'Their posts will no longer appear in your community.';
+
+  @override
+  String get communityDeletePost => 'Delete post';
+
+  @override
+  String get communityReportPost => 'Report post';
+
+  @override
+  String get communityBlockUser => 'Block user';
+
+  @override
+  String get communityImageUnavailable => 'Post image is unavailable.';
+
+  @override
+  String get communityAcceptRequest => 'Accept request';
+
+  @override
+  String get communityDeclineRequest => 'Decline request';
+
+  @override
+  String get communityFollow => 'Follow';
+
+  @override
+  String get communityUnfollow => 'Unfollow';
+
+  @override
+  String get communitySendFriendRequest => 'Send friend request';
+
+  @override
+  String get communityRequestPending => 'Request pending';
+
+  @override
+  String get communityReportHint => 'Tell us why this post should be reviewed.';
+
+  @override
+  String get communitySubmit => 'Submit';
+
+  @override
+  String get communityReportValidation =>
+      'Please provide at least 3 characters.';
+
+  @override
+  String get communityContinue => 'Continue';
+
+  @override
+  String get communityClose => 'Close';
+
+  @override
+  String get communityPostHint => 'Share a fitness or nutrition update...';
+
+  @override
+  String get communityAddPhoto => 'Add photo';
+
+  @override
+  String get communityRemovePhoto => 'Remove photo';
+
+  @override
+  String get communityPublic => 'Public';
+
+  @override
+  String get communitySharePost => 'Share post';
+
+  @override
+  String communityLikesError(String error) {
+    return 'Could not load likes: $error';
+  }
+
+  @override
+  String get communityNoLikes => 'No visible likes.';
+
+  @override
+  String get communityLikedBy => 'Liked by';
+
+  @override
+  String get communityComments => 'Comments';
+
+  @override
+  String get communityOlderComments => 'Load older comments';
+
+  @override
+  String get communityFirstComment => 'Be the first to comment.';
+
+  @override
+  String get communityLikedByAuthor => 'Liked by author';
+
+  @override
+  String get communityLikeComment => 'Like comment';
+
+  @override
+  String get communityUnlikeComment => 'Unlike comment';
+
+  @override
+  String get communityCommentHint => 'Write a comment...';
+
+  @override
+  String get communitySendComment => 'Send comment';
+
+  @override
+  String get communityProfileUnavailable => 'Profile is unavailable.';
+
+  @override
+  String get communityStreak => 'Streak';
+
+  @override
+  String get communityBest => 'Best';
+
+  @override
+  String get communityPosts => 'Posts';
+
+  @override
+  String get communityFollowers => 'Followers';
+
+  @override
+  String get communityNoBadges => 'No badges earned yet.';
+
+  @override
+  String get communityAddFriend => 'Add friend';
+
+  @override
+  String get arenaCreatePublic => 'Create a public challenge';
+
+  @override
+  String get arenaChallengeName => 'Challenge name';
+
+  @override
+  String get arenaDescription => 'Description (optional)';
+
+  @override
+  String get arenaChallengeType => 'Challenge type';
+
+  @override
+  String get arenaActiveDays => 'Active days';
+
+  @override
+  String get arenaWorkoutCount => 'Workout count';
+
+  @override
+  String get arenaDuration => 'Duration';
+
+  @override
+  String arenaDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String arenaWorkoutsCount(String count) {
+    return '$count workouts';
+  }
+
+  @override
+  String get arenaNoPrizesRule =>
+      'Scores use self-reported activity logs and are unverified. No prizes are awarded.';
+
+  @override
+  String get arenaNoCashRule =>
+      'Scores use self-reported activity logs and are unverified. There are no cash or real-world prizes.';
+
+  @override
+  String get arenaCreate => 'Create';
+
+  @override
+  String get arenaInvalidName =>
+      'Challenge name must be at least 3 characters.';
+
+  @override
+  String get arenaCreated => 'Public challenge created.';
+
+  @override
+  String get arenaNeedFriend => 'Add a friend before creating a 1v1 challenge.';
+
+  @override
+  String get arenaInvitationSent => 'Friend challenge invitation sent.';
+
+  @override
+  String get arenaJoined => 'You joined the challenge.';
+
+  @override
+  String get arenaAccepted => 'Challenge accepted.';
+
+  @override
+  String get arenaDeclined => 'Challenge invitation declined.';
+
+  @override
+  String get arenaRewardsStore => 'Rewards Store';
+
+  @override
+  String get arenaBadgesAchievements => 'Badges & Achievements';
+
+  @override
+  String get arenaSection => 'Arena';
+
+  @override
+  String get arenaCreateChallenge => 'Create challenge';
+
+  @override
+  String get arenaPublicChallenge => 'Public challenge';
+
+  @override
+  String get arenaChallengeFriend => 'Challenge a friend';
+
+  @override
+  String get arenaYourActivity => 'Your activity streak';
+
+  @override
+  String arenaYourStreak(String days) {
+    return 'Your streak: $days';
+  }
+
+  @override
+  String arenaLongestStreak(String days) {
+    return 'Longest streak: $days';
+  }
+
+  @override
+  String get arenaStreakHelp =>
+      'Log a meal or completed workout to update your streak and earn 10 XP plus 10 store points once per active day.';
+
+  @override
+  String get arenaChallenges => 'Challenges';
+
+  @override
+  String get arenaLeaderboard => 'Leaderboard';
+
+  @override
+  String get arenaDiscover => 'Discover';
+
+  @override
+  String get arenaMyChallenges => 'My challenges';
+
+  @override
+  String get arenaFinished => 'Finished';
+
+  @override
+  String get arenaFriendInvitations => 'Friend invitations';
+
+  @override
+  String arenaInvitation(String name, String metric) {
+    return '$name invited you to a $metric 1v1.';
+  }
+
+  @override
+  String arenaDateRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String get arenaDecline => 'Decline';
+
+  @override
+  String get arenaAccept => 'Accept';
+
+  @override
+  String get arenaNoOpen =>
+      'No open challenges yet. Create one to get started.';
+
+  @override
+  String get arenaNoChallenges => 'No challenges to show here yet.';
+
+  @override
+  String get arenaOneVOne => '1v1';
+
+  @override
+  String arenaChallengeSummary(String metric, String dates) {
+    return '$metric · $dates';
+  }
+
+  @override
+  String arenaParticipants(String count) {
+    return '$count participants';
+  }
+
+  @override
+  String arenaScore(String score) {
+    return 'Your score: $score';
+  }
+
+  @override
+  String arenaScoreRank(String score, String rank) {
+    return 'Your score: $score · #$rank';
+  }
+
+  @override
+  String arenaCreatedBy(String name) {
+    return 'Created by $name';
+  }
+
+  @override
+  String get arenaJoining => 'Joining...';
+
+  @override
+  String get arenaJoin => 'Join challenge';
+
+  @override
+  String get arenaNoStandings => 'No standings yet.';
+
+  @override
+  String get arenaGlobal => 'Global';
+
+  @override
+  String get arenaFriends => 'Friends';
+
+  @override
+  String get arenaMyLevel => 'My level';
+
+  @override
+  String get arenaThisWeek => 'This week';
+
+  @override
+  String get arenaThisMonth => 'This month';
+
+  @override
+  String get arenaAllTime => 'All time';
+
+  @override
+  String get arenaWorkouts => 'Workouts';
+
+  @override
+  String get arenaNoRanked => 'No activity has been ranked for this filter.';
+
+  @override
+  String arenaCurrentStreak(String count) {
+    return 'Current streak: $count';
+  }
+
+  @override
+  String arenaLevelStreak(String level, String streak) {
+    return '$level · $streak';
+  }
+
+  @override
+  String get arenaCompletedWorkouts => 'Completed workouts';
+
+  @override
+  String get arenaFriend => 'Friend';
+
+  @override
+  String get arenaMetric => 'Metric';
+
+  @override
+  String get arenaSevenDayInvite =>
+      'Seven days · Invitation expires automatically.';
+
+  @override
+  String get arenaSendInvitation => 'Send invitation';
+
+  @override
   String get communityHeading => 'Your community';
 
   @override

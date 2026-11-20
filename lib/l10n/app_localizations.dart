@@ -98,6 +98,792 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @communityUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'@{username}'**
+  String communityUsername(String username);
+
+  /// No description provided for @communityLikePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Like post'**
+  String get communityLikePost;
+
+  /// No description provided for @communityUnlikePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlike post'**
+  String get communityUnlikePost;
+
+  /// No description provided for @communityOpenComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Open comments'**
+  String get communityOpenComments;
+
+  /// No description provided for @communityErrorSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in again.'**
+  String get communityErrorSignIn;
+
+  /// No description provided for @communityErrorConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Check your internet connection.'**
+  String get communityErrorConnection;
+
+  /// No description provided for @communityErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The request timed out. Please try again.'**
+  String get communityErrorTimeout;
+
+  /// No description provided for @communityErrorEmptyPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Write something before sharing your post.'**
+  String get communityErrorEmptyPost;
+
+  /// No description provided for @communityErrorPostLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts must be 5000 characters or fewer.'**
+  String get communityErrorPostLength;
+
+  /// No description provided for @communityErrorImageSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an image smaller than 8 MB.'**
+  String get communityErrorImageSize;
+
+  /// No description provided for @communityErrorImageType.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JPG, PNG, or WebP image.'**
+  String get communityErrorImageType;
+
+  /// No description provided for @communityErrorDeleteOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only delete your own post.'**
+  String get communityErrorDeleteOwn;
+
+  /// No description provided for @communityErrorCommentLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments must be 1–2000 characters.'**
+  String get communityErrorCommentLength;
+
+  /// No description provided for @communityPostGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This post is no longer available.'**
+  String get communityPostGone;
+
+  /// No description provided for @communityPostShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Your post was shared.'**
+  String get communityPostShared;
+
+  /// No description provided for @communityRequestGone.
+  ///
+  /// In en, this message translates to:
+  /// **'This request is no longer available.'**
+  String get communityRequestGone;
+
+  /// No description provided for @communityRequestAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request accepted.'**
+  String get communityRequestAccepted;
+
+  /// No description provided for @communityRequestRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request removed.'**
+  String get communityRequestRemoved;
+
+  /// No description provided for @communityRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request sent.'**
+  String get communityRequestSent;
+
+  /// No description provided for @communityUnfollowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollowed.'**
+  String get communityUnfollowed;
+
+  /// No description provided for @communityFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Following.'**
+  String get communityFollowing;
+
+  /// No description provided for @communityBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'User blocked.'**
+  String get communityBlocked;
+
+  /// No description provided for @communityUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated.'**
+  String get communityUpdated;
+
+  /// No description provided for @communityDeleteQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this post?'**
+  String get communityDeleteQuestion;
+
+  /// No description provided for @communityCannotUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get communityCannotUndo;
+
+  /// No description provided for @communityReportSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted.'**
+  String get communityReportSubmitted;
+
+  /// No description provided for @communityBlockQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Block @{username}?'**
+  String communityBlockQuestion(String username);
+
+  /// No description provided for @communityBlockDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Their posts will no longer appear in your community.'**
+  String get communityBlockDetails;
+
+  /// No description provided for @communityDeletePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete post'**
+  String get communityDeletePost;
+
+  /// No description provided for @communityReportPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Report post'**
+  String get communityReportPost;
+
+  /// No description provided for @communityBlockUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Block user'**
+  String get communityBlockUser;
+
+  /// No description provided for @communityImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Post image is unavailable.'**
+  String get communityImageUnavailable;
+
+  /// No description provided for @communityAcceptRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept request'**
+  String get communityAcceptRequest;
+
+  /// No description provided for @communityDeclineRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline request'**
+  String get communityDeclineRequest;
+
+  /// No description provided for @communityFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get communityFollow;
+
+  /// No description provided for @communityUnfollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfollow'**
+  String get communityUnfollow;
+
+  /// No description provided for @communitySendFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send friend request'**
+  String get communitySendFriendRequest;
+
+  /// No description provided for @communityRequestPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Request pending'**
+  String get communityRequestPending;
+
+  /// No description provided for @communityReportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us why this post should be reviewed.'**
+  String get communityReportHint;
+
+  /// No description provided for @communitySubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get communitySubmit;
+
+  /// No description provided for @communityReportValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please provide at least 3 characters.'**
+  String get communityReportValidation;
+
+  /// No description provided for @communityContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get communityContinue;
+
+  /// No description provided for @communityClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get communityClose;
+
+  /// No description provided for @communityPostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a fitness or nutrition update...'**
+  String get communityPostHint;
+
+  /// No description provided for @communityAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get communityAddPhoto;
+
+  /// No description provided for @communityRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get communityRemovePhoto;
+
+  /// No description provided for @communityPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get communityPublic;
+
+  /// No description provided for @communitySharePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Share post'**
+  String get communitySharePost;
+
+  /// No description provided for @communityLikesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load likes: {error}'**
+  String communityLikesError(String error);
+
+  /// No description provided for @communityNoLikes.
+  ///
+  /// In en, this message translates to:
+  /// **'No visible likes.'**
+  String get communityNoLikes;
+
+  /// No description provided for @communityLikedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked by'**
+  String get communityLikedBy;
+
+  /// No description provided for @communityComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Comments'**
+  String get communityComments;
+
+  /// No description provided for @communityOlderComments.
+  ///
+  /// In en, this message translates to:
+  /// **'Load older comments'**
+  String get communityOlderComments;
+
+  /// No description provided for @communityFirstComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to comment.'**
+  String get communityFirstComment;
+
+  /// No description provided for @communityLikedByAuthor.
+  ///
+  /// In en, this message translates to:
+  /// **'Liked by author'**
+  String get communityLikedByAuthor;
+
+  /// No description provided for @communityLikeComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Like comment'**
+  String get communityLikeComment;
+
+  /// No description provided for @communityUnlikeComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlike comment'**
+  String get communityUnlikeComment;
+
+  /// No description provided for @communityCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a comment...'**
+  String get communityCommentHint;
+
+  /// No description provided for @communitySendComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Send comment'**
+  String get communitySendComment;
+
+  /// No description provided for @communityProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile is unavailable.'**
+  String get communityProfileUnavailable;
+
+  /// No description provided for @communityStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get communityStreak;
+
+  /// No description provided for @communityBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get communityBest;
+
+  /// No description provided for @communityPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get communityPosts;
+
+  /// No description provided for @communityFollowers.
+  ///
+  /// In en, this message translates to:
+  /// **'Followers'**
+  String get communityFollowers;
+
+  /// No description provided for @communityNoBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'No badges earned yet.'**
+  String get communityNoBadges;
+
+  /// No description provided for @communityAddFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friend'**
+  String get communityAddFriend;
+
+  /// No description provided for @arenaCreatePublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a public challenge'**
+  String get arenaCreatePublic;
+
+  /// No description provided for @arenaChallengeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge name'**
+  String get arenaChallengeName;
+
+  /// No description provided for @arenaDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get arenaDescription;
+
+  /// No description provided for @arenaChallengeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge type'**
+  String get arenaChallengeType;
+
+  /// No description provided for @arenaActiveDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Active days'**
+  String get arenaActiveDays;
+
+  /// No description provided for @arenaWorkoutCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout count'**
+  String get arenaWorkoutCount;
+
+  /// No description provided for @arenaDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get arenaDuration;
+
+  /// No description provided for @arenaDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 day} other{{count} days}}'**
+  String arenaDays(int count);
+
+  /// No description provided for @arenaWorkoutsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} workouts'**
+  String arenaWorkoutsCount(String count);
+
+  /// No description provided for @arenaNoPrizesRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Scores use self-reported activity logs and are unverified. No prizes are awarded.'**
+  String get arenaNoPrizesRule;
+
+  /// No description provided for @arenaNoCashRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Scores use self-reported activity logs and are unverified. There are no cash or real-world prizes.'**
+  String get arenaNoCashRule;
+
+  /// No description provided for @arenaCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get arenaCreate;
+
+  /// No description provided for @arenaInvalidName.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge name must be at least 3 characters.'**
+  String get arenaInvalidName;
+
+  /// No description provided for @arenaCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Public challenge created.'**
+  String get arenaCreated;
+
+  /// No description provided for @arenaNeedFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a friend before creating a 1v1 challenge.'**
+  String get arenaNeedFriend;
+
+  /// No description provided for @arenaInvitationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend challenge invitation sent.'**
+  String get arenaInvitationSent;
+
+  /// No description provided for @arenaJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'You joined the challenge.'**
+  String get arenaJoined;
+
+  /// No description provided for @arenaAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge accepted.'**
+  String get arenaAccepted;
+
+  /// No description provided for @arenaDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge invitation declined.'**
+  String get arenaDeclined;
+
+  /// No description provided for @arenaRewardsStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewards Store'**
+  String get arenaRewardsStore;
+
+  /// No description provided for @arenaBadgesAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges & Achievements'**
+  String get arenaBadgesAchievements;
+
+  /// No description provided for @arenaSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Arena'**
+  String get arenaSection;
+
+  /// No description provided for @arenaCreateChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Create challenge'**
+  String get arenaCreateChallenge;
+
+  /// No description provided for @arenaPublicChallenge.
+  ///
+  /// In en, this message translates to:
+  /// **'Public challenge'**
+  String get arenaPublicChallenge;
+
+  /// No description provided for @arenaChallengeFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenge a friend'**
+  String get arenaChallengeFriend;
+
+  /// No description provided for @arenaYourActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Your activity streak'**
+  String get arenaYourActivity;
+
+  /// No description provided for @arenaYourStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Your streak: {days}'**
+  String arenaYourStreak(String days);
+
+  /// No description provided for @arenaLongestStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Longest streak: {days}'**
+  String arenaLongestStreak(String days);
+
+  /// No description provided for @arenaStreakHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a meal or completed workout to update your streak and earn 10 XP plus 10 store points once per active day.'**
+  String get arenaStreakHelp;
+
+  /// No description provided for @arenaChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'Challenges'**
+  String get arenaChallenges;
+
+  /// No description provided for @arenaLeaderboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Leaderboard'**
+  String get arenaLeaderboard;
+
+  /// No description provided for @arenaDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get arenaDiscover;
+
+  /// No description provided for @arenaMyChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'My challenges'**
+  String get arenaMyChallenges;
+
+  /// No description provided for @arenaFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get arenaFinished;
+
+  /// No description provided for @arenaFriendInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend invitations'**
+  String get arenaFriendInvitations;
+
+  /// No description provided for @arenaInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} invited you to a {metric} 1v1.'**
+  String arenaInvitation(String name, String metric);
+
+  /// No description provided for @arenaDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} – {end}'**
+  String arenaDateRange(String start, String end);
+
+  /// No description provided for @arenaDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get arenaDecline;
+
+  /// No description provided for @arenaAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get arenaAccept;
+
+  /// No description provided for @arenaNoOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'No open challenges yet. Create one to get started.'**
+  String get arenaNoOpen;
+
+  /// No description provided for @arenaNoChallenges.
+  ///
+  /// In en, this message translates to:
+  /// **'No challenges to show here yet.'**
+  String get arenaNoChallenges;
+
+  /// No description provided for @arenaOneVOne.
+  ///
+  /// In en, this message translates to:
+  /// **'1v1'**
+  String get arenaOneVOne;
+
+  /// No description provided for @arenaChallengeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric} · {dates}'**
+  String arenaChallengeSummary(String metric, String dates);
+
+  /// No description provided for @arenaParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} participants'**
+  String arenaParticipants(String count);
+
+  /// No description provided for @arenaScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Your score: {score}'**
+  String arenaScore(String score);
+
+  /// No description provided for @arenaScoreRank.
+  ///
+  /// In en, this message translates to:
+  /// **'Your score: {score} · #{rank}'**
+  String arenaScoreRank(String score, String rank);
+
+  /// No description provided for @arenaCreatedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by {name}'**
+  String arenaCreatedBy(String name);
+
+  /// No description provided for @arenaJoining.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining...'**
+  String get arenaJoining;
+
+  /// No description provided for @arenaJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join challenge'**
+  String get arenaJoin;
+
+  /// No description provided for @arenaNoStandings.
+  ///
+  /// In en, this message translates to:
+  /// **'No standings yet.'**
+  String get arenaNoStandings;
+
+  /// No description provided for @arenaGlobal.
+  ///
+  /// In en, this message translates to:
+  /// **'Global'**
+  String get arenaGlobal;
+
+  /// No description provided for @arenaFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get arenaFriends;
+
+  /// No description provided for @arenaMyLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'My level'**
+  String get arenaMyLevel;
+
+  /// No description provided for @arenaThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get arenaThisWeek;
+
+  /// No description provided for @arenaThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get arenaThisMonth;
+
+  /// No description provided for @arenaAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get arenaAllTime;
+
+  /// No description provided for @arenaWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workouts'**
+  String get arenaWorkouts;
+
+  /// No description provided for @arenaNoRanked.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity has been ranked for this filter.'**
+  String get arenaNoRanked;
+
+  /// No description provided for @arenaCurrentStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Current streak: {count}'**
+  String arenaCurrentStreak(String count);
+
+  /// No description provided for @arenaLevelStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{level} · {streak}'**
+  String arenaLevelStreak(String level, String streak);
+
+  /// No description provided for @arenaCompletedWorkouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed workouts'**
+  String get arenaCompletedWorkouts;
+
+  /// No description provided for @arenaFriend.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend'**
+  String get arenaFriend;
+
+  /// No description provided for @arenaMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get arenaMetric;
+
+  /// No description provided for @arenaSevenDayInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven days · Invitation expires automatically.'**
+  String get arenaSevenDayInvite;
+
+  /// No description provided for @arenaSendInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Send invitation'**
+  String get arenaSendInvitation;
+
   /// No description provided for @communityHeading.
   ///
   /// In en, this message translates to:

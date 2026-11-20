@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,7 +20,85 @@ void main() {
         authOptions: const AuthClientOptions(autoRefreshToken: false));
   });
   tearDownAll(() => client.dispose());
+  test('Community has no hardcoded UI strings or Arabic', () {
+    final source = File('lib/screens/community.dart').readAsStringSync();
+    final pattern = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:labelText|hintText|tooltip|semanticLabel|message)\s*:\s*|(?:_showMessage|_message|_sectionTitle)\(\s*)['"]""");
+    final matches =
+        pattern.allMatches(source).map((match) => match.group(0)).toList();
+    expect(matches, isEmpty);
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+  });
   for (final language in ['en', 'ar']) {
+    testWidgets('post validation is localized in $language', (tester) async {
+      final repository = _FakeCommunityRepository(client)
+        ..postError = const CommunityException(
+            'Write something before sharing your post.');
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: CommunityScreen(repository: repository)),
+      ));
+      await tester.pumpAndSettle();
+      final l =
+          AppLocalizations.of(tester.element(find.byType(CommunityScreen)))!;
+      await tester.tap(find.byTooltip(l.communityCreatePost));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.communitySharePost));
+      await tester.pumpAndSettle();
+      expect(find.text(l.communityErrorEmptyPost), findsOneWidget);
+      expect(repository.bodies, isEmpty);
+    });
+
+    testWidgets('localized post, report and comments at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repository = _FakeCommunityRepository(client);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        theme: buildTheme(),
+        home: Scaffold(body: CommunityScreen(repository: repository)),
+      ));
+      await tester.pumpAndSettle();
+      final l =
+          AppLocalizations.of(tester.element(find.byType(CommunityScreen)))!;
+      await tester.tap(find.byTooltip(l.communityCreatePost));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'composer');
+      await tester.enterText(find.byType(TextField).last, 'User text');
+      await tester.tap(find.text(l.communitySharePost));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'post');
+      expect(repository.bodies, ['User text']);
+      expect(find.text('User text'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'menu');
+      await tester.tap(find.text(l.communityReportPost));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'report');
+      expect(find.text(l.communityReportPost), findsOneWidget);
+      await tester.enterText(find.byType(TextField).last, 'reason');
+      await tester.tap(find.text(l.communitySubmit));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'report submitted');
+      expect(repository.reportReason, 'reason');
+      await tester.tap(find.byIcon(Icons.mode_comment_outlined));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: 'comments');
+      expect(find.text(l.communityComments), findsOneWidget);
+      expect(find.text('A comment'), findsOneWidget);
+      expect(find.byTooltip(l.communityLikeComment), findsOneWidget);
+      expect(find.byTooltip(l.communitySendComment), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('community header and tabs at 360 in $language',
         (tester) async {
       tester.view.physicalSize = const Size(360, 640);
@@ -215,6 +295,13 @@ class _FakeCommunityRepository extends CommunityRepository {
   bool hasImage = false;
   List<CommunityPerson> people = [];
   List<CommunityPerson> friendList = [];
+  String? reportReason;
+  CommunityException? postError;
+
+  @override
+  Future<void> reportPost(String postId, String reason) async {
+    reportReason = reason;
+  }
 
   @override
   Future<CommunityPost?> postById(String id) async => CommunityPost(
@@ -294,6 +381,7 @@ class _FakeCommunityRepository extends CommunityRepository {
 
   @override
   Future<void> post(String body, String visibility, {XFile? image}) async {
+    if (postError != null) throw postError!;
     bodies.add(body);
   }
 

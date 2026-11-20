@@ -9,6 +9,437 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String communityUsername(String username) {
+    return '@$username';
+  }
+
+  @override
+  String get communityLikePost => 'الإعجاب بالمنشور';
+
+  @override
+  String get communityUnlikePost => 'إلغاء الإعجاب بالمنشور';
+
+  @override
+  String get communityOpenComments => 'فتح التعليقات';
+
+  @override
+  String get communityErrorSignIn => 'يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get communityErrorConnection =>
+      'تعذر الاتصال. تحقق من اتصال الإنترنت.';
+
+  @override
+  String get communityErrorTimeout => 'انتهت مهلة الطلب. حاول مرة أخرى.';
+
+  @override
+  String get communityErrorEmptyPost => 'اكتب شيئاً قبل مشاركة المنشور.';
+
+  @override
+  String get communityErrorPostLength => 'يجب ألا يزيد المنشور على 5000 حرف.';
+
+  @override
+  String get communityErrorImageSize => 'اختر صورة أصغر من 8 ميجابايت.';
+
+  @override
+  String get communityErrorImageType => 'اختر صورة بصيغة JPG أو PNG أو WebP.';
+
+  @override
+  String get communityErrorDeleteOwn => 'يمكنك حذف منشوراتك فقط.';
+
+  @override
+  String get communityErrorCommentLength =>
+      'يجب أن يتكون التعليق من 1 إلى 2000 حرف.';
+
+  @override
+  String get communityPostGone => 'لم يعد هذا المنشور متاحاً.';
+
+  @override
+  String get communityPostShared => 'تمت مشاركة منشورك.';
+
+  @override
+  String get communityRequestGone => 'لم يعد هذا الطلب متاحاً.';
+
+  @override
+  String get communityRequestAccepted => 'تم قبول طلب الصداقة.';
+
+  @override
+  String get communityRequestRemoved => 'تمت إزالة طلب الصداقة.';
+
+  @override
+  String get communityRequestSent => 'تم إرسال طلب الصداقة.';
+
+  @override
+  String get communityUnfollowed => 'تم إلغاء المتابعة.';
+
+  @override
+  String get communityFollowing => 'تمت المتابعة.';
+
+  @override
+  String get communityBlocked => 'تم حظر المستخدم.';
+
+  @override
+  String get communityUpdated => 'تم التحديث.';
+
+  @override
+  String get communityDeleteQuestion => 'حذف هذا المنشور؟';
+
+  @override
+  String get communityCannotUndo => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get communityReportSubmitted => 'تم إرسال البلاغ.';
+
+  @override
+  String communityBlockQuestion(String username) {
+    return 'حظر @$username؟';
+  }
+
+  @override
+  String get communityBlockDetails =>
+      'لن تظهر منشورات هذا المستخدم في مجتمعك بعد الآن.';
+
+  @override
+  String get communityDeletePost => 'حذف المنشور';
+
+  @override
+  String get communityReportPost => 'الإبلاغ عن المنشور';
+
+  @override
+  String get communityBlockUser => 'حظر المستخدم';
+
+  @override
+  String get communityImageUnavailable => 'صورة المنشور غير متاحة.';
+
+  @override
+  String get communityAcceptRequest => 'قبول الطلب';
+
+  @override
+  String get communityDeclineRequest => 'رفض الطلب';
+
+  @override
+  String get communityFollow => 'متابعة';
+
+  @override
+  String get communityUnfollow => 'إلغاء المتابعة';
+
+  @override
+  String get communitySendFriendRequest => 'إرسال طلب صداقة';
+
+  @override
+  String get communityRequestPending => 'الطلب قيد الانتظار';
+
+  @override
+  String get communityReportHint => 'أخبرنا لماذا يجب مراجعة هذا المنشور.';
+
+  @override
+  String get communitySubmit => 'إرسال';
+
+  @override
+  String get communityReportValidation => 'يرجى إدخال 3 أحرف على الأقل.';
+
+  @override
+  String get communityContinue => 'متابعة';
+
+  @override
+  String get communityClose => 'إغلاق';
+
+  @override
+  String get communityPostHint => 'شارك تحديثاً عن اللياقة أو التغذية...';
+
+  @override
+  String get communityAddPhoto => 'إضافة صورة';
+
+  @override
+  String get communityRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get communityPublic => 'عام';
+
+  @override
+  String get communitySharePost => 'مشاركة المنشور';
+
+  @override
+  String communityLikesError(String error) {
+    return 'تعذر تحميل الإعجابات: $error';
+  }
+
+  @override
+  String get communityNoLikes => 'لا توجد إعجابات ظاهرة.';
+
+  @override
+  String get communityLikedBy => 'أعجب به';
+
+  @override
+  String get communityComments => 'التعليقات';
+
+  @override
+  String get communityOlderComments => 'تحميل التعليقات الأقدم';
+
+  @override
+  String get communityFirstComment => 'كن أول من يعلّق.';
+
+  @override
+  String get communityLikedByAuthor => 'أعجب صاحب المنشور';
+
+  @override
+  String get communityLikeComment => 'الإعجاب بالتعليق';
+
+  @override
+  String get communityUnlikeComment => 'إلغاء الإعجاب بالتعليق';
+
+  @override
+  String get communityCommentHint => 'اكتب تعليقاً...';
+
+  @override
+  String get communitySendComment => 'إرسال التعليق';
+
+  @override
+  String get communityProfileUnavailable => 'الملف الشخصي غير متاح.';
+
+  @override
+  String get communityStreak => 'السلسلة';
+
+  @override
+  String get communityBest => 'الأفضل';
+
+  @override
+  String get communityPosts => 'المنشورات';
+
+  @override
+  String get communityFollowers => 'المتابعون';
+
+  @override
+  String get communityNoBadges => 'لم تحصل على شارات بعد.';
+
+  @override
+  String get communityAddFriend => 'إضافة صديق';
+
+  @override
+  String get arenaCreatePublic => 'إنشاء تحدٍ عام';
+
+  @override
+  String get arenaChallengeName => 'اسم التحدي';
+
+  @override
+  String get arenaDescription => 'الوصف (اختياري)';
+
+  @override
+  String get arenaChallengeType => 'نوع التحدي';
+
+  @override
+  String get arenaActiveDays => 'الأيام النشطة';
+
+  @override
+  String get arenaWorkoutCount => 'عدد التمارين';
+
+  @override
+  String get arenaDuration => 'المدة';
+
+  @override
+  String arenaDays(int count) {
+    return '$count يوم';
+  }
+
+  @override
+  String arenaWorkoutsCount(String count) {
+    return '$count تمرين';
+  }
+
+  @override
+  String get arenaNoPrizesRule =>
+      'النتائج من سجلات نشاط يدخلها المستخدمون ولم يتم التحقق منها. لا تُمنح جوائز.';
+
+  @override
+  String get arenaNoCashRule =>
+      'النتائج من سجلات نشاط يدخلها المستخدمون ولم يتم التحقق منها. لا توجد جوائز نقدية أو مادية.';
+
+  @override
+  String get arenaCreate => 'إنشاء';
+
+  @override
+  String get arenaInvalidName => 'يجب أن يتكون اسم التحدي من 3 أحرف على الأقل.';
+
+  @override
+  String get arenaCreated => 'تم إنشاء التحدي العام.';
+
+  @override
+  String get arenaNeedFriend => 'أضف صديقاً قبل إنشاء تحدٍ فردي.';
+
+  @override
+  String get arenaInvitationSent => 'تم إرسال دعوة تحدي الصديق.';
+
+  @override
+  String get arenaJoined => 'انضممت إلى التحدي.';
+
+  @override
+  String get arenaAccepted => 'تم قبول التحدي.';
+
+  @override
+  String get arenaDeclined => 'تم رفض دعوة التحدي.';
+
+  @override
+  String get arenaRewardsStore => 'متجر المكافآت';
+
+  @override
+  String get arenaBadgesAchievements => 'الشارات والإنجازات';
+
+  @override
+  String get arenaSection => 'الساحة';
+
+  @override
+  String get arenaCreateChallenge => 'إنشاء تحدٍ';
+
+  @override
+  String get arenaPublicChallenge => 'تحدٍ عام';
+
+  @override
+  String get arenaChallengeFriend => 'تحدَّ صديقاً';
+
+  @override
+  String get arenaYourActivity => 'سلسلة نشاطك';
+
+  @override
+  String arenaYourStreak(String days) {
+    return 'سلسلتك: $days';
+  }
+
+  @override
+  String arenaLongestStreak(String days) {
+    return 'أطول سلسلة: $days';
+  }
+
+  @override
+  String get arenaStreakHelp =>
+      'سجّل وجبة أو تمريناً مكتملاً لتحديث سلسلتك وكسب 10 نقاط خبرة و10 نقاط متجر مرة في كل يوم نشط.';
+
+  @override
+  String get arenaChallenges => 'التحديات';
+
+  @override
+  String get arenaLeaderboard => 'لوحة المتصدرين';
+
+  @override
+  String get arenaDiscover => 'اكتشف';
+
+  @override
+  String get arenaMyChallenges => 'تحدياتي';
+
+  @override
+  String get arenaFinished => 'المنتهية';
+
+  @override
+  String get arenaFriendInvitations => 'دعوات الأصدقاء';
+
+  @override
+  String arenaInvitation(String name, String metric) {
+    return 'دعاك $name إلى تحدٍ فردي في $metric.';
+  }
+
+  @override
+  String arenaDateRange(String start, String end) {
+    return 'من $start إلى $end';
+  }
+
+  @override
+  String get arenaDecline => 'رفض';
+
+  @override
+  String get arenaAccept => 'قبول';
+
+  @override
+  String get arenaNoOpen => 'لا توجد تحديات مفتوحة بعد. أنشئ تحدياً للبدء.';
+
+  @override
+  String get arenaNoChallenges => 'لا توجد تحديات لعرضها هنا بعد.';
+
+  @override
+  String get arenaOneVOne => 'فردي';
+
+  @override
+  String arenaChallengeSummary(String metric, String dates) {
+    return '$metric · $dates';
+  }
+
+  @override
+  String arenaParticipants(String count) {
+    return '$count مشارك';
+  }
+
+  @override
+  String arenaScore(String score) {
+    return 'نتيجتك: $score';
+  }
+
+  @override
+  String arenaScoreRank(String score, String rank) {
+    return 'نتيجتك: $score · الترتيب #$rank';
+  }
+
+  @override
+  String arenaCreatedBy(String name) {
+    return 'أنشأه $name';
+  }
+
+  @override
+  String get arenaJoining => 'جارٍ الانضمام...';
+
+  @override
+  String get arenaJoin => 'انضم إلى التحدي';
+
+  @override
+  String get arenaNoStandings => 'لا يوجد ترتيب بعد.';
+
+  @override
+  String get arenaGlobal => 'عالمي';
+
+  @override
+  String get arenaFriends => 'الأصدقاء';
+
+  @override
+  String get arenaMyLevel => 'مستواي';
+
+  @override
+  String get arenaThisWeek => 'هذا الأسبوع';
+
+  @override
+  String get arenaThisMonth => 'هذا الشهر';
+
+  @override
+  String get arenaAllTime => 'كل الأوقات';
+
+  @override
+  String get arenaWorkouts => 'التمارين';
+
+  @override
+  String get arenaNoRanked => 'لم يُصنف أي نشاط لهذا الفلتر.';
+
+  @override
+  String arenaCurrentStreak(String count) {
+    return 'السلسلة الحالية: $count';
+  }
+
+  @override
+  String arenaLevelStreak(String level, String streak) {
+    return '$level · $streak';
+  }
+
+  @override
+  String get arenaCompletedWorkouts => 'التمارين المكتملة';
+
+  @override
+  String get arenaFriend => 'الصديق';
+
+  @override
+  String get arenaMetric => 'المقياس';
+
+  @override
+  String get arenaSevenDayInvite => '7 أيام · تنتهي الدعوة تلقائياً.';
+
+  @override
+  String get arenaSendInvitation => 'إرسال الدعوة';
+
+  @override
   String get communityHeading => 'مجتمعك';
 
   @override

@@ -18,6 +18,24 @@ import '../widgets/post_image.dart';
 import 'progression.dart';
 import 'groups.dart';
 
+String _communityError(BuildContext context, Object error) {
+  if (error is! CommunityException) return error.toString();
+  final l = strings(context);
+  return switch (error.message) {
+    'Please sign in again.' => l.communityErrorSignIn,
+    'Could not connect. Check your internet connection.' =>
+      l.communityErrorConnection,
+    'The request timed out. Please try again.' => l.communityErrorTimeout,
+    'Write something before sharing your post.' => l.communityErrorEmptyPost,
+    'Posts must be 5000 characters or fewer.' => l.communityErrorPostLength,
+    'Choose an image smaller than 8 MB.' => l.communityErrorImageSize,
+    'Choose a JPG, PNG, or WebP image.' => l.communityErrorImageType,
+    'You can only delete your own post.' => l.communityErrorDeleteOwn,
+    'Comments must be 1–2000 characters.' => l.communityErrorCommentLength,
+    _ => error.toString(),
+  };
+}
+
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen(
       {super.key, this.repository, this.openPostId, this.openProfileId});
@@ -44,8 +62,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
   bool _feedHasMore = true;
   bool _peopleLoading = true;
   bool _posting = false;
-  String? _feedError;
-  String? _peopleError;
+  Object? _feedError;
+  Object? _peopleError;
   String _peopleQuery = '';
   List<CommunityPost> _posts = [];
   List<CommunityPerson> _searchResults = [];
@@ -73,7 +91,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         final post = await _repository.postById(widget.openPostId!);
         if (!mounted) return;
         if (post == null) {
-          _showMessage('This post is no longer available.');
+          _showMessage(strings(context).communityPostGone);
         } else {
           await _showComments(post);
         }
@@ -81,7 +99,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         await _showPublicProfile(widget.openProfileId!);
       }
     } catch (error) {
-      _showMessage(error.toString());
+      if (mounted) _showMessage(_communityError(context, error));
     }
   }
 
@@ -167,7 +185,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _feedError = error.toString();
+        _feedError = error;
         _feedLoading = false;
       });
     }
@@ -187,7 +205,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _feedMoreLoading = false);
-      _showMessage(error.toString());
+      if (mounted) _showMessage(_communityError(context, error));
     }
   }
 
@@ -214,7 +232,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _peopleError = error.toString();
+        _peopleError = error;
         _peopleLoading = false;
       });
     }
@@ -247,9 +265,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
     try {
       await _repository.post(result.$1, result.$2, image: result.$3);
       await _loadFeed();
-      _showMessage('Your post was shared.');
+      if (mounted) _showMessage(strings(context).communityPostShared);
     } catch (error) {
-      _showMessage(error.toString());
+      if (mounted) _showMessage(_communityError(context, error));
     } finally {
       if (mounted) setState(() => _posting = false);
     }
@@ -280,7 +298,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     try {
       await _repository.setLiked(post);
     } catch (error) {
-      _showMessage(error.toString());
+      if (mounted) _showMessage(_communityError(context, error));
       await _loadFeed();
     } finally {
       _busyPostIds.remove(post.id);
@@ -321,8 +339,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
     try {
       if (action == 'accept' || action == 'decline' || action == 'cancel') {
         if (person.friendshipId == null) {
-          throw const CommunityException(
-              'This request is no longer available.');
+          _showMessage(strings(context).communityRequestGone);
+          return;
         }
         await _repository.respondToFriendRequest(person.friendshipId!, action);
       } else if (action == 'friend') {
@@ -333,16 +351,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
         await _repository.blockUser(person.id);
       }
       await _loadPeople();
+      if (!mounted) return;
       _showMessage(switch (action) {
-        'accept' => 'Friend request accepted.',
-        'decline' || 'cancel' => 'Friend request removed.',
-        'friend' => 'Friend request sent.',
-        'follow' => person.followedByMe ? 'Unfollowed.' : 'Following.',
-        'block' => 'User blocked.',
-        _ => 'Updated.',
+        'accept' => strings(context).communityRequestAccepted,
+        'decline' || 'cancel' => strings(context).communityRequestRemoved,
+        'friend' => strings(context).communityRequestSent,
+        'follow' => person.followedByMe
+            ? strings(context).communityUnfollowed
+            : strings(context).communityFollowing,
+        'block' => strings(context).communityBlocked,
+        _ => strings(context).communityUpdated,
       });
     } catch (error) {
-      _showMessage(error.toString());
+      if (mounted) _showMessage(_communityError(context, error));
     }
   }
 
@@ -422,7 +443,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   Widget _buildFeed() {
     if (_feedLoading) return const Center(child: CircularProgressIndicator());
     if (_feedError != null && _posts.isEmpty) {
-      return _errorState(_feedError!, _loadFeed);
+      return _errorState(_communityError(context, _feedError!), _loadFeed);
     }
     if (_posts.isEmpty) {
       return RefreshIndicator(
@@ -484,14 +505,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
             ),
             if (post.visibility == 'friends')
               const Padding(
-                padding: EdgeInsets.only(right: 4),
+                padding: EdgeInsetsDirectional.only(end: 4),
                 child: Icon(Icons.people_alt_outlined, size: 17),
               ),
             PopupMenuButton<String>(
               onSelected: (action) async {
                 if (action == 'delete') {
                   final confirmed = await _confirm(
-                      'Delete this post?', 'This cannot be undone.');
+                      strings(context).communityDeleteQuestion,
+                      strings(context).communityCannotUndo);
                   if (!confirmed) return;
                   try {
                     await _repository.deletePost(post);
@@ -500,20 +522,23 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           _posts.removeWhere((item) => item.id == post.id));
                     }
                   } catch (error) {
-                    _showMessage(error.toString());
+                    if (mounted) _showMessage(_communityError(context, error));
                   }
                 } else if (action == 'report') {
                   final reason = await _reportReason();
                   if (reason == null) return;
                   try {
                     await _repository.reportPost(post.id, reason);
-                    _showMessage('Report submitted.');
+                    if (mounted) {
+                      _showMessage(strings(context).communityReportSubmitted);
+                    }
                   } catch (error) {
-                    _showMessage(error.toString());
+                    if (mounted) _showMessage(_communityError(context, error));
                   }
                 } else if (action == 'block') {
-                  final confirmed = await _confirm('Block @${post.username}?',
-                      'Their posts will no longer appear in your community.');
+                  final confirmed = await _confirm(
+                      strings(context).communityBlockQuestion(post.username),
+                      strings(context).communityBlockDetails);
                   if (confirmed) {
                     await _handlePersonAction(
                         CommunityPerson(
@@ -530,14 +555,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
               },
               itemBuilder: (_) => [
                 if (self)
-                  const PopupMenuItem(
-                      value: 'delete', child: Text('Delete post')),
+                  PopupMenuItem(
+                      value: 'delete',
+                      child: Text(strings(context).communityDeletePost)),
                 if (!self)
-                  const PopupMenuItem(
-                      value: 'report', child: Text('Report post')),
+                  PopupMenuItem(
+                      value: 'report',
+                      child: Text(strings(context).communityReportPost)),
                 if (!self)
-                  const PopupMenuItem(
-                      value: 'block', child: Text('Block user')),
+                  PopupMenuItem(
+                      value: 'block',
+                      child: Text(strings(context).communityBlockUser)),
               ],
               icon: const Icon(Icons.more_horiz),
             ),
@@ -570,7 +598,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   }
                   final image = storageImage(snapshot.data);
                   if (image == null) {
-                    return const Text('Post image is unavailable.');
+                    return Text(strings(context).communityImageUnavailable);
                   }
                   return PostImage(
                     image: image,
@@ -593,12 +621,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 color: post.likedByMe ? kRed : kMuted,
                 size: 20,
               ),
-              label: Text('${post.likeCount}'),
+              label: Semantics(
+                label: post.likedByMe
+                    ? strings(context).communityUnlikePost
+                    : strings(context).communityLikePost,
+                child: Text(post.likeCount.toString()),
+              ),
             ),
             TextButton.icon(
               onPressed: () => _showComments(post),
               icon: const Icon(Icons.mode_comment_outlined, size: 19),
-              label: Text('${post.commentCount}'),
+              label: Semantics(
+                label: strings(context).communityOpenComments,
+                child: Text(post.commentCount.toString()),
+              ),
             ),
           ]),
         ]),
@@ -623,7 +659,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         _searchResults.isEmpty &&
         _friends.isEmpty &&
         _requests.isEmpty) {
-      return _errorState(_peopleError!, _loadPeople);
+      return _errorState(_communityError(context, _peopleError!), _loadPeople);
     }
     return RefreshIndicator(
       onRefresh: _loadPeople,
@@ -648,7 +684,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ),
             ),
           ),
-          if (_peopleError != null) _inlineError(_peopleError!, _loadPeople),
+          if (_peopleError != null)
+            _inlineError(_communityError(context, _peopleError!), _loadPeople),
           if (_requests.isNotEmpty) ...[
             _sectionTitle(strings(context).communityFriendRequests),
             for (final request in _requests)
@@ -700,26 +737,26 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   children: [
                     Text(name,
                         style: const TextStyle(fontWeight: FontWeight.w700)),
-                    Text('@${person.username}',
+                    Text(strings(context).communityUsername(person.username),
                         style: Theme.of(context).textTheme.bodySmall),
                   ]),
             ),
           ),
           if (request && person.requestDirection == 'incoming') ...[
             IconButton(
-              tooltip: 'Accept request',
+              tooltip: strings(context).communityAcceptRequest,
               onPressed: () => _handlePersonAction(person, 'accept'),
               icon: Icon(Icons.check_circle, color: kGreen),
             ),
             IconButton(
-              tooltip: 'Decline request',
+              tooltip: strings(context).communityDeclineRequest,
               onPressed: () => _handlePersonAction(person, 'decline'),
               icon: const Icon(Icons.cancel_outlined),
             ),
           ] else if (request)
             TextButton(
               onPressed: () => _handlePersonAction(person, 'cancel'),
-              child: const Text('Cancel'),
+              child: Text(strings(context).plannerCancel),
             )
           else if (friend)
             const Padding(
@@ -728,7 +765,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
             )
           else ...[
             IconButton(
-              tooltip: person.followedByMe ? 'Unfollow' : 'Follow',
+              tooltip: person.followedByMe
+                  ? strings(context).communityUnfollow
+                  : strings(context).communityFollow,
               onPressed: () => _handlePersonAction(person, 'follow'),
               icon: Icon(
                 person.followedByMe ? Icons.person_remove : Icons.person_add,
@@ -737,14 +776,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
             ),
             if (person.relationship == 'none')
               IconButton(
-                tooltip: 'Send friend request',
+                tooltip: strings(context).communitySendFriendRequest,
                 onPressed: () => _handlePersonAction(person, 'friend'),
                 icon: const Icon(Icons.group_add_outlined),
               )
             else if (person.relationship == 'request_outgoing')
-              const Tooltip(
-                  message: 'Request pending',
-                  child: Icon(Icons.hourglass_top, size: 20)),
+              Tooltip(
+                  message: strings(context).communityRequestPending,
+                  child: const Icon(Icons.hourglass_top, size: 20)),
           ],
         ]),
       ),
@@ -768,7 +807,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             OutlinedButton.icon(
                 onPressed: () => unawaited(retry()),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Try again')),
+                label: Text(strings(context).coachTryAgain)),
           ]),
         ),
       );
@@ -782,7 +821,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             leading: const Icon(Icons.error_outline),
             title: Text(message),
             trailing: IconButton(
-              tooltip: 'Retry',
+              tooltip: strings(context).plannerRetry,
               onPressed: () => unawaited(retry()),
               icon: const Icon(Icons.refresh),
             ),
@@ -804,31 +843,34 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   Future<String?> _reportReason() async {
     final controller = TextEditingController();
-    final result = await showDialog<String>(
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final route = DialogRoute<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Report post'),
+        title: Text(strings(context).communityReportPost),
         content: TextField(
           controller: controller,
           minLines: 2,
           maxLines: 4,
           maxLength: 1000,
-          decoration: const InputDecoration(
-              hintText: 'Tell us why this post should be reviewed.'),
+          decoration:
+              InputDecoration(hintText: strings(context).communityReportHint),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(strings(context).plannerCancel)),
           FilledButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
-              child: const Text('Submit')),
+              child: Text(strings(context).communitySubmit)),
         ],
       ),
     );
+    final result = await navigator.push(route);
+    await route.completed;
     controller.dispose();
     if (result != null && result.length < 3) {
-      _showMessage('Please provide at least 3 characters.');
+      if (mounted) _showMessage(strings(context).communityReportValidation);
       return null;
     }
     return result;
@@ -843,10 +885,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel')),
+                child: Text(strings(context).plannerCancel)),
             FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Continue')),
+                child: Text(strings(context).communityContinue)),
           ],
         ),
       ) ??
@@ -894,10 +936,10 @@ class _PostComposerSheetState extends State<_PostComposerSheet> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Row(children: [
               Expanded(
-                  child: Text('Create a post',
+                  child: Text(strings(context).communityCreatePost,
                       style: Theme.of(context).textTheme.titleLarge)),
               IconButton(
-                tooltip: 'Close',
+                tooltip: strings(context).communityClose,
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),
               ),
@@ -908,8 +950,8 @@ class _PostComposerSheetState extends State<_PostComposerSheet> {
               minLines: 3,
               maxLines: 7,
               maxLength: 5000,
-              decoration: const InputDecoration(
-                hintText: 'Share a fitness or nutrition update...',
+              decoration: InputDecoration(
+                hintText: strings(context).communityPostHint,
                 alignLabelWithHint: true,
               ),
             ),
@@ -924,13 +966,13 @@ class _PostComposerSheetState extends State<_PostComposerSheet> {
               ),
             Row(children: [
               IconButton(
-                tooltip: 'Add photo',
+                tooltip: strings(context).communityAddPhoto,
                 onPressed: _selectImage,
                 icon: const Icon(Icons.image_outlined),
               ),
               if (_image != null)
                 IconButton(
-                  tooltip: 'Remove photo',
+                  tooltip: strings(context).communityRemovePhoto,
                   onPressed: () => setState(() {
                     _image = null;
                     _imageBytes = null;
@@ -941,9 +983,13 @@ class _PostComposerSheetState extends State<_PostComposerSheet> {
               DropdownButton<String>(
                 value: _visibility,
                 underline: const SizedBox.shrink(),
-                items: const [
-                  DropdownMenuItem(value: 'public', child: Text('Public')),
-                  DropdownMenuItem(value: 'friends', child: Text('Friends')),
+                items: [
+                  DropdownMenuItem(
+                      value: 'public',
+                      child: Text(strings(context).communityPublic)),
+                  DropdownMenuItem(
+                      value: 'friends',
+                      child: Text(strings(context).communityFriends)),
                 ],
                 onChanged: (value) {
                   if (value != null) setState(() => _visibility = value);
@@ -957,7 +1003,7 @@ class _PostComposerSheetState extends State<_PostComposerSheet> {
                 onPressed: () => Navigator.pop(
                     context, (_textController.text, _visibility, _image)),
                 icon: const Icon(Icons.send),
-                label: const Text('Share post'),
+                label: Text(strings(context).communitySharePost),
               ),
             ),
           ]),
@@ -990,7 +1036,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   bool _hasMore = true;
   bool _sending = false;
   final Set<String> _liking = {};
-  String? _error;
+  Object? _error;
   late final Future<String>? _postImage = widget.post.imagePath == null
       ? null
       : widget.repository.signedImageUrl(widget.post.imagePath!);
@@ -1039,7 +1085,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = error;
         _loading = false;
       });
     }
@@ -1062,7 +1108,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _loadingMore = false);
-      _message(error.toString());
+      if (mounted) _message(_communityError(context, error));
     }
   }
 
@@ -1076,7 +1122,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       await _load();
       widget.onChanged();
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(_communityError(context, error));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1108,7 +1154,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         });
       }
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(_communityError(context, error));
     } finally {
       _liking.remove(comment.id);
       if (mounted) setState(() {});
@@ -1128,17 +1174,18 @@ class _CommentsSheetState extends State<_CommentsSheet> {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(
-                    child: Text('Could not load likes: ${snapshot.error}'));
+                    child: Text(strings(context).communityLikesError(
+                        _communityError(context, snapshot.error!))));
               }
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.data!.isEmpty) {
-                return const Center(child: Text('No visible likes.'));
+                return Center(child: Text(strings(context).communityNoLikes));
               }
               return ListView(
                 children: [
-                  const ListTile(title: Text('Liked by')),
+                  ListTile(title: Text(strings(context).communityLikedBy)),
                   for (final person in snapshot.data!)
                     ListTile(
                       leading: CircleAvatar(
@@ -1151,7 +1198,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       title: Text(person.fullName?.trim().isNotEmpty == true
                           ? person.fullName!
                           : person.username),
-                      subtitle: Text('@${person.username}'),
+                      subtitle: Text(
+                          strings(context).communityUsername(person.username)),
                     ),
                 ],
               );
@@ -1171,9 +1219,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               padding: const EdgeInsets.fromLTRB(18, 14, 8, 8),
               child: Row(children: [
                 Expanded(
-                    child: Text('Comments',
+                    child: Text(strings(context).communityComments,
                         style: Theme.of(context).textTheme.titleLarge)),
                 IconButton(
+                    tooltip: strings(context).communityClose,
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close)),
               ]),
@@ -1191,14 +1240,16 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         future: _postImage,
                         builder: (context, snapshot) {
                           if (snapshot.hasError) {
-                            return const Text('Post image is unavailable.');
+                            return Text(
+                                strings(context).communityImageUnavailable);
                           }
                           if (!snapshot.hasData) {
                             return const LinearProgressIndicator();
                           }
                           final image = storageImage(snapshot.data);
                           if (image == null) {
-                            return const Text('Post image is unavailable.');
+                            return Text(
+                                strings(context).communityImageUnavailable);
                           }
                           return PostImage(image: image, maxHeight: 100);
                         },
@@ -1215,7 +1266,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Load older comments'),
+                    : Text(strings(context).communityOlderComments),
               ),
             Expanded(
               child: _loading
@@ -1224,13 +1275,16 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       ? Center(
                           child:
                               Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(_error!, textAlign: TextAlign.center),
+                          Text(_communityError(context, _error!),
+                              textAlign: TextAlign.center),
                           TextButton(
-                              onPressed: _load, child: const Text('Try again')),
+                              onPressed: _load,
+                              child: Text(strings(context).coachTryAgain)),
                         ]))
                       : _comments.isEmpty
-                          ? const Center(
-                              child: Text('Be the first to comment.'))
+                          ? Center(
+                              child:
+                                  Text(strings(context).communityFirstComment))
                           : ListView.builder(
                               controller: _scrollController,
                               padding:
@@ -1272,7 +1326,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                                     : null,
                                               ),
                                               const SizedBox(width: 4),
-                                              const Text('Liked by author'),
+                                              Flexible(
+                                                child: Text(strings(context)
+                                                    .communityLikedByAuthor),
+                                              ),
                                             ]),
                                     ],
                                   ),
@@ -1281,8 +1338,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                       children: [
                                         IconButton(
                                           tooltip: comment.likedByMe
-                                              ? 'Unlike comment'
-                                              : 'Like comment',
+                                              ? strings(context)
+                                                  .communityUnlikeComment
+                                              : strings(context)
+                                                  .communityLikeComment,
                                           onPressed: _liking
                                                   .contains(comment.id)
                                               ? null
@@ -1300,7 +1359,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                           TextButton(
                                             onPressed: () =>
                                                 _showLikers(comment),
-                                            child: Text('${comment.likeCount}'),
+                                            child: Text(
+                                                comment.likeCount.toString()),
                                           ),
                                       ]),
                                 );
@@ -1317,8 +1377,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     maxLength: 2000,
                     minLines: 1,
                     maxLines: 4,
-                    decoration: const InputDecoration(
-                      hintText: 'Write a comment...',
+                    decoration: InputDecoration(
+                      hintText: strings(context).communityCommentHint,
                       counterText: '',
                     ),
                     onSubmitted: (_) => _send(),
@@ -1326,6 +1386,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
+                  tooltip: strings(context).communitySendComment,
                   onPressed: _sending ? null : _send,
                   icon: _sending
                       ? const SizedBox(
@@ -1377,8 +1438,8 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
       widget.onChanged();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_communityError(context, error))));
       }
     }
   }
@@ -1392,8 +1453,10 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text(snapshot.error.toString()),
-                  TextButton(onPressed: _refresh, child: const Text('Retry')),
+                  Text(_communityError(context, snapshot.error!)),
+                  TextButton(
+                      onPressed: _refresh,
+                      child: Text(strings(context).plannerRetry)),
                 ]);
               }
               if (snapshot.connectionState != ConnectionState.done) {
@@ -1404,9 +1467,11 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
               }
               final profile = snapshot.data;
               if (profile == null) {
-                return const SizedBox(
+                return SizedBox(
                     height: 140,
-                    child: Center(child: Text('Profile is unavailable.')));
+                    child: Center(
+                        child: Text(
+                            strings(context).communityProfileUnavailable)));
               }
               final name = profile.fullName?.isNotEmpty == true
                   ? profile.fullName!
@@ -1423,14 +1488,15 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                 ),
                 const SizedBox(height: 10),
                 Text(name, style: Theme.of(context).textTheme.titleLarge),
-                Text('@${profile.username}',
+                Text(strings(context).communityUsername(profile.username),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (profile.levelName != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Chip(
                       avatar: const Icon(Icons.workspace_premium, size: 18),
-                      label: Text(profile.levelName!),
+                      label:
+                          Text(localizedLevelName(context, profile.levelName!)),
                     ),
                   ),
                 const SizedBox(height: 16),
@@ -1439,21 +1505,26 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                   spacing: 22,
                   runSpacing: 12,
                   children: [
-                    _stat('Streak', '${profile.currentStreak} days'),
-                    _stat('Best', '${profile.longestStreak} days'),
-                    _stat('Posts', '${profile.postCount}'),
-                    _stat('Friends', '${profile.friendCount}'),
-                    _stat('Followers', '${profile.followerCount}'),
+                    _stat(strings(context).communityStreak,
+                        strings(context).arenaDays(profile.currentStreak)),
+                    _stat(strings(context).communityBest,
+                        strings(context).arenaDays(profile.longestStreak)),
+                    _stat(strings(context).communityPosts,
+                        profile.postCount.toString()),
+                    _stat(strings(context).communityFriends,
+                        profile.friendCount.toString()),
+                    _stat(strings(context).communityFollowers,
+                        profile.followerCount.toString()),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text('Badges',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
+                Text(strings(context).progressBadges,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
                 LiveProgress<List<BadgeProgress>>(
                   repository: _progression,
                   load: () => _progression.publicBadges(widget.userId),
                   builder: (_, badges) => badges.isEmpty
-                      ? const Text('No badges earned yet.')
+                      ? Text(strings(context).communityNoBadges)
                       : Wrap(
                           spacing: 6,
                           children: [
@@ -1474,8 +1545,9 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                         icon: Icon(profile.followedByMe
                             ? Icons.person_remove
                             : Icons.person_add),
-                        label:
-                            Text(profile.followedByMe ? 'Unfollow' : 'Follow'),
+                        label: Text(profile.followedByMe
+                            ? strings(context).communityUnfollow
+                            : strings(context).communityFollow),
                       ),
                     ),
                     if (profile.relationship == 'none') ...[
@@ -1484,7 +1556,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                         child: FilledButton.icon(
                           onPressed: () => _do('friend', profile),
                           icon: const Icon(Icons.group_add_outlined),
-                          label: const Text('Add friend'),
+                          label: Text(strings(context).communityAddFriend),
                         ),
                       ),
                     ],
