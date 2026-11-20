@@ -103,8 +103,10 @@ void main() {
     repo.createGate!.complete();
     await tester.pumpAndSettle();
     expect(repo.createCalls, 1);
-    expect(state.plannerSplits.map((s) => s.name),
-        ['Push', 'Pull', 'Legs', 'Rest']);
+    expect(state.plannerSplits.map((s) => s.name), ['Push', 'Pull', 'Legs']);
+    await state.loadPlanner('2026-11-15', '2026-11-21');
+    await tester.pumpAndSettle();
+    expect(state.plannerSplits.map((s) => s.name), ['Push', 'Pull', 'Legs']);
     expect(find.text('Add starter splits'), findsNothing);
   });
 
@@ -209,6 +211,12 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     expect(state.plannerSplits.first.name, 'Upper');
+    expect(state.plannerSplits.map((split) => split.name),
+        ['Upper', 'Pull', 'Legs']);
+    await state.loadPlanner('2026-11-15', '2026-11-21');
+    await tester.pumpAndSettle();
+    expect(state.plannerSplits.map((split) => split.name),
+        ['Upper', 'Pull', 'Legs']);
     await tapVisible(tester, find.text('Plan this day'));
     await tester.tap(find.text('Rest day').last);
     await tester.pumpAndSettle();
@@ -220,6 +228,13 @@ void main() {
     expect(find.text('Log this workout'), findsOneWidget);
     await tapVisible(tester, find.text('Log this workout'));
     expect(find.text('Log workout'), findsWidgets);
+    final duration = tester
+        .widget<TextField>(find.byKey(const ValueKey('workout-duration')));
+    expect(duration.controller!.text, '60');
+    await tester.enterText(
+        find.byKey(const ValueKey('workout-duration')), '45');
+    expect(duration.controller!.text, '45');
+    tester.testTextInput.hide();
     Navigator.of(tester.element(find.text('Log workout').last)).pop();
     await tester.pumpAndSettle();
     await state.savePlannerDay(const PlannerDay(
@@ -256,6 +271,45 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Log this workout'), findsNothing);
     expect(find.text('Available on the day'), findsNothing);
+  });
+
+  testWidgets('today selection, marker, friendly date and week navigation',
+      (tester) async {
+    await render(tester);
+    expect(find.text('Selected day: Fri, Nov 20'), findsOneWidget);
+    expect(find.byKey(const ValueKey('today-2026-11-20')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('planner-date-2026-11-19')));
+    await tester.pumpAndSettle();
+    expect(find.text('Selected day: Thu, Nov 19'), findsOneWidget);
+    expect(find.byKey(const ValueKey('today-2026-11-20')), findsOneWidget);
+    await tester.tap(find.byTooltip('Next week'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selected day: Sun, Nov 22'), findsOneWidget);
+    expect(find.byKey(const ValueKey('today-2026-11-20')), findsNothing);
+    await tester.tap(find.byTooltip('Previous week'));
+    await tester.pumpAndSettle();
+    expect(find.text('Selected day: Fri, Nov 20'), findsOneWidget);
+    expect(find.byKey(const ValueKey('today-2026-11-20')), findsOneWidget);
+  });
+
+  testWidgets('day chooser groups workout splits before saved rest splits',
+      (tester) async {
+    final (_, state) = await render(tester);
+    await state.createPlannerSplits([
+      const PlannerSplit(id: '', name: 'Custom rest', kind: 'rest'),
+      const PlannerSplit(
+          id: '', name: 'Workout A', kind: 'workout', duration: 25, effort: 50),
+      const PlannerSplit(id: '', name: 'Another rest', kind: 'rest'),
+      const PlannerSplit(
+          id: '', name: 'Workout B', kind: 'workout', duration: 35, effort: 60),
+    ]);
+    await tester.pumpAndSettle();
+    await tapVisible(tester, find.text('Plan this day'));
+    final dialog = find.byType(AlertDialog);
+    final tiles = tester.widgetList<ListTile>(
+        find.descendant(of: dialog, matching: find.byType(ListTile)));
+    expect(tiles.map((tile) => (tile.title! as Text).data),
+        ['Rest day', 'Workout A', 'Workout B', 'Custom rest', 'Another rest']);
   });
 
   testWidgets('planner renders at 360x640 with large text', (tester) async {

@@ -7,24 +7,28 @@ import '../state.dart';
 import 'calorie_profile_sheet.dart';
 import 'calories_food_summary.dart';
 
-Future<void> showWorkoutLogger(BuildContext context, AppState state) =>
+Future<void> showWorkoutLogger(BuildContext context, AppState state,
+        {int? initialDuration}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => WorkoutLoggerSheet(state: state),
+      builder: (_) =>
+          WorkoutLoggerSheet(state: state, initialDuration: initialDuration),
     );
 
 class WorkoutLoggerSheet extends StatefulWidget {
-  const WorkoutLoggerSheet({super.key, required this.state});
+  const WorkoutLoggerSheet(
+      {super.key, required this.state, this.initialDuration});
   final AppState state;
+  final int? initialDuration;
 
   @override
   State<WorkoutLoggerSheet> createState() => _WorkoutLoggerSheetState();
 }
 
 class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
-  final duration = TextEditingController(text: '30');
+  late final TextEditingController duration;
   final calories = TextEditingController();
   WorkoutActivity activity = WorkoutActivity.strength;
   WorkoutIntensity intensity = WorkoutIntensity.moderate;
@@ -47,6 +51,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
   @override
   void initState() {
     super.initState();
+    duration = TextEditingController(text: '${widget.initialDuration ?? 30}');
     widget.state.addListener(_profileChanged);
     _refreshEstimate();
   }

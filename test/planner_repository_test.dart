@@ -36,10 +36,12 @@ void main() {
         return json([]);
       }
       if (request.method == 'POST') {
-        return json([
-          for (final row in jsonDecode(request.body) as List)
-            {...row as Map<String, dynamic>, 'id': 'split-1'}
-        ], 201);
+        return json(
+            [
+              for (final row in jsonDecode(request.body) as List)
+                {'id': 'split-1', ...row as Map<String, dynamic>}
+            ].reversed.toList(),
+            201);
       }
     }
     if (path.endsWith('/planner_days')) {
@@ -79,6 +81,10 @@ void main() {
       final request = requests.singleWhere(
           (r) => r.url.path.endsWith('/$table') && r.method == 'GET');
       expect(request.url.queryParameters['user_id'], 'eq.$user');
+      if (table == 'planner_splits') {
+        expect(request.url.queryParameters['order'],
+            'created_at.asc.nullslast,id.asc.nullslast');
+      }
       if (table != 'planner_splits') {
         final date = table == 'workout_logs' ? 'activity_date' : 'planned_date';
         expect(request.url.queryParametersAll[date],
@@ -112,5 +118,20 @@ void main() {
             .where((r) => r.url.path.endsWith('/workout_logs'))
             .every((r) => r.method == 'GET'),
         isTrue);
+  });
+
+  test('starter batch has stable ordered ids even when response is reversed',
+      () async {
+    final repository = PlannerRepository();
+    final created = await repository.createSplits([
+      for (final name in ['Push', 'Pull', 'Legs'])
+        PlannerSplit(
+            id: '', name: name, kind: 'workout', duration: 60, effort: 70),
+    ]);
+    final posted = jsonDecode(requests.last.body) as List;
+    final ids = [for (final row in posted) row['id'] as String];
+    expect(ids.toSet(), hasLength(3));
+    expect(ids, orderedEquals([...ids]..sort()));
+    expect(created.map((split) => split.name), ['Push', 'Pull', 'Legs']);
   });
 }

@@ -84,9 +84,31 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
   Future<void> _moveWeek(int offset) async {
     setState(() {
       week = week!.add(Duration(days: offset * 7));
-      selected = week;
+      final today = state.plannerToday;
+      selected = today != null &&
+              today.compareTo(plannerDate(week!)) >= 0 &&
+              today.compareTo(
+                      plannerDate(week!.add(const Duration(days: 6)))) <=
+                  0
+          ? parsePlannerDate(today)
+          : week;
     });
+    final targetWeek = week!;
+    final initialSelection = selected;
     await _loadWeek();
+    if (!mounted ||
+        week != targetWeek ||
+        selected != initialSelection ||
+        state.plannerStart != plannerDate(targetWeek)) {
+      return;
+    }
+    final today = state.plannerToday;
+    if (today != null &&
+        today.compareTo(plannerDate(targetWeek)) >= 0 &&
+        today.compareTo(plannerDate(targetWeek.add(const Duration(days: 6)))) <=
+            0) {
+      setState(() => selected = parsePlannerDate(today));
+    }
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -184,7 +206,10 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
             ListTile(
                 title: const Text('Rest day'),
                 onTap: () => Navigator.pop(context, 'rest')),
-            for (final split in state.plannerSplits)
+            for (final split in [
+              ...state.plannerSplits.where((item) => item.kind == 'workout'),
+              ...state.plannerSplits.where((item) => item.kind == 'rest'),
+            ])
               ListTile(
                   title: Text(split.name),
                   subtitle: Text(split.kind),
@@ -219,21 +244,20 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
           for (final name in ['Push', 'Pull', 'Legs'])
             PlannerSplit(
                 id: '', name: name, kind: 'workout', duration: 60, effort: 70),
-          const PlannerSplit(id: '', name: 'Rest', kind: 'rest'),
         ]);
       });
 
-  Future<void> _logWorkout() async {
+  Future<void> _logWorkout(PlannerDay day) async {
     try {
       final today = await state.plannerLocalToday();
       if (!mounted) return;
-      if (plannerDate(selected!) != today) {
+      if (plannerDate(selected!) != today || day.date != today) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Logging is available on the workout day only.')));
         await _loadWeek();
         return;
       }
-      await showWorkoutLogger(context, state);
+      await showWorkoutLogger(context, state, initialDuration: day.duration);
       if (mounted) await _loadWeek();
     } catch (error) {
       if (mounted) {
@@ -310,7 +334,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Text('Selected day: $date',
+                        Text(
+                            'Selected day: ${MaterialLocalizations.of(context).formatMediumDate(selected!)}',
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -352,7 +377,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                           if (day?.kind == 'workout' &&
                               date == state.plannerToday)
                             OutlinedButton(
-                                onPressed: busy ? null : _logWorkout,
+                                onPressed:
+                                    busy ? null : () => _logWorkout(day!),
                                 child: const Text('Log this workout')),
                         ]),
                         if (day?.kind == 'workout' &&
@@ -443,6 +469,20 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
         child: Column(children: [
           Text(label),
           Text('${date.day}'),
+          SizedBox(
+            height: 3,
+            child: key == state.plannerToday
+                ? Semantics(
+                    label: 'Today',
+                    child: Container(
+                      key: ValueKey('today-$key'),
+                      width: 18,
+                      height: 2,
+                      color: kGold,
+                    ),
+                  )
+                : null,
+          ),
           SizedBox(
               height: 12,
               child: Center(

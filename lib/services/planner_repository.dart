@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'session_recovery.dart';
@@ -123,8 +125,8 @@ class PlannerRepository implements PlannerDataSource {
           .from('planner_splits')
           .select()
           .eq('user_id', user)
-          .order('created_at')
-          .order('id')
+          .order('created_at', ascending: true)
+          .order('id', ascending: true)
           .range(offset, offset + 999));
       splits.addAll(rows.map(PlannerSplit.fromRow));
       if (rows.length < 1000) break;
@@ -161,11 +163,34 @@ class PlannerRepository implements PlannerDataSource {
   @override
   Future<List<PlannerSplit>> createSplits(List<PlannerSplit> splits) async {
     final user = _userId;
+    // A batch shares created_at, so sorted UUIDs preserve its insertion order.
+    final ids = splits.length > 1
+        ? (List.generate(splits.length, (_) => _newSplitId())..sort())
+        : <String>[];
     final rows =
         await _session.request(() => _client.from('planner_splits').insert([
-              for (final split in splits) {...split.toRow(), 'user_id': user}
+              for (var i = 0; i < splits.length; i++)
+                {
+                  ...splits[i].toRow(),
+                  'user_id': user,
+                  if (ids.isNotEmpty) 'id': ids[i],
+                }
             ]).select());
-    return [for (final row in rows) PlannerSplit.fromRow(row)];
+    final created = [for (final row in rows) PlannerSplit.fromRow(row)];
+    if (ids.isNotEmpty) {
+      created.sort((a, b) => a.id.compareTo(b.id));
+    }
+    return created;
+  }
+
+  String _newSplitId() {
+    final random = Random.secure();
+    final bytes = List.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex =
+        bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
   @override
