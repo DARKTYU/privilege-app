@@ -16,21 +16,64 @@ import 'services/food_database.dart';
 import 'services/supabase_auth_service.dart';
 import 'services/session_recovery.dart';
 import 'services/planner_repository.dart';
+import 'services/cravings_repository.dart';
+import 'services/classified_checks_repository.dart';
 
 /// Port of FitnessContext.tsx plus profile, subscription and streak-arena state.
 class AppState extends ChangeNotifier {
   AppState(
       {ActivityRepository? activityRepository,
       FoodDatabase? foodDatabase,
-      PlannerDataSource? plannerRepository})
+      PlannerDataSource? plannerRepository,
+      CravingsDataSource? cravingsRepository,
+      ClassifiedChecksDataSource? classifiedChecksRepository})
       : _activityRepository = activityRepository ?? ActivityRepository(),
         _foodDatabase = foodDatabase ?? FoodDatabase(),
-        _plannerRepository = plannerRepository ?? PlannerRepository();
+        _plannerRepository = plannerRepository ?? PlannerRepository(),
+        _cravingsRepository = cravingsRepository ?? CravingsRepository(),
+        _classifiedRepository =
+            classifiedChecksRepository ?? ClassifiedChecksRepository();
 
   Timer? _toastTimer;
   final ActivityRepository _activityRepository;
   final FoodDatabase _foodDatabase;
   final PlannerDataSource _plannerRepository;
+  final CravingsDataSource _cravingsRepository;
+  final ClassifiedChecksDataSource _classifiedRepository;
+
+  String? get cravingsAccountId => _cravingsRepository.accountId;
+  String? get classifiedAccountId => _classifiedRepository.accountId;
+
+  Future<T> _accountRequest<T>(
+      String? Function() account, Future<T> Function() action) async {
+    final user = account();
+    final generation = _plannerAccountGeneration;
+    if (user == null) throw StateError('Please log in again.');
+    final result = await action();
+    if (user != account() || generation != _plannerAccountGeneration) {
+      throw StateError('Account changed. Please try again.');
+    }
+    return result;
+  }
+
+  Future<List<Craving>> loadCravings(String start, String end) =>
+      _accountRequest(() => cravingsAccountId,
+          () => _cravingsRepository.loadMonth(start, end));
+  Future<Craving> addCraving(String date, String notes) => _accountRequest(
+      () => cravingsAccountId, () => _cravingsRepository.add(date, notes));
+  Future<Craving> editCraving(String id, String date, String notes,
+          {required String originalDate}) =>
+      _accountRequest(
+          () => cravingsAccountId,
+          () => _cravingsRepository.edit(id, date, notes,
+              originalDate: originalDate));
+  Future<void> deleteCraving(String id) => _accountRequest(
+      () => cravingsAccountId, () => _cravingsRepository.delete(id));
+  Future<Set<String>> loadClassifiedChecks() =>
+      _accountRequest(() => classifiedAccountId, _classifiedRepository.load);
+  Future<void> setClassifiedChecked(String key, bool checked) =>
+      _accountRequest(() => classifiedAccountId,
+          () => _classifiedRepository.setChecked(key, checked));
   int _plannerGeneration = 0;
   int _plannerAccountGeneration = 0;
   bool _plannerSaving = false;

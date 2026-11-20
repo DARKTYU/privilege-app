@@ -150,6 +150,10 @@ submission.
 
 ## 6. Cheat meals
 
+**Update 20 Nov 2026:** The screen now saves cravings per user and date; the
+reset-on-leaving issue is fixed. Monthly limits are enforced by the database.
+The findings below describe the earlier audit, not the current screen.
+
 **What works:** [`cheats.dart`](../lib/screens/cheats.dart) shows a local
 current-month calendar and allows local additions/deletions.
 
@@ -168,6 +172,10 @@ demo **must-have S**; actual planning and food-log integration
 **nice-to-have L**.
 
 ## 7. Classified Level
+
+**Update 20 Nov 2026:** The five self-reported checklist ticks now persist per
+user; the reset-on-leaving issue is fixed. They remain unverified. The findings
+below describe the earlier audit, not the current screen.
 
 **What works:** [`champion.dart`](../lib/screens/champion.dart) calculates a
 local score from toggles and fixed example numbers.

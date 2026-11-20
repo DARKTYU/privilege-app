@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'progression_fake.dart';
 import 'calories_test_database.dart';
 import 'planner_fake.dart';
+import 'cravings_classified_fake.dart';
 
 Widget _app(Widget child) =>
     MaterialApp(theme: buildTheme(), home: Scaffold(body: child));
@@ -46,6 +47,7 @@ void main() {
   testWidgets('pathway shows real activity, level and unverified checklist',
       (tester) async {
     _tallScreen(tester);
+    final checks = FakeClassifiedChecks();
     appState.burns.add(const BurnItem(
         id: '1',
         title: 'Run',
@@ -55,6 +57,9 @@ void main() {
         durationMin: 20,
         icon: ''));
     await tester.pumpWidget(_app(ChampionScreen(
+        state: AppState(classifiedChecksRepository: checks)
+          ..activityLoading = false
+          ..longestStreak = 9,
         progressionRepository: FakeProgression()
           ..counts = const ActivityCounts(meals: 27, workouts: 42))));
     await tester.pumpAndSettle();
@@ -88,9 +93,10 @@ void main() {
   testWidgets('pathway does not turn activity load errors into zero progress',
       (tester) async {
     _tallScreen(tester);
-    appState.activityError = 'offline';
-    await tester.pumpWidget(
-        _app(ChampionScreen(progressionRepository: FakeProgression())));
+    final state = AppState(classifiedChecksRepository: FakeClassifiedChecks())
+      ..activityError = 'offline';
+    await tester.pumpWidget(_app(ChampionScreen(
+        state: state, progressionRepository: FakeProgression())));
     await tester.pumpAndSettle();
     expect(find.text('Tracked by the app · Unavailable'), findsOneWidget);
   });
@@ -153,19 +159,20 @@ void main() {
     expect(find.text('SL'), findsOneWidget);
   });
 
-  testWidgets('cheat meals start empty and remain explicitly unsaved',
-      (tester) async {
+  testWidgets('cheat meals start empty and save', (tester) async {
     _tallScreen(tester);
-    await tester.pumpWidget(_app(const CheatsScreen()));
-    expect(find.text('Not saved yet'), findsOneWidget);
+    final state = AppState(
+        plannerRepository: FakePlanner(), cravingsRepository: FakeCravings());
+    await tester.pumpWidget(_app(CheatsScreen(state: state)));
+    await tester.pumpAndSettle();
+    expect(find.text('Not saved yet'), findsNothing);
     expect(find.text('No meals added yet.'), findsOneWidget);
     expect(find.textContaining('Allowed'), findsNothing);
     expect(find.textContaining('budgeted'), findsNothing);
     await tester.enterText(find.byType(TextField), 'Pizza');
-    await tester.tap(find.byTooltip('Add Cheat Meal'));
-    await tester.pump();
-    expect(find.textContaining('Pizza (Day'), findsOneWidget);
-    expect(find.text('Not saved yet'), findsOneWidget);
+    await tester.tap(find.text('Add craving'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pizza'), findsOneWidget);
   });
 
   testWidgets('planner starts without invented days or unsaved claims',
@@ -195,12 +202,17 @@ void main() {
   });
 
   for (final screen in <String, Widget Function()>{
-    'pathway': () => ChampionScreen(progressionRepository: FakeProgression()),
+    'pathway': () => ChampionScreen(
+        progressionRepository: FakeProgression(),
+        state: AppState(classifiedChecksRepository: FakeClassifiedChecks())),
     'membership': () =>
         SubscriptionScreen(progressionRepository: FakeProgression()),
     'splits': () =>
         SplitsScreen(state: AppState(plannerRepository: FakePlanner())),
-    'cheat meals': () => const CheatsScreen(),
+    'cheat meals': () => CheatsScreen(
+        state: AppState(
+            plannerRepository: FakePlanner(),
+            cravingsRepository: FakeCravings())),
     'planner': () =>
         PlanScreen(state: AppState(plannerRepository: FakePlanner())),
     'recipes': () => RecipesScreen(
