@@ -234,13 +234,12 @@ class SplitOption {
     required this.name,
     required this.isSport,
     required this.durationMin,
-    required this.calories,
     required this.icon,
     required this.focus,
   });
   final String id, name, icon, focus;
   final bool isSport;
-  final int durationMin, calories;
+  final int durationMin;
 }
 
 const defaultWorkoutSplits = <SplitOption>[
@@ -249,7 +248,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Push Day',
       isSport: false,
       durationMin: 60,
-      calories: 450,
       icon: '🏋️',
       focus: 'Chest, Shoulders, Triceps'),
   SplitOption(
@@ -257,7 +255,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Pull Day',
       isSport: false,
       durationMin: 60,
-      calories: 440,
       icon: '💪',
       focus: 'Lats, Rhomboids, Biceps'),
   SplitOption(
@@ -265,7 +262,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Leg Day Hypertrophy',
       isSport: false,
       durationMin: 70,
-      calories: 550,
       icon: '🦵',
       focus: 'Quads, Hamstrings, Glutes'),
   SplitOption(
@@ -273,7 +269,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Upper Body Power',
       isSport: false,
       durationMin: 65,
-      calories: 480,
       icon: '⚡',
       focus: 'Heavy Presses & Rows'),
   SplitOption(
@@ -281,7 +276,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Calisthenics & Core',
       isSport: false,
       durationMin: 50,
-      calories: 380,
       icon: '🤸',
       focus: 'Weighted Pullups, Dips & Abs'),
   SplitOption(
@@ -289,7 +283,6 @@ const defaultWorkoutSplits = <SplitOption>[
       name: 'Olympic Weightlifting',
       isSport: false,
       durationMin: 60,
-      calories: 500,
       icon: '🥇',
       focus: 'Cleans, Snatches & Front Squats'),
 ];
@@ -300,7 +293,6 @@ const defaultSports = <SplitOption>[
       name: 'Basketball',
       isSport: true,
       durationMin: 60,
-      calories: 520,
       icon: '🏀',
       focus: 'Full-court transition & jumps'),
   SplitOption(
@@ -308,7 +300,6 @@ const defaultSports = <SplitOption>[
       name: 'Football / Soccer',
       isSport: true,
       durationMin: 60,
-      calories: 560,
       icon: '⚽',
       focus: 'High-speed sprints & deceleration'),
   SplitOption(
@@ -316,7 +307,6 @@ const defaultSports = <SplitOption>[
       name: 'Tennis',
       isSport: true,
       durationMin: 60,
-      calories: 490,
       icon: '🎾',
       focus: 'Rotational torque & agility'),
   SplitOption(
@@ -324,7 +314,6 @@ const defaultSports = <SplitOption>[
       name: 'Boxing / MMA',
       isSport: true,
       durationMin: 50,
-      calories: 580,
       icon: '🥊',
       focus: 'Heavy bag rounds & footwork'),
   SplitOption(
@@ -332,7 +321,6 @@ const defaultSports = <SplitOption>[
       name: 'Swimming Laps',
       isSport: true,
       durationMin: 45,
-      calories: 430,
       icon: '🏊',
       focus: 'Freestyle endurance & breath control'),
   SplitOption(
@@ -340,7 +328,6 @@ const defaultSports = <SplitOption>[
       name: 'Track Sprint Intervals',
       isSport: true,
       durationMin: 40,
-      calories: 460,
       icon: '🏃',
       focus: 'Max velocity anaerobic bursts'),
 ];

@@ -12,6 +12,8 @@ class FakePlanner implements PlannerDataSource {
   String? failure;
   int createCalls = 0;
   Completer<void>? createGate;
+  Completer<void>? saveGate;
+  int saveCalls = 0;
   int _id = 0;
 
   void _check() {
@@ -22,6 +24,18 @@ class FakePlanner implements PlannerDataSource {
   Future<String> today() async {
     _check();
     return date;
+  }
+
+  @override
+  Future<List<PlannerSplit>> loadSplits() async {
+    _check();
+    return List.of(splits);
+  }
+
+  @override
+  Future<PlannerDay?> loadDay(String date) async {
+    _check();
+    return days.where((day) => day.date == date).firstOrNull;
   }
 
   @override
@@ -74,6 +88,9 @@ class FakePlanner implements PlannerDataSource {
 
   @override
   Future<PlannerDay> saveDay(PlannerDay day) async {
+    _check();
+    saveCalls++;
+    if (saveGate != null) await saveGate!.future;
     _check();
     days.removeWhere((d) => d.date == day.date);
     days.add(day);

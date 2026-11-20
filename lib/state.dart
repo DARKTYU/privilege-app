@@ -43,6 +43,11 @@ class AppState extends ChangeNotifier {
   Set<String> plannerWorkoutDates = {};
 
   Future<String> plannerLocalToday() => _plannerRepository.today();
+  String? get plannerAccountId => _plannerRepository.accountId;
+  Future<List<PlannerSplit>> loadPlannerSplits() =>
+      _plannerRepository.loadSplits();
+  Future<PlannerDay?> loadPlannerDay(String date) =>
+      _plannerRepository.loadDay(date);
 
   Future<void> loadPlanner(String start, String end) async {
     final user = _plannerRepository.accountId;

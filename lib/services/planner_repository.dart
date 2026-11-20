@@ -89,6 +89,8 @@ class PlannerSnapshot {
 abstract class PlannerDataSource {
   String? get accountId;
   Future<String> today();
+  Future<List<PlannerSplit>> loadSplits();
+  Future<PlannerDay?> loadDay(String date);
   Future<PlannerSnapshot> load(String start, String end);
   Future<List<PlannerSplit>> createSplits(List<PlannerSplit> splits);
   Future<PlannerSplit> updateSplit(PlannerSplit split);
@@ -119,18 +121,7 @@ class PlannerRepository implements PlannerDataSource {
   Future<PlannerSnapshot> load(String start, String end) async {
     final user = _userId;
     final current = await today();
-    final splits = <PlannerSplit>[];
-    for (var offset = 0;; offset += 1000) {
-      final rows = await _session.request(() => _client
-          .from('planner_splits')
-          .select()
-          .eq('user_id', user)
-          .order('created_at', ascending: true)
-          .order('id', ascending: true)
-          .range(offset, offset + 999));
-      splits.addAll(rows.map(PlannerSplit.fromRow));
-      if (rows.length < 1000) break;
-    }
+    final splits = await loadSplits();
     final days = await _session.request(() => _client
         .from('planner_days')
         .select()
@@ -158,6 +149,35 @@ class PlannerRepository implements PlannerDataSource {
       days: [for (final row in days) PlannerDay.fromRow(row)],
       workoutDates: workoutDates,
     );
+  }
+
+  @override
+  Future<List<PlannerSplit>> loadSplits() async {
+    final user = _userId;
+    final splits = <PlannerSplit>[];
+    for (var offset = 0;; offset += 1000) {
+      final rows = await _session.request(() => _client
+          .from('planner_splits')
+          .select()
+          .eq('user_id', user)
+          .order('created_at', ascending: true)
+          .order('id', ascending: true)
+          .range(offset, offset + 999));
+      splits.addAll(rows.map(PlannerSplit.fromRow));
+      if (rows.length < 1000) break;
+    }
+    return splits;
+  }
+
+  @override
+  Future<PlannerDay?> loadDay(String date) async {
+    parsePlannerDate(date);
+    final rows = await _session.request(() => _client
+        .from('planner_days')
+        .select()
+        .eq('user_id', _userId)
+        .eq('planned_date', date));
+    return rows.isEmpty ? null : PlannerDay.fromRow(rows.single);
   }
 
   @override

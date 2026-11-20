@@ -1,339 +1,469 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../data.dart';
-import '../logic/fitness_logic.dart';
-import '../services/progression_repository.dart';
+import '../logic/workout_estimate.dart';
+import '../services/planner_repository.dart';
+import '../state.dart';
 import '../ui.dart';
+import 'calorie_profile_sheet.dart';
+import 'workout_logger_sheet.dart';
+
+const _sportActivities = <String, WorkoutActivity>{
+  'basketball': WorkoutActivity.basketball,
+  'football': WorkoutActivity.football,
+  'tennis': WorkoutActivity.tennis,
+  'boxing': WorkoutActivity.martialArts,
+  'swimming': WorkoutActivity.swimming,
+  'sprints': WorkoutActivity.circuit,
+};
 
 class SplitsScreen extends StatefulWidget {
-  const SplitsScreen({super.key, this.progressionRepository});
-  final ProgressionDataSource? progressionRepository;
+  const SplitsScreen(
+      {super.key, this.state, this.onManageSplits, this.active = true});
+  final AppState? state;
+  final VoidCallback? onManageSplits;
+  final bool active;
 
   @override
   State<SplitsScreen> createState() => _SplitsScreenState();
 }
 
-class _SplitsScreenState extends State<SplitsScreen> {
-  late final List<SplitOption> _workouts = List.of(defaultWorkoutSplits);
-  late final List<SplitOption> _sports = List.of(defaultSports);
-  late SplitOption _workout = _workouts.first;
-  late SplitOption _sport = _sports.first;
-  MergeResult? _result;
-  bool _merging = false;
-  bool _openWorkout = false, _openSport = false;
-  late final _progression =
-      widget.progressionRepository ?? ProgressionRepository();
-  bool _checkingMembership = false;
-
-  Future<void> _merge() async {
-    setState(() => _merging = true);
-    await Future.delayed(const Duration(milliseconds: 350));
-    if (!mounted) return;
-    setState(() {
-      _result = mergeWorkoutWithSport(
-          _workout.name,
-          _workout.calories,
-          _workout.durationMin,
-          _sport.name,
-          _sport.calories,
-          _sport.durationMin);
-      _merging = false;
-    });
-  }
-
-  Future<void> _addCustom() async {
-    if (_checkingMembership) return;
-    setState(() => _checkingMembership = true);
-    try {
-      final accountId = _progression.accountId;
-      final membership = await _progression.subscriptionTier();
-      if (!mounted || accountId != _progression.accountId) return;
-      if (subscriptionTierRank(membership) < subscriptionTierRank('Silver')) {
-        toast(context,
-            'Custom splits require Silver or Gold membership. Paid upgrades are not available yet.');
-        return;
-      }
-    } catch (error) {
-      if (mounted) toast(context, 'Could not check membership: $error');
-      return;
-    } finally {
-      if (mounted) setState(() => _checkingMembership = false);
-    }
-    var isSport = false;
-    final name = TextEditingController();
-    final duration = TextEditingController(text: '60');
-    final kcal = TextEditingController(text: '480');
-    final focus = TextEditingController();
-    final created = await showDialog<SplitOption>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, set) => AlertDialog(
-          backgroundColor: kCard2,
-          title: const Text('Create Custom Split'),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                Expanded(
-                    child: appChip('Gym Split', !isSport,
-                        () => set(() => isSport = false))),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: appChip('Athletic Sport', isSport,
-                        () => set(() => isSport = true))),
-              ]),
-              const SizedBox(height: 10),
-              TextField(
-                  controller: name,
-                  decoration: fieldDecoration('e.g. Incline Bench & Dips')),
-              const SizedBox(height: 8),
-              Row(children: [
-                Expanded(
-                  child: TextField(
-                    controller: duration,
-                    keyboardType: TextInputType.number,
-                    decoration: fieldDecoration('Minutes'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: kcal,
-                    keyboardType: TextInputType.number,
-                    decoration: fieldDecoration('Burn (kcal)'),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 8),
-              TextField(
-                  controller: focus,
-                  decoration: fieldDecoration('e.g. Upper Chest, Deltoids')),
-            ]),
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
-            TextButton(
-              onPressed: () {
-                if (name.text.trim().isEmpty) return;
-                Navigator.pop(
-                  ctx,
-                  SplitOption(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: name.text.trim(),
-                    isSport: isSport,
-                    durationMin: int.tryParse(duration.text) ?? 60,
-                    calories: int.tryParse(kcal.text) ?? 450,
-                    icon: isSport ? '🏅' : '🏋️',
-                    focus: focus.text.trim().isEmpty
-                        ? (isSport
-                            ? 'Athletic Conditioning'
-                            : 'Target Muscle Hypertrophy')
-                        : focus.text.trim(),
-                  ),
-                );
-              },
-              child: const Text('Select (not saved)'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (created == null || !mounted) return;
-    setState(() {
-      if (created.isSport) {
-        _sports.insert(0, created);
-        _sport = created;
-      } else {
-        _workouts.insert(0, created);
-        _workout = created;
-      }
-    });
-  }
-
-  Widget _pickCard(SplitOption o, String change, VoidCallback onTap) =>
-      Expanded(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: kCard2,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: kLine),
-            ),
-            child: Column(children: [
-              Text(o.icon, style: const TextStyle(fontSize: 30)),
-              const SizedBox(height: 6),
-              Text(o.name,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800, fontSize: 13)),
-              Text('${o.durationMin}m • ${o.calories} kcal',
-                  style: TextStyle(fontSize: 11, color: kMuted)),
-              const SizedBox(height: 6),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Flexible(
-                  child: Text(change,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 10, color: kGold)),
-                ),
-                Icon(Icons.expand_more, size: 14, color: kGold),
-              ]),
-            ]),
-          ),
-        ),
-      );
-
-  Widget _picker(String title, List<SplitOption> list, SplitOption current,
-          ValueChanged<SplitOption> pick) =>
-      Panel(
-        padding: const EdgeInsets.all(8),
-        margin: const EdgeInsets.only(top: 10),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.all(6),
-            child: Text(title, style: TextStyle(fontSize: 11, color: kMuted)),
-          ),
-          for (final o in list)
-            ListTile(
-              dense: true,
-              selected: o.id == current.id,
-              selectedColor: kGold,
-              title: Text('${o.icon}  ${o.name}',
-                  style: const TextStyle(fontSize: 13)),
-              trailing: Text('${o.durationMin}m',
-                  style: TextStyle(fontSize: 12, color: kMuted)),
-              onTap: () => pick(o),
-            ),
-        ]),
-      );
-
-  Widget _stat(IconData i, String label, String v, Color c) => Expanded(
-        child: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-              color: kCard2, borderRadius: BorderRadius.circular(12)),
-          child: Column(children: [
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(i, size: 13, color: c),
-              const SizedBox(width: 4),
-              Text(label, style: TextStyle(fontSize: 11, color: kMuted)),
-            ]),
-            const SizedBox(height: 4),
-            Text(v, style: const TextStyle(fontWeight: FontWeight.w800)),
-          ]),
-        ),
-      );
+class _SplitsScreenState extends State<SplitsScreen>
+    with WidgetsBindingObserver {
+  late final AppState state = widget.state ?? appState;
+  final splitMinutes = TextEditingController(text: '60');
+  final sportMinutes = TextEditingController(text: '60');
+  SplitOption split = defaultWorkoutSplits.first;
+  SplitOption sport = defaultSports.first;
+  PlannerSplit? savedSplit;
+  List<PlannerSplit> savedSplits = [];
+  WorkoutIntensity splitIntensity = WorkoutIntensity.moderate;
+  WorkoutIntensity sportIntensity = WorkoutIntensity.moderate;
+  String? account;
+  String? loadError;
+  bool loading = false;
+  bool planning = false;
+  int loadGeneration = 0;
 
   @override
-  Widget build(BuildContext context) {
-    final r = _result;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      children: [
-        ScreenHeader(
-          'Splits & Sports Merge',
-          'Combine gym splits with daily sports.',
-          actions: [
-            TextButton.icon(
-              onPressed: _addCustom,
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Split'),
-            ),
-          ],
-        ),
-        Panel(
-          child: Column(children: [
-            Row(children: [
-              Expanded(
-                  child: Text('Selected Split & Sport',
-                      style: TextStyle(fontWeight: FontWeight.w800))),
-              Text('Tap card to change',
-                  style: TextStyle(fontSize: 11, color: kMuted)),
-            ]),
-            const SizedBox(height: 10),
-            Row(children: [
-              _pickCard(
-                  _workout,
-                  'Change split',
-                  () => setState(() {
-                        _openWorkout = !_openWorkout;
-                        _openSport = false;
-                      })),
-              const SizedBox(width: 10),
-              _pickCard(
-                  _sport,
-                  'Change sport',
-                  () => setState(() {
-                        _openSport = !_openSport;
-                        _openWorkout = false;
-                      })),
-            ]),
-            if (_openWorkout)
-              _picker(
-                  'Select Workout Split:',
-                  _workouts,
-                  _workout,
-                  (o) => setState(() {
-                        _workout = o;
-                        _openWorkout = false;
-                      })),
-            if (_openSport)
-              _picker(
-                  'Select Athletic Sport:',
-                  _sports,
-                  _sport,
-                  (o) => setState(() {
-                        _sport = o;
-                        _openSport = false;
-                      })),
-            const SizedBox(height: 12),
-            PrimaryButton(
-              _merging
-                  ? 'Computing Combined Fatigue...'
-                  : '+ Merge Splits & Calculate Load',
-              icon: Icons.auto_awesome,
-              onPressed: _merging ? null : _merge,
-            ),
-          ]),
-        ),
-        if (r != null)
-          Panel(
-            borderColor: kGold.withAlpha(110),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Icon(Icons.auto_awesome, size: 16, color: kGold),
-                const SizedBox(width: 6),
-                const Expanded(
-                  child: Text('Combined Athletic Load',
-                      style: TextStyle(fontWeight: FontWeight.w800)),
-                ),
-                Text('${r.totalDurationMin} mins total',
-                    style: TextStyle(fontSize: 11, color: kMuted)),
-              ]),
-              const SizedBox(height: 10),
-              Row(children: [
-                _stat(Icons.local_fire_department, 'Burn',
-                    '${r.totalCalories} kcal', kOrange),
-                const SizedBox(width: 8),
-                _stat(Icons.schedule, 'Rest', '${r.recoveryHoursRecommended}h',
-                    kCyan),
-                const SizedBox(width: 8),
-                _stat(Icons.water_drop, 'Water', '${r.hydrationMlNeeded}ml',
-                    kBlue),
-              ]),
-              const SizedBox(height: 10),
-              Text('Estimates only, not medical or coaching advice.',
-                  style: TextStyle(fontSize: 12, color: kMuted)),
-              const SizedBox(height: 8),
-              Text(r.advice, style: TextStyle(fontSize: 12, color: kMuted)),
-            ]),
-          ),
-      ],
-    );
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    account = state.plannerAccountId;
+    state.addListener(_accountChanged);
+    if (widget.active) _loadSplits();
   }
+
+  @override
+  void didUpdateWidget(covariant SplitsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !oldWidget.active) _loadSplits();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (widget.active && lifecycleState == AppLifecycleState.resumed) {
+      _loadSplits();
+    }
+  }
+
+  void _accountChanged() {
+    if (account == state.plannerAccountId) return;
+    account = state.plannerAccountId;
+    loadGeneration++;
+    setState(() {
+      savedSplits = [];
+      savedSplit = null;
+      split = defaultWorkoutSplits.first;
+      splitMinutes.text = '${split.durationMin}';
+      loadError = null;
+      loading = false;
+    });
+    if (widget.active) _loadSplits();
+  }
+
+  Future<void> _loadSplits() async {
+    final user = state.plannerAccountId;
+    final generation = ++loadGeneration;
+    setState(() {
+      loading = true;
+      loadError = null;
+    });
+    try {
+      if (user == null) throw StateError('Please log in again.');
+      final rows = await state.loadPlannerSplits();
+      if (!mounted ||
+          generation != loadGeneration ||
+          user != state.plannerAccountId) {
+        return;
+      }
+      setState(() {
+        savedSplits = rows.where((item) => item.kind == 'workout').toList();
+        if (savedSplit != null) {
+          final updated = savedSplits
+              .where((item) => item.id == savedSplit!.id)
+              .firstOrNull;
+          if (updated == null) {
+            savedSplit = null;
+            split = defaultWorkoutSplits.first;
+            splitMinutes.text = '${split.durationMin}';
+          } else {
+            savedSplit = updated;
+          }
+        }
+      });
+    } catch (error) {
+      if (mounted &&
+          generation == loadGeneration &&
+          user == state.plannerAccountId) {
+        setState(() => loadError = error.toString());
+      }
+    } finally {
+      if (mounted &&
+          generation == loadGeneration &&
+          user == state.plannerAccountId) {
+        setState(() => loading = false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    state.removeListener(_accountChanged);
+    splitMinutes.dispose();
+    sportMinutes.dispose();
+    super.dispose();
+  }
+
+  String get splitName => savedSplit?.name ?? split.name;
+  int? get splitDuration => int.tryParse(splitMinutes.text);
+  int? get sportDuration => int.tryParse(sportMinutes.text);
+  bool validMinutes(int? value) => value != null && value >= 1 && value <= 600;
+  void _message(String message) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  double? get weight {
+    final profile = state.profile;
+    return profile.hasWeight &&
+            profile.weightKg.isFinite &&
+            profile.weightKg > 0
+        ? profile.weightKg
+        : null;
+  }
+
+  Future<void> _plan() async {
+    if (planning) return;
+    final a = splitDuration;
+    final b = sportDuration;
+    final name = '$splitName + ${sport.name}';
+    final sourceSplitId = savedSplit?.id;
+    if (!validMinutes(a) || !validMinutes(b) || a! + b! > 600) {
+      _message(
+          'Enter valid durations with a combined total of 1 to 600 minutes.');
+      return;
+    }
+    if (name.runes.length > 100) {
+      _message('The combined name must be 100 characters or fewer.');
+      return;
+    }
+    setState(() => planning = true);
+    final user = state.plannerAccountId;
+    try {
+      if (user == null) throw StateError('Please log in again.');
+      final today = parsePlannerDate(await state.plannerLocalToday());
+      if (!mounted || user != state.plannerAccountId) return;
+      final result = await showDialog<(DateTime, int)>(
+          context: context, builder: (_) => _PlanDateDialog(today: today));
+      if (result == null || !mounted || user != state.plannerAccountId) return;
+      final date = plannerDate(result.$1);
+      final existing = await state.loadPlannerDay(date);
+      if (!mounted || user != state.plannerAccountId) return;
+      if (existing != null) {
+        final replace = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Replace existing plan?'),
+            content: Text('$date already has "${existing.name}". Replace it?'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Replace')),
+            ],
+          ),
+        );
+        if (replace != true || !mounted || user != state.plannerAccountId) {
+          return;
+        }
+      }
+      await state.savePlannerDay(PlannerDay(
+          date: date,
+          name: name,
+          kind: 'workout',
+          sourceSplitId: sourceSplitId,
+          duration: a + b,
+          effort: result.$2));
+      if (mounted && user == state.plannerAccountId) {
+        _message('Planned successfully.');
+      }
+    } catch (error) {
+      if (mounted && user == state.plannerAccountId) {
+        _message('Could not plan: $error');
+      }
+    } finally {
+      if (mounted) setState(() => planning = false);
+    }
+  }
+
+  Future<void> _log(WorkoutActivity? activity, int? minutes,
+      WorkoutIntensity intensity) async {
+    if (activity == null || !validMinutes(minutes)) return;
+    await showWorkoutLogger(context, state,
+        initialActivity: activity,
+        initialDuration: minutes,
+        initialIntensity: intensity);
+  }
+
+  Widget _segment(
+          String label,
+          TextEditingController controller,
+          WorkoutIntensity intensity,
+          ValueChanged<WorkoutIntensity> onChanged) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        TextField(
+          key: ValueKey('$label-minutes'),
+          controller: controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          decoration: InputDecoration(
+              labelText: '$label minutes', helperText: '1 to 600 minutes'),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 8),
+        Wrap(spacing: 6, children: [
+          for (final item in WorkoutIntensity.values)
+            ChoiceChip(
+              label: Text(item.name[0].toUpperCase() + item.name.substring(1)),
+              selected: item == intensity,
+              onSelected: (_) => setState(() => onChanged(item)),
+            )
+        ]),
+      ]);
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+      listenable: state,
+      builder: (context, _) {
+        final a = splitDuration;
+        final b = sportDuration;
+        final activity = _sportActivities[sport.id];
+        final strengthKcal = estimateWorkoutCalories(
+            WorkoutActivity.strength, splitIntensity, weight, a);
+        final sportKcal = activity == null
+            ? null
+            : estimateWorkoutCalories(activity, sportIntensity, weight, b);
+        return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            children: [
+              ScreenHeader('Splits & Sports Merge',
+                  'Combine gym splits with daily sports.', actions: [
+                TextButton(
+                    onPressed: widget.onManageSplits,
+                    child: const Text('Manage splits'))
+              ]),
+              if (loading) const LinearProgressIndicator(),
+              if (loadError != null) ...[
+                Text('Could not load splits: $loadError'),
+                TextButton(onPressed: _loadSplits, child: const Text('Retry')),
+              ],
+              Panel(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    DropdownButtonFormField<String>(
+                      key: ValueKey('split-${savedSplit?.id ?? split.id}'),
+                      initialValue: savedSplit == null
+                          ? 'built:${split.id}'
+                          : 'saved:${savedSplit!.id}',
+                      isExpanded: true,
+                      decoration:
+                          const InputDecoration(labelText: 'Workout split'),
+                      items: [
+                        for (final item in defaultWorkoutSplits)
+                          DropdownMenuItem(
+                              value: 'built:${item.id}',
+                              child: Text(item.name,
+                                  overflow: TextOverflow.ellipsis)),
+                        for (final item in savedSplits)
+                          DropdownMenuItem(
+                              value: 'saved:${item.id}',
+                              child: Text('${item.name} (My split)',
+                                  overflow: TextOverflow.ellipsis)),
+                      ],
+                      onChanged: (value) => setState(() {
+                        if (value!.startsWith('saved:')) {
+                          savedSplit = savedSplits.firstWhere(
+                              (item) => 'saved:${item.id}' == value);
+                          splitMinutes.text = '${savedSplit!.duration}';
+                        } else {
+                          savedSplit = null;
+                          split = defaultWorkoutSplits.firstWhere(
+                              (item) => 'built:${item.id}' == value);
+                          splitMinutes.text = '${split.durationMin}';
+                        }
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: sport.id,
+                      isExpanded: true,
+                      decoration: const InputDecoration(labelText: 'Sport'),
+                      items: [
+                        for (final item in defaultSports)
+                          DropdownMenuItem(
+                              value: item.id,
+                              child: Text(item.name,
+                                  overflow: TextOverflow.ellipsis))
+                      ],
+                      onChanged: (value) => setState(() {
+                        sport = defaultSports
+                            .firstWhere((item) => item.id == value);
+                        sportMinutes.text = '${sport.durationMin}';
+                      }),
+                    ),
+                    const SizedBox(height: 16),
+                    _segment('Split', splitMinutes, splitIntensity,
+                        (value) => splitIntensity = value),
+                    const SizedBox(height: 16),
+                    _segment('Sport', sportMinutes, sportIntensity,
+                        (value) => sportIntensity = value),
+                  ])),
+              Panel(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(
+                        'Combined duration: ${validMinutes(a) && validMinutes(b) ? '${a! + b!} minutes' : 'Unavailable'}'),
+                    Text(
+                        '$splitName: ${validMinutes(a) ? '$a min' : 'Invalid duration'}'),
+                    Text(
+                        '${sport.name}: ${validMinutes(b) ? '$b min' : 'Invalid duration'}'),
+                    if (sport.id == 'sprints')
+                      const Text(
+                          'Track sprint intervals use the HIIT or circuit estimate.'),
+                    const SizedBox(height: 8),
+                    if (weight == null) ...[
+                      const Text(
+                          'Calorie estimate unavailable - add your weight'),
+                      TextButton(
+                          onPressed: () =>
+                              showCalorieProfileSheet(context, state),
+                          child: const Text('Complete your profile')),
+                    ] else if (activity == null) ...[
+                      const Text(
+                          'Calorie estimate unavailable for this sport.'),
+                    ] else ...[
+                      Text(
+                          'Estimated calories burned: ${strengthKcal != null && sportKcal != null ? '${strengthKcal + sportKcal} kcal' : 'Unavailable'}'),
+                      Text(
+                          '$splitName: ${strengthKcal == null ? 'Unavailable' : '$strengthKcal kcal'}'),
+                      Text(
+                          '${sport.name}: ${sportKcal == null ? 'Unavailable' : '$sportKcal kcal'}'),
+                    ],
+                    const SizedBox(height: 8),
+                    const Text(
+                        'Estimate based on activity type, duration, intensity and your weight.'),
+                    const SizedBox(height: 12),
+                    Wrap(spacing: 8, runSpacing: 4, children: [
+                      OutlinedButton(
+                          onPressed: planning ? null : _plan,
+                          child: const Text('Plan on a date')),
+                      OutlinedButton(
+                          onPressed: validMinutes(a)
+                              ? () => _log(
+                                  WorkoutActivity.strength, a, splitIntensity)
+                              : null,
+                          child: const Text('Log workout')),
+                      OutlinedButton(
+                          onPressed: activity != null && validMinutes(b)
+                              ? () => _log(activity, b, sportIntensity)
+                              : null,
+                          child: const Text('Log sport')),
+                    ])
+                  ])),
+            ]);
+      });
+}
+
+class _PlanDateDialog extends StatefulWidget {
+  const _PlanDateDialog({required this.today});
+  final DateTime today;
+  @override
+  State<_PlanDateDialog> createState() => _PlanDateDialogState();
+}
+
+class _PlanDateDialogState extends State<_PlanDateDialog> {
+  late DateTime date = widget.today;
+  final effort = TextEditingController(text: '70');
+  String? error;
+
+  @override
+  void dispose() {
+    effort.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Plan on a date'),
+        content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextButton(
+            onPressed: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: date,
+                firstDate: DateTime(1900),
+                lastDate: DateTime(2100, 12, 31),
+              );
+              if (picked != null && mounted) setState(() => date = picked);
+            },
+            child: Text(
+                'Date: ${MaterialLocalizations.of(context).formatMediumDate(date)}'),
+          ),
+          TextField(
+            controller: effort,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+                labelText: 'Planner effort (%)',
+                helperText: '0 to 100',
+                errorText: error),
+          )
+        ])),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () {
+                final value = int.tryParse(effort.text);
+                if (value == null || value < 0 || value > 100) {
+                  setState(() => error = 'Enter effort from 0 to 100%.');
+                  return;
+                }
+                Navigator.pop(context, (date, value));
+              },
+              child: const Text('Continue'))
+        ],
+      );
 }

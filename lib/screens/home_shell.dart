@@ -98,7 +98,9 @@ class _HomeShellState extends State<HomeShell> {
                 children: [
                   PlanScreen(state: widget.plannerState),
                   SplitsScreen(
-                      progressionRepository: widget.progressionRepository),
+                      state: widget.plannerState,
+                      active: _i == 1,
+                      onManageSplits: () => setState(() => _i = 0)),
                   const CaloriesSection(),
                   ProfileScreen(
                       progressionRepository: widget.progressionRepository),

@@ -82,7 +82,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
                   'Community and streak tracking',
                   'Academy exercise guides',
                   'Rewards and achievements',
-                  'Custom splits for Silver and Gold members',
+                  'Create and save custom splits',
                 ])
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),

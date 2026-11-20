@@ -134,4 +134,13 @@ void main() {
     expect(ids, orderedEquals([...ids]..sort()));
     expect(created.map((split) => split.name), ['Push', 'Pull', 'Legs']);
   });
+
+  test('single day read is scoped to the owner and selected date', () async {
+    final repository = PlannerRepository();
+    expect(await repository.loadDay('2026-11-21'), isNull);
+    final request = requests.single;
+    expect(request.url.queryParameters['user_id'], 'eq.$user');
+    expect(request.url.queryParameters['planned_date'], 'eq.2026-11-21');
+    expect(request.method, 'GET');
+  });
 }

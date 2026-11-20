@@ -107,6 +107,7 @@ void main() {
       expect(find.textContaining('Upgrade to'), findsNothing);
       expect(find.textContaining('Gemini'), findsNothing);
       expect(find.textContaining('WADA'), findsNothing);
+      expect(find.text('• Create and save custom splits'), findsOneWidget);
     });
   }
 
@@ -125,38 +126,15 @@ void main() {
     expect(find.text('Current membership: Gold'), findsOneWidget);
   });
 
-  for (final tier in ['Free', 'Silver', 'Gold']) {
-    testWidgets('custom splits checks database membership $tier',
-        (tester) async {
-      await tester.pumpWidget(_app(
-          SplitsScreen(progressionRepository: FakeProgression()..tier = tier)));
-      await tester.tap(find.text('Add Split'));
-      await tester.pumpAndSettle();
-      if (tier == 'Free') {
-        expect(find.textContaining('require Silver or Gold'), findsOneWidget);
-        expect(find.text('Create Custom Split'), findsNothing);
-      } else {
-        expect(find.text('Create Custom Split'), findsOneWidget);
-      }
-    });
-  }
-
-  testWidgets('custom split membership errors are visible', (tester) async {
-    await tester.pumpWidget(_app(SplitsScreen(
-        progressionRepository: FakeProgression()
-          ..error = Exception('offline'))));
-    await tester.tap(find.text('Add Split'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Could not check membership'), findsOneWidget);
-  });
-
   testWidgets('split estimates carry disclaimer and no fake sync',
       (tester) async {
-    await tester.pumpWidget(
-        _app(SplitsScreen(progressionRepository: FakeProgression())));
-    await tester.tap(find.text('+ Merge Splits & Calculate Load'));
+    final state = AppState(plannerRepository: FakePlanner());
+    addTearDown(state.dispose);
+    await tester.pumpWidget(_app(SplitsScreen(state: state)));
     await tester.pumpAndSettle();
-    expect(find.text('Estimates only, not medical or coaching advice.'),
+    expect(
+        find.text(
+            'Estimate based on activity type, duration, intensity and your weight.'),
         findsOneWidget);
     expect(find.textContaining('Synced'), findsNothing);
     expect(find.text('Merge Day Active'), findsNothing);
@@ -220,7 +198,8 @@ void main() {
     'pathway': () => ChampionScreen(progressionRepository: FakeProgression()),
     'membership': () =>
         SubscriptionScreen(progressionRepository: FakeProgression()),
-    'splits': () => SplitsScreen(progressionRepository: FakeProgression()),
+    'splits': () =>
+        SplitsScreen(state: AppState(plannerRepository: FakePlanner())),
     'cheat meals': () => const CheatsScreen(),
     'planner': () =>
         PlanScreen(state: AppState(plannerRepository: FakePlanner())),

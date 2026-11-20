@@ -8,20 +8,32 @@ import 'calorie_profile_sheet.dart';
 import 'calories_food_summary.dart';
 
 Future<void> showWorkoutLogger(BuildContext context, AppState state,
-        {int? initialDuration}) =>
+        {int? initialDuration,
+        WorkoutActivity initialActivity = WorkoutActivity.strength,
+        WorkoutIntensity initialIntensity = WorkoutIntensity.moderate}) =>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) =>
-          WorkoutLoggerSheet(state: state, initialDuration: initialDuration),
+      builder: (_) => WorkoutLoggerSheet(
+        state: state,
+        initialDuration: initialDuration,
+        initialActivity: initialActivity,
+        initialIntensity: initialIntensity,
+      ),
     );
 
 class WorkoutLoggerSheet extends StatefulWidget {
   const WorkoutLoggerSheet(
-      {super.key, required this.state, this.initialDuration});
+      {super.key,
+      required this.state,
+      this.initialDuration,
+      this.initialActivity = WorkoutActivity.strength,
+      this.initialIntensity = WorkoutIntensity.moderate});
   final AppState state;
   final int? initialDuration;
+  final WorkoutActivity initialActivity;
+  final WorkoutIntensity initialIntensity;
 
   @override
   State<WorkoutLoggerSheet> createState() => _WorkoutLoggerSheetState();
@@ -30,8 +42,8 @@ class WorkoutLoggerSheet extends StatefulWidget {
 class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
   late final TextEditingController duration;
   final calories = TextEditingController();
-  WorkoutActivity activity = WorkoutActivity.strength;
-  WorkoutIntensity intensity = WorkoutIntensity.moderate;
+  late WorkoutActivity activity;
+  late WorkoutIntensity intensity;
   bool manual = false;
   bool saving = false;
   String? error;
@@ -52,6 +64,8 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
   void initState() {
     super.initState();
     duration = TextEditingController(text: '${widget.initialDuration ?? 30}');
+    activity = widget.initialActivity;
+    intensity = widget.initialIntensity;
     widget.state.addListener(_profileChanged);
     _refreshEstimate();
   }

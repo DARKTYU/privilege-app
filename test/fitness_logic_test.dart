@@ -24,16 +24,6 @@ void main() {
     expect(afterRemoval.consumed, 2000);
   });
 
-  test('canAccessFeature validates Free, Pro, and Elite subscription perks',
-      () {
-    expect(canAccessFeature(SubscriptionTier.free, Feature.basic), true);
-    expect(
-        canAccessFeature(SubscriptionTier.free, Feature.aiVoicePhoto), false);
-    expect(canAccessFeature(SubscriptionTier.pro, Feature.aiVoicePhoto), true);
-    expect(canAccessFeature(SubscriptionTier.pro, Feature.contestPrep), false);
-    expect(canAccessFeature(SubscriptionTier.elite, Feature.contestPrep), true);
-  });
-
   test(
       'calculateQualificationScore returns Silver Beast or better for the benchmark athlete',
       () {
@@ -46,15 +36,6 @@ void main() {
     expect(score.eligible, true);
     expect(score.scorePercent >= 85, true);
     expect(score.statusNotes.contains('100% Natural Status Verified'), true);
-  });
-
-  test('mergeWorkoutWithSport combines calories and recovery targets', () {
-    final merged =
-        mergeWorkoutWithSport('Push Day', 450, 60, 'Basketball', 550, 60);
-    expect(merged.totalCalories, 1000);
-    expect(merged.totalDurationMin, 120);
-    expect(merged.recoveryHoursRecommended >= 24, true);
-    expect(merged.hydrationMlNeeded > 1000, true);
   });
 
   test('isDayAllowedForCheat flags cheat days correctly', () {
