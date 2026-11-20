@@ -57,6 +57,37 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets(
+      'coach avatars contain the logo at header, welcome and bubble sizes',
+      (tester) async {
+    final client = FakeCoach();
+    await start(tester, client, scale: 1.5);
+    final avatars = find.byWidgetPredicate((widget) =>
+        widget is Semantics && widget.properties.label == 'Privilege Coach');
+    expect(avatars, findsNWidgets(2));
+    expect(tester.getSize(avatars.at(0)), const Size(44, 44));
+    expect(tester.getSize(avatars.at(1)), const Size(88, 88));
+    for (final avatar in [avatars.at(0), avatars.at(1)]) {
+      final image = tester.widget<Image>(
+          find.descendant(of: avatar, matching: find.byType(Image)));
+      expect(image.fit, BoxFit.contain);
+      expect(image.filterQuality, FilterQuality.high);
+      final container = tester.widget<Container>(
+          find.descendant(of: avatar, matching: find.byType(Container)).first);
+      final size = tester.getSize(avatar).width;
+      expect(container.padding, EdgeInsets.all(size * 0.15));
+      final decoration = container.decoration! as BoxDecoration;
+      expect(decoration.shape, BoxShape.circle);
+      expect(decoration.border, isNotNull);
+    }
+    expect(tester.takeException(), isNull);
+    await send(tester, 'Hello');
+    expect(avatars, findsNWidgets(2));
+    expect(tester.getSize(avatars.at(0)), const Size(44, 44));
+    expect(tester.getSize(avatars.at(1)), const Size(32, 32));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('consent off sends no context, new chat clears history',
       (tester) async {
     final client = FakeCoach();
@@ -74,22 +105,190 @@ void main() {
     expect(find.textContaining('Requests left today:'), findsNothing);
   });
 
-  testWidgets('notice has separate aligned English and Arabic paragraphs',
+  testWidgets('info row opens bilingual notice and both dismissals work',
       (tester) async {
     await start(tester, FakeCoach());
-    final english = tester.widget<SelectableText>(find.byWidgetPredicate(
-        (widget) =>
-            widget is SelectableText &&
-            (widget.data?.startsWith('The coach can make mistakes') ?? false)));
-    final arabic = tester.widget<SelectableText>(find.byWidgetPredicate(
-        (widget) =>
-            widget is SelectableText &&
-            (widget.data?.startsWith('قد يخطئ المدرب') ?? false)));
-    expect(english.textDirection, TextDirection.ltr);
-    expect(english.textAlign, TextAlign.left);
-    expect(arabic.textDirection, TextDirection.rtl);
-    expect(arabic.textAlign, TextAlign.right);
+    expect(find.textContaining('The coach can make mistakes'), findsNothing);
+    await tester.tap(find.textContaining('AI can make mistakes'));
+    await tester.pumpAndSettle();
+    expect(find.text('About the coach / عن المدرب'), findsOneWidget);
+    final dialog = find.byType(AlertDialog);
+    expect(
+        find.descendant(
+            of: dialog,
+            matching: find.byWidgetPredicate((widget) =>
+                widget is Semantics &&
+                widget.properties.label == 'Privilege Coach')),
+        findsOneWidget);
+    for (final (icon, english, arabic) in [
+      (
+        Icons.warning_amber_rounded,
+        'The coach can make mistakes.',
+        'المدرب قد يخطئ.'
+      ),
+      (
+        Icons.medical_services_outlined,
+        'Not medical advice. For health problems, ask a doctor.',
+        'ليست نصيحة طبية. للمشاكل الصحية استشر طبيباً.'
+      ),
+      (
+        Icons.cloud_outlined,
+        'Messages are sent to Google Gemini to get a reply.',
+        'تُرسل رسائلك إلى Google Gemini للحصول على رد.'
+      ),
+      (
+        Icons.lock_outline,
+        'Do not share personal or health details you do not want sent.',
+        'لا تشارك تفاصيل شخصية أو صحية لا تريد إرسالها.'
+      ),
+      (
+        Icons.memory,
+        'The coach does not remember earlier messages.',
+        'المدرب لا يتذكر الرسائل السابقة.'
+      ),
+    ]) {
+      expect(find.descendant(of: dialog, matching: find.byIcon(icon)),
+          findsOneWidget);
+      final en = tester.widget<Text>(find.text(english));
+      final ar = tester.widget<Text>(find.text(arabic));
+      expect(en.textDirection, TextDirection.ltr);
+      expect(ar.textDirection, TextDirection.rtl);
+      expect(en.style?.fontSize, ar.style?.fontSize);
+    }
+    final button = find.widgetWithText(ElevatedButton, 'Got it / فهمت');
+    expect(tester.getSize(button).width, greaterThan(200));
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
+    await tester.tap(find.textContaining('AI can make mistakes'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(dialog, findsNothing);
   });
+
+  testWidgets('notice is scrollable and dismissible on small screens',
+      (tester) async {
+    await start(tester, FakeCoach(), size: const Size(360, 640), scale: 1.5);
+    await tester.tap(find.textContaining('AI can make mistakes'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SingleChildScrollView), findsWidgets);
+    expect(tester.takeException(), isNull);
+    final last = find.text('The coach does not remember earlier messages.');
+    await tester.ensureVisible(last);
+    await tester.pumpAndSettle();
+    expect(last.hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Got it / فهمت'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('bot opens a dismissible keyboard-aware sheet over the screen',
+      (tester) async {
+    final client = FakeCoach();
+    tester.view.physicalSize = const Size(800, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: const Text('Previous screen'),
+        floatingActionButton: Builder(builder: (context) {
+          return FloatingActionButton(
+            tooltip: 'AI Privilege Bot',
+            onPressed: () => showCoachSheet(context,
+                client: client, refreshActivity: () async {}),
+            child: const Icon(Icons.smart_toy_rounded),
+          );
+        }),
+      ),
+    ));
+    await tester.tap(find.byTooltip('AI Privilege Bot'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.text('Previous screen', skipOffstage: false), findsOneWidget);
+    expect(find.text('Privilege Coach\nمدرب بريفيلج'), findsOneWidget);
+    expect(find.text('AI'), findsOneWidget);
+    final height = tester.getSize(find.byType(ChatScreen)).height;
+    expect(height, closeTo(tester.view.physicalSize.height * .92, 1));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    await tester.pumpAndSettle();
+    expect(tester.getBottomLeft(find.byType(TextField)).dy,
+        lessThanOrEqualTo(tester.view.physicalSize.height - 260));
+    tester.view.resetViewInsets();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Close chat / إغلاق المحادثة'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ChatScreen), findsNothing);
+    expect(find.text('Previous screen'), findsOneWidget);
+    await tester.tap(find.byTooltip('AI Privilege Bot'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ChatScreen), const Offset(0, 600));
+    await tester.pumpAndSettle();
+    expect(find.byType(ChatScreen), findsNothing);
+  });
+
+  testWidgets('sheet fits a small screen with large text and keyboard',
+      (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    final client = FakeCoach();
+    await tester.pumpWidget(MaterialApp(
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context)
+            .copyWith(textScaler: const TextScaler.linear(1.5)),
+        child: child!,
+      ),
+      home: Scaffold(body: Builder(builder: (context) {
+        return TextButton(
+          onPressed: () => showCoachSheet(context,
+              client: client, refreshActivity: () async {}),
+          child: const Text('Open'),
+        );
+      })),
+    ));
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    await tester.pumpAndSettle();
+    expect(tester.getBottomLeft(find.byType(TextField)).dy,
+        lessThanOrEqualTo(380));
+    expect(tester.takeException(), isNull);
+    await tester.enterText(find.byType(TextField), 'Hello');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.pumpAndSettle();
+    expect(client.requests.single['message'], 'Hello');
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final suggestion in [
+    'Training ideas',
+    'High-protein recipe',
+    'Calories left?',
+    'Snack ideas',
+  ]) {
+    testWidgets('welcome card sends $suggestion', (tester) async {
+      final client = FakeCoach();
+      await start(tester, client);
+      expect(find.textContaining('How can I help today?'), findsOneWidget);
+      await tester.ensureVisible(find.text(suggestion));
+      await tester.tap(find.text(suggestion));
+      await tester.pumpAndSettle();
+      expect(client.requests.single['message'], suggestion);
+      expect(find.textContaining('How can I help today?'), findsNothing);
+      expect(find.byType(ActionChip), findsWidgets);
+      await tester.tap(find.byTooltip('New chat / محادثة جديدة'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('How can I help today?'), findsOneWidget);
+    });
+  }
 
   testWidgets('coach bold spans are selectable and lists stay readable',
       (tester) async {
@@ -288,7 +487,9 @@ void main() {
     await tester.pump();
     await tester.tap(find.byTooltip('Send / إرسال'));
     await tester.pump();
-    expect(find.textContaining('Coach is responding'), findsOneWidget);
+    expect(find.text('•••'), findsOneWidget);
+    expect(find.bySemanticsLabel('Coach is responding… / المدرب يرد…'),
+        findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Another');
     await tester.pump();
     expect(

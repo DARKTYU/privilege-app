@@ -5,7 +5,6 @@ import 'screens/settings.dart';
 import 'screens/academy.dart';
 import 'screens/arena.dart';
 import 'screens/champion.dart';
-import 'screens/chat.dart';
 import 'screens/cheats.dart';
 import 'screens/community.dart';
 import 'screens/home_shell.dart';
@@ -133,8 +132,6 @@ class PrivilegeApp extends StatelessWidget {
                         title: 'Community',
                         builder: () => const CommunityScreen(),
                       )),
-                  '/chat': (_) => _protected(
-                      ThemeAwareBuilder(builder: () => ChatScreen())),
                   '/recipes': (_) => _protected(AppPage(
                         title: 'Recipes',
                         builder: () => RecipesScreen(),

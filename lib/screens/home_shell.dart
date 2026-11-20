@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../ui.dart';
 import '../services/progression_repository.dart';
+import '../services/coach_client.dart';
 import '../state.dart';
 import 'alerts.dart';
 import 'calories.dart';
+import 'chat.dart';
 import 'plan.dart';
 import 'profile.dart';
 import 'splits.dart';
@@ -14,10 +16,12 @@ class HomeShell extends StatefulWidget {
       {super.key,
       this.alertBell,
       this.progressionRepository,
-      this.plannerState});
+      this.plannerState,
+      this.coachClient});
   final Widget? alertBell;
   final ProgressionDataSource? progressionRepository;
   final AppState? plannerState;
+  final CoachClient? coachClient;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -121,7 +125,7 @@ class _HomeShellState extends State<HomeShell> {
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           shape: const CircleBorder(),
           tooltip: 'AI Privilege Bot',
-          onPressed: () => Navigator.pushNamed(context, '/chat'),
+          onPressed: () => showCoachSheet(context, client: widget.coachClient),
           child: const Icon(Icons.smart_toy_rounded),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

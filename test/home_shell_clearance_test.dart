@@ -3,16 +3,54 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/logic/calorie_target.dart';
 import 'package:privilege/logic/user_profile.dart';
 import 'package:privilege/screens/home_shell.dart';
+import 'package:privilege/screens/chat.dart';
 import 'package:privilege/screens/profile.dart';
+import 'package:privilege/services/coach_client.dart';
 import 'package:privilege/services/food_database.dart';
 import 'package:privilege/state.dart';
 import 'package:privilege/ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'progression_fake.dart';
 import 'planner_fake.dart';
 
+class FakeCoachClient implements CoachClient {
+  @override
+  String? get accountId => 'test-user';
+
+  @override
+  Future<CoachReply> send(Map<String, Object> body) async =>
+      const CoachReply('Hello', null, null);
+}
+
 void main() {
   setUpAll(() async => FoodDatabase().load());
+  testWidgets('bot button opens sheet and preserves selected tab',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final state = AppState(plannerRepository: FakePlanner());
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: HomeShell(
+          alertBell: const SizedBox(height: 32),
+          progressionRepository: FakeProgression(),
+          coachClient: FakeCoachClient(),
+          plannerState: state),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProfileScreen), findsOneWidget);
+    await tester.tap(find.byTooltip('AI Privilege Bot'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byType(ChatScreen), findsOneWidget);
+    await tester.tap(find.byTooltip('Close chat / إغلاق المحادثة'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ChatScreen), findsNothing);
+    expect(find.byType(ProfileScreen), findsOneWidget);
+  });
   for (final scale in [1.0, 1.5]) {
     testWidgets('Home and Profile clear bottom overlays at text scale $scale',
         (tester) async {
