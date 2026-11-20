@@ -9,6 +9,179 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get recipeSignIn => 'Sign in to save favorites.';
+
+  @override
+  String recipeLoadFavoritesError(String error) {
+    return 'Could not load favorites: $error';
+  }
+
+  @override
+  String recipeSaveFavoriteError(String error) {
+    return 'Could not save favorite: $error';
+  }
+
+  @override
+  String get recipeDeviceSaveError => 'The device did not save the favorite.';
+
+  @override
+  String recipeLogged(String name, String kcal) {
+    return 'Logged $name ($kcal kcal)';
+  }
+
+  @override
+  String recipeLogError(String error) {
+    return 'Could not log recipe: $error';
+  }
+
+  @override
+  String get recipeDatabaseError => 'Could not load the food database.';
+
+  @override
+  String get recipeSampleNotice =>
+      'Sample recipes. Favorites are saved on this device.';
+
+  @override
+  String get recipeLoadingActivity => 'Loading today’s activity...';
+
+  @override
+  String get recipeActivityUnavailable => 'Today’s activity is unavailable.';
+
+  @override
+  String get recipeTargetUnavailable => 'Daily target unavailable.';
+
+  @override
+  String recipeRemaining(String kcal, String protein) {
+    return 'Remaining today: $kcal kcal · $protein g protein';
+  }
+
+  @override
+  String get recipeTargetReached => 'You have reached today\'s target';
+
+  @override
+  String get recipeBestFit => 'Best fit for today';
+
+  @override
+  String get recipeAll => 'All recipes';
+
+  @override
+  String get recipeFilterAll => 'All';
+
+  @override
+  String get recipeFits => 'Fits today';
+
+  @override
+  String get recipeHighProtein => 'High protein';
+
+  @override
+  String get recipeHighFiber => 'High fiber';
+
+  @override
+  String get recipeLight => 'Light';
+
+  @override
+  String get recipeQuick => 'Quick';
+
+  @override
+  String get recipeRetryFavorites => 'Retry favorites';
+
+  @override
+  String get recipeNoMatches => 'No recipes match this filter.';
+
+  @override
+  String get recipeRemoveFavorite => 'Remove favorite';
+
+  @override
+  String get recipeAddFavorite => 'Add favorite';
+
+  @override
+  String recipeKcal(String amount) {
+    return '$amount kcal';
+  }
+
+  @override
+  String recipeMacro(String amount, String macro) {
+    return '$amount g $macro';
+  }
+
+  @override
+  String recipeSummary(String minutes, String difficulty, String meal) {
+    return '$minutes min · $difficulty · $meal';
+  }
+
+  @override
+  String get recipeDifficultyEasy => 'Easy';
+
+  @override
+  String get recipeDifficultyEasyMedium => 'Easy / Medium';
+
+  @override
+  String get recipeDifficultyInstant => 'Instant';
+
+  @override
+  String get recipeEstimated => 'Estimated from ingredients';
+
+  @override
+  String recipeOver(String kcal) {
+    return 'Over by $kcal kcal';
+  }
+
+  @override
+  String get recipeNutritionUnavailable => 'Nutrition not available';
+
+  @override
+  String get recipeLogging => 'Logging...';
+
+  @override
+  String get recipeLog => 'Log';
+
+  @override
+  String get recipePhotosError => 'Could not load recipe photos.';
+
+  @override
+  String get recipePhotoIllustration => 'Photo is for illustration';
+
+  @override
+  String recipePhotoCredit(String credit) {
+    return 'Photo: $credit';
+  }
+
+  @override
+  String get recipeDetails => 'Recipe details';
+
+  @override
+  String get recipeNutritionPerServing => 'Nutrition per serving';
+
+  @override
+  String recipeMacroLine(String protein, String carbs, String fat) {
+    return 'Protein $protein g · Carbs $carbs g · Fat $fat g';
+  }
+
+  @override
+  String recipeMicroLine(String fiber, String sugar, String sodium) {
+    return 'Fiber $fiber g · Sugar $sugar g · Sodium $sodium mg';
+  }
+
+  @override
+  String get recipeIngredients => 'Ingredients';
+
+  @override
+  String recipeIngredientAmount(String name, String amount) {
+    return '$name: $amount g';
+  }
+
+  @override
+  String get recipeIngredientUnavailable => 'Ingredient details unavailable.';
+
+  @override
+  String get recipeHowToCook => 'How to cook';
+
+  @override
+  String recipeStep(String number, String step) {
+    return '$number. $step';
+  }
+
+  @override
   String get cravingLogin => 'Please log in again.';
 
   @override

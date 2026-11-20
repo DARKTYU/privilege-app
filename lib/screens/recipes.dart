@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data.dart';
+import '../l10n_strings.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/recipe_nutrition.dart';
 import '../logic/recipe_fit.dart';
@@ -15,6 +16,29 @@ import 'calories_display_format.dart';
 import 'calories_food_summary.dart' show CaloriesPalette;
 
 const Map<String, String> recipePhotoCredits = {};
+
+enum _FavoriteError { signIn, load, save, deviceSave }
+
+String _recipeName(BuildContext context, Recipe recipe) =>
+    Localizations.localeOf(context).languageCode == 'ar'
+        ? recipe.nameAr
+        : recipe.name;
+
+String _difficulty(BuildContext context, String difficulty) {
+  final l = strings(context);
+  return switch (difficulty) {
+    'Easy' => l.recipeDifficultyEasy,
+    'Easy / Medium' => l.recipeDifficultyEasyMedium,
+    'Instant' => l.recipeDifficultyInstant,
+    _ => difficulty,
+  };
+}
+
+String _recipeSummary(BuildContext context, Recipe recipe) =>
+    strings(context).recipeSummary(
+        recipe.minutes.toString(),
+        _difficulty(context, recipe.difficulty),
+        _mealLabel(context, recipe.category));
 
 String recipePhotoPath(String recipeId) =>
     'assets/images/recipes/$recipeId.jpg';
@@ -43,7 +67,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   String? account;
   bool favoritesLoading = true;
   bool favoriteSaving = false;
-  String? error;
+  _FavoriteError? error;
+  Object? errorDetail;
   String? loggingId;
   RecipeFilter filter = RecipeFilter.all;
   AssetBundle? _assetBundle;
@@ -85,7 +110,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
     if (id == null) {
       setState(() {
         favoritesLoading = false;
-        error = 'Sign in to save favorites.';
+        error = _FavoriteError.signIn;
       });
       return;
     }
@@ -101,7 +126,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
       if (!mounted || account != id) return;
       setState(() {
         favoritesLoading = false;
-        error = 'Could not load favorites: $e';
+        error = _FavoriteError.load;
+        errorDetail = e;
       });
     }
   }
@@ -115,18 +141,25 @@ class _RecipesScreenState extends State<RecipesScreen> {
       favoriteSaving = true;
       error = null;
     });
+    bool deviceSaveFailed = false;
     try {
       final prefs = await SharedPreferences.getInstance();
       if (!await prefs.setStringList(
           'privilege_recipe_favorites_$id', next.toList())) {
-        throw StateError('The device did not save the favorite.');
+        deviceSaveFailed = true;
+        throw StateError('Favorite persistence failed');
       }
       if (mounted && account == id && _accountId() == id) {
         setState(() => favorites = next);
       }
     } catch (e) {
       if (mounted && account == id) {
-        setState(() => error = 'Could not save favorite: $e');
+        setState(() {
+          error = deviceSaveFailed
+              ? _FavoriteError.deviceSave
+              : _FavoriteError.save;
+          errorDetail = e;
+        });
       }
     } finally {
       if (mounted) setState(() => favoriteSaving = false);
@@ -158,12 +191,17 @@ class _RecipesScreenState extends State<RecipesScreen> {
         servingLabel: 'Recipe',
       ));
       if (feedbackContext.mounted) {
-        toast(feedbackContext, 'Logged ${recipe.name} (${p.kcal} kcal)');
+        toast(
+            feedbackContext,
+            strings(feedbackContext).recipeLogged(
+                _recipeName(feedbackContext, recipe), p.kcal.toString()));
       }
     } catch (e) {
       if (feedbackContext.mounted) {
         ScaffoldMessenger.of(feedbackContext).showSnackBar(
-          SnackBar(content: Text('Could not log recipe: $e')),
+          SnackBar(
+              content:
+                  Text(strings(feedbackContext).recipeLogError(e.toString()))),
         );
       }
     } finally {
@@ -186,11 +224,11 @@ class _RecipesScreenState extends State<RecipesScreen> {
               if (snapshot.hasError) {
                 return Center(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('Could not load the food database.'),
+                    Text(strings(context).recipeDatabaseError),
                     TextButton(
                         onPressed: () =>
                             setState(() => loading = database.load()),
-                        child: const Text('Retry')),
+                        child: Text(strings(context).plannerRetry)),
                   ]),
                 );
               }
@@ -198,6 +236,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               final target = appState.targetCalories;
+              final l = strings(context);
               final available = target > 0 &&
                   !appState.activityLoading &&
                   appState.activityError == null;
@@ -229,36 +268,35 @@ class _RecipesScreenState extends State<RecipesScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  const Text(
-                      'Sample recipes. Favorites are saved on this device.'),
+                  Text(l.recipeSampleNotice),
                   const SizedBox(height: 8),
                   if (!available)
                     Text(appState.activityLoading
-                        ? 'Loading today’s activity...'
+                        ? l.recipeLoadingActivity
                         : appState.activityError != null
-                            ? 'Today’s activity is unavailable.'
-                            : 'Daily target unavailable.')
+                            ? l.recipeActivityUnavailable
+                            : l.recipeTargetUnavailable)
                   else ...[
-                    Text(
-                        'Remaining today: ${remaining! > 0 ? remaining : 0} kcal · ${protein! > 0 ? protein : 0} g protein'),
-                    if (remaining <= 0)
-                      const Text("You have reached today's target"),
+                    Text(l.recipeRemaining(
+                        (remaining! > 0 ? remaining : 0).toString(),
+                        (protein! > 0 ? protein : 0).toString())),
+                    if (remaining <= 0) Text(l.recipeTargetReached),
                   ],
                   const SizedBox(height: 8),
                   Text(remaining != null && remaining > 0
-                      ? 'Best fit for today'
-                      : 'All recipes'),
+                      ? l.recipeBestFit
+                      : l.recipeAll),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(children: [
-                      for (final option in const [
-                        (RecipeFilter.all, 'All'),
-                        (RecipeFilter.fits, 'Fits today'),
-                        (RecipeFilter.highProtein, 'High protein'),
-                        (RecipeFilter.quick, 'Quick'),
+                      for (final option in [
+                        (RecipeFilter.all, l.recipeFilterAll),
+                        (RecipeFilter.fits, l.recipeFits),
+                        (RecipeFilter.highProtein, l.recipeHighProtein),
+                        (RecipeFilter.quick, l.recipeQuick),
                       ])
                         Padding(
-                          padding: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsetsDirectional.only(end: 8),
                           child: ChoiceChip(
                             label: Text(option.$2),
                             selected: filter == option.$1,
@@ -270,17 +308,24 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   ),
                   if (error != null) ...[
                     const SizedBox(height: 8),
-                    Text(error!,
+                    Text(
+                        switch (error!) {
+                          _FavoriteError.signIn => l.recipeSignIn,
+                          _FavoriteError.load =>
+                            l.recipeLoadFavoritesError(errorDetail.toString()),
+                          _FavoriteError.save =>
+                            l.recipeSaveFavoriteError(errorDetail.toString()),
+                          _FavoriteError.deviceSave => l.recipeDeviceSaveError,
+                        },
                         style: TextStyle(
                             color: Theme.of(context).colorScheme.error)),
                     if (!favoritesLoading && account != null)
                       TextButton(
                           onPressed: _loadFavorites,
-                          child: const Text('Retry favorites')),
+                          child: Text(l.recipeRetryFavorites)),
                   ],
                   const SizedBox(height: 12),
-                  if (entries.isEmpty)
-                    const Text('No recipes match this filter.'),
+                  if (entries.isEmpty) Text(l.recipeNoMatches),
                   for (final entry in entries)
                     _recipeCard(entry.recipe, entry.nutrition, remaining),
                 ],
@@ -291,6 +336,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
   Widget _recipeCard(
       Recipe recipe, RecipeNutrition? nutrition, int? remaining) {
     final p = nutrition?.portion;
+    final l = strings(context);
     return Panel(
       padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 16),
@@ -321,18 +367,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                  Text(recipe.name,
+                                  Text(_recipeName(context, recipe),
                                       style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w800)),
-                                  Text(recipe.nameAr,
-                                      textDirection: TextDirection.rtl,
-                                      textAlign: TextAlign.right),
                                 ])),
                             IconButton(
                               tooltip: favorites.contains(recipe.id)
-                                  ? 'Remove favorite'
-                                  : 'Add favorite',
+                                  ? l.recipeRemoveFavorite
+                                  : l.recipeAddFavorite,
                               icon: Icon(favorites.contains(recipe.id)
                                   ? Icons.favorite
                                   : Icons.favorite_border),
@@ -346,42 +389,43 @@ class _RecipesScreenState extends State<RecipesScreen> {
                       const SizedBox(height: 8),
                       if (p != null)
                         Wrap(spacing: 6, runSpacing: 6, children: [
-                          _recipePill(context, '${p.kcal} kcal',
+                          _recipePill(context, l.recipeKcal(p.kcal.toString()),
                               Theme.of(context).colorScheme.secondary),
                           _recipePill(
                               context,
-                              '${formatCaloriesGrams(p.proteinG)} g protein',
+                              l.recipeMacro(formatCaloriesGrams(p.proteinG),
+                                  l.foodProtein.toLowerCase()),
                               CaloriesPalette.protein),
                           _recipePill(
                               context,
-                              '${formatCaloriesGrams(p.carbsG)} g carbs',
+                              l.recipeMacro(formatCaloriesGrams(p.carbsG),
+                                  l.foodCarbs.toLowerCase()),
                               CaloriesPalette.carbs),
                           _recipePill(
                               context,
-                              '${formatCaloriesGrams(p.fatG)} g fat',
+                              l.recipeMacro(formatCaloriesGrams(p.fatG),
+                                  l.foodFat.toLowerCase()),
                               CaloriesPalette.fat),
                         ]),
                       const SizedBox(height: 8),
-                      Text(
-                          '${recipe.minutes} min · ${recipe.difficulty} · ${_mealLabel(recipe.category)}',
+                      Text(_recipeSummary(context, recipe),
                           style: Theme.of(context).textTheme.bodySmall),
                       const SizedBox(height: 8),
-                      Text('Estimated from ingredients',
+                      Text(l.recipeEstimated,
                           style: Theme.of(context).textTheme.bodySmall),
                       if (remaining != null && remaining > 0 && p != null)
                         _recipePill(
                             context,
                             p.kcal <= remaining
-                                ? 'Fits today'
-                                : 'Over by ${p.kcal - remaining} kcal',
+                                ? l.recipeFits
+                                : l.recipeOver((p.kcal - remaining).toString()),
                             Theme.of(context).colorScheme.secondary),
-                      if (nutrition == null)
-                        const Text('Nutrition not available'),
+                      if (nutrition == null) Text(l.recipeNutritionUnavailable),
                       const SizedBox(height: 8),
                       _recipeTags(context, recipe, nutrition),
                       const SizedBox(height: 12),
                       PrimaryButton(
-                        loggingId == recipe.id ? 'Logging...' : 'Log',
+                        loggingId == recipe.id ? l.recipeLogging : l.recipeLog,
                         icon: Icons.add,
                         onPressed: nutrition == null || loggingId != null
                             ? null
@@ -393,9 +437,15 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 }
 
-String _mealLabel(MealCategory category) => category == MealCategory.shake
-    ? 'Snack'
-    : '${category.name[0].toUpperCase()}${category.name.substring(1)}';
+String _mealLabel(BuildContext context, MealCategory category) {
+  final l = strings(context);
+  return switch (category) {
+    MealCategory.breakfast => l.foodBreakfast,
+    MealCategory.lunch => l.foodLunch,
+    MealCategory.dinner => l.foodDinner,
+    MealCategory.snack || MealCategory.shake => l.foodSnackSingular,
+  };
+}
 
 Widget _recipePill(BuildContext context, String label, Color color) =>
     Container(
@@ -411,11 +461,12 @@ Widget _recipePill(BuildContext context, String label, Color color) =>
 Widget _recipeTags(
     BuildContext context, Recipe recipe, RecipeNutrition? nutrition) {
   final portion = nutrition?.portion;
+  final l = strings(context);
   final tags = [
-    if (portion != null && portion.proteinG >= 30) 'High protein',
-    if (portion != null && portion.fiberG >= 8) 'High fiber',
-    if (portion != null && portion.kcal < 400) 'Light',
-    if (recipe.minutes <= 10) 'Quick',
+    if (portion != null && portion.proteinG >= 30) l.recipeHighProtein,
+    if (portion != null && portion.fiberG >= 8) l.recipeHighFiber,
+    if (portion != null && portion.kcal < 400) l.recipeLight,
+    if (recipe.minutes <= 10) l.recipeQuick,
   ];
   return Wrap(
     spacing: 6,
@@ -450,7 +501,7 @@ class _RecipePhoto extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 placeholder(),
-                const Text('Could not load recipe photos.'),
+                Text(strings(context).recipePhotosError),
               ]);
         }
         final path = recipePhotoPath(recipe.id);
@@ -480,10 +531,10 @@ class _RecipePhoto extends StatelessWidget {
                   ),
                   if (detail) ...[
                     const SizedBox(height: 4),
-                    Text('Photo is for illustration',
+                    Text(strings(context).recipePhotoIllustration,
                         style: Theme.of(context).textTheme.bodySmall),
                     if (recipePhotoCredits[recipe.id] case final credit?)
-                      Text('Photo: $credit',
+                      Text(strings(context).recipePhotoCredit(credit),
                           style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ]);
@@ -527,36 +578,35 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
     final recipe = widget.recipe;
     final nutrition = widget.nutrition;
     final p = nutrition?.portion;
+    final l = strings(context);
     String g(double value) => formatCaloriesGrams(value);
     return Scaffold(
-      appBar: AppBar(title: const Text('Recipe details')),
+      appBar: AppBar(title: Text(l.recipeDetails)),
       body: SafeArea(
         child: ListView(padding: const EdgeInsets.all(16), children: [
           _RecipePhoto(recipe: recipe, manifest: widget.manifest, detail: true),
           const SizedBox(height: 12),
-          Text(recipe.name, style: Theme.of(context).textTheme.titleLarge),
-          Text(recipe.nameAr,
-              textDirection: TextDirection.rtl, textAlign: TextAlign.right),
+          Text(_recipeName(context, recipe),
+              style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text(
-              '${recipe.minutes} min · ${recipe.difficulty} · ${_mealLabel(recipe.category)}'),
+          Text(_recipeSummary(context, recipe)),
           const SizedBox(height: 8),
           _recipeTags(context, recipe, nutrition),
           const SizedBox(height: 16),
-          Text('Nutrition per serving',
+          Text(l.recipeNutritionPerServing,
               style: Theme.of(context).textTheme.titleMedium),
-          const Text('Estimated from ingredients'),
+          Text(l.recipeEstimated),
           if (p == null)
-            const Text('Nutrition not available')
+            Text(l.recipeNutritionUnavailable)
           else ...[
-            Text('${p.kcal} kcal'),
-            Text(
-                'Protein ${g(p.proteinG)} g · Carbs ${g(p.carbsG)} g · Fat ${g(p.fatG)} g'),
-            Text(
-                'Fiber ${g(p.fiberG)} g · Sugar ${g(p.sugarG)} g · Sodium ${p.sodiumMg.toStringAsFixed(0)} mg'),
+            Text(l.recipeKcal(p.kcal.toString())),
+            Text(l.recipeMacroLine(g(p.proteinG), g(p.carbsG), g(p.fatG))),
+            Text(l.recipeMicroLine(
+                g(p.fiberG), g(p.sugarG), p.sodiumMg.toStringAsFixed(0))),
           ],
           const SizedBox(height: 16),
-          Text('Ingredients', style: Theme.of(context).textTheme.titleMedium),
+          Text(l.recipeIngredients,
+              style: Theme.of(context).textTheme.titleMedium),
           Text(recipe.description),
           if (nutrition != null)
             for (final (food, grams) in nutrition.ingredients)
@@ -565,23 +615,25 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${food.nameEn}: ${g(grams)} g'),
-                      Text(food.nameAr,
-                          textDirection: TextDirection.rtl,
-                          textAlign: TextAlign.right),
+                      Text(l.recipeIngredientAmount(
+                          Localizations.localeOf(context).languageCode == 'ar'
+                              ? food.nameAr
+                              : food.nameEn,
+                          g(grams))),
                     ]),
               )
           else
-            const Text('Ingredient details unavailable.'),
+            Text(l.recipeIngredientUnavailable),
           const SizedBox(height: 16),
-          Text('How to cook', style: Theme.of(context).textTheme.titleMedium),
+          Text(l.recipeHowToCook,
+              style: Theme.of(context).textTheme.titleMedium),
           for (var i = 0; i < recipe.steps.length; i++)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('${i + 1}. ${recipe.steps[i]}'),
+              child: Text(l.recipeStep((i + 1).toString(), recipe.steps[i])),
             ),
           const SizedBox(height: 16),
-          PrimaryButton(logging ? 'Logging...' : 'Log',
+          PrimaryButton(logging ? l.recipeLogging : l.recipeLog,
               icon: Icons.add,
               onPressed: nutrition == null || logging ? null : _log),
         ]),

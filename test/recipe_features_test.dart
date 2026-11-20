@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/data.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/calorie_target.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/food_nutrition.dart';
@@ -41,6 +44,83 @@ class _PhotoBundle extends CachingAssetBundle {
 void main() {
   setUpAll(() async => FoodDatabase().load());
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  test('recipe screen has no hardcoded UI strings or Arabic', () {
+    final source = File('lib/screens/recipes.dart').readAsStringSync();
+    final labels = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:PrimaryButton|fieldDecoration|_recipePill)\(\s*|(?:tooltip|labelText|hintText|helperText|semanticLabel)\s*:\s*)['"]""");
+    expect(labels.allMatches(source), isEmpty);
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('recipes localize and log unchanged data at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final db = FoodDatabase();
+      final recipe = recipes.first;
+      MealItem? logged;
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: buildTheme(),
+        home: Scaffold(
+            body: RecipesScreen(
+          accountId: () => 'a',
+          database: CaloriesTestDatabase(db),
+          recipeList: [recipe],
+          saveMeal: (meal) async => logged = meal,
+        )),
+      ));
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(RecipesScreen));
+      final l = AppLocalizations.of(context)!;
+      final name = language == 'ar' ? recipe.nameAr : recipe.name;
+      expect(find.text(name), findsOneWidget);
+      expect(find.text(language == 'ar' ? recipe.name : recipe.nameAr),
+          findsNothing);
+      expect(
+          find.text(
+              l.recipeSummary('20', l.recipeDifficultyEasyMedium, l.foodLunch)),
+          findsOneWidget);
+      await tester.ensureVisible(find.byTooltip(l.recipeAddFavorite));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(l.recipeAddFavorite));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip(l.recipeRemoveFavorite), findsOneWidget);
+      await tester.ensureVisible(find.text(l.recipeLog));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.recipeLog));
+      await tester.pumpAndSettle();
+      expect(logged!.name, recipe.name);
+      expect(logged!.category, recipe.category);
+      expect(logged!.servingLabel, 'Recipe');
+      expect(find.text(l.recipeLogged(name, logged!.calories.toString())),
+          findsOneWidget);
+      await tester.ensureVisible(find.text(name));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      expect(find.text(l.recipeDetails), findsOneWidget);
+      expect(find.text(name), findsOneWidget);
+      final ingredient =
+          calculateRecipeNutrition(recipe, db.foods)!.ingredients.first;
+      final ingredientName =
+          language == 'ar' ? ingredient.$1.nameAr : ingredient.$1.nameEn;
+      final ingredientText = l.recipeIngredientAmount(ingredientName, '150');
+      await tester.scrollUntilVisible(find.text(ingredientText), 150);
+      await tester.pumpAndSettle();
+      expect(find.text(ingredientText), findsOneWidget);
+      await tester.scrollUntilVisible(find.text(l.recipeHowToCook), 200);
+      await tester.pumpAndSettle();
+      expect(find.text(l.recipeStep('1', recipe.steps.first)), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('bundled recipes sum the existing portion results and log them',
       (tester) async {

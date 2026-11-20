@@ -98,6 +98,294 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @recipeSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to save favorites.'**
+  String get recipeSignIn;
+
+  /// No description provided for @recipeLoadFavoritesError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load favorites: {error}'**
+  String recipeLoadFavoritesError(String error);
+
+  /// No description provided for @recipeSaveFavoriteError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save favorite: {error}'**
+  String recipeSaveFavoriteError(String error);
+
+  /// No description provided for @recipeDeviceSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'The device did not save the favorite.'**
+  String get recipeDeviceSaveError;
+
+  /// No description provided for @recipeLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged {name} ({kcal} kcal)'**
+  String recipeLogged(String name, String kcal);
+
+  /// No description provided for @recipeLogError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not log recipe: {error}'**
+  String recipeLogError(String error);
+
+  /// No description provided for @recipeDatabaseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the food database.'**
+  String get recipeDatabaseError;
+
+  /// No description provided for @recipeSampleNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample recipes. Favorites are saved on this device.'**
+  String get recipeSampleNotice;
+
+  /// No description provided for @recipeLoadingActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading today’s activity...'**
+  String get recipeLoadingActivity;
+
+  /// No description provided for @recipeActivityUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Today’s activity is unavailable.'**
+  String get recipeActivityUnavailable;
+
+  /// No description provided for @recipeTargetUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily target unavailable.'**
+  String get recipeTargetUnavailable;
+
+  /// No description provided for @recipeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining today: {kcal} kcal · {protein} g protein'**
+  String recipeRemaining(String kcal, String protein);
+
+  /// No description provided for @recipeTargetReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You have reached today\'s target'**
+  String get recipeTargetReached;
+
+  /// No description provided for @recipeBestFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Best fit for today'**
+  String get recipeBestFit;
+
+  /// No description provided for @recipeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All recipes'**
+  String get recipeAll;
+
+  /// No description provided for @recipeFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get recipeFilterAll;
+
+  /// No description provided for @recipeFits.
+  ///
+  /// In en, this message translates to:
+  /// **'Fits today'**
+  String get recipeFits;
+
+  /// No description provided for @recipeHighProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'High protein'**
+  String get recipeHighProtein;
+
+  /// No description provided for @recipeHighFiber.
+  ///
+  /// In en, this message translates to:
+  /// **'High fiber'**
+  String get recipeHighFiber;
+
+  /// No description provided for @recipeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get recipeLight;
+
+  /// No description provided for @recipeQuick.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick'**
+  String get recipeQuick;
+
+  /// No description provided for @recipeRetryFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry favorites'**
+  String get recipeRetryFavorites;
+
+  /// No description provided for @recipeNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No recipes match this filter.'**
+  String get recipeNoMatches;
+
+  /// No description provided for @recipeRemoveFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove favorite'**
+  String get recipeRemoveFavorite;
+
+  /// No description provided for @recipeAddFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Add favorite'**
+  String get recipeAddFavorite;
+
+  /// No description provided for @recipeKcal.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} kcal'**
+  String recipeKcal(String amount);
+
+  /// No description provided for @recipeMacro.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} g {macro}'**
+  String recipeMacro(String amount, String macro);
+
+  /// No description provided for @recipeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min · {difficulty} · {meal}'**
+  String recipeSummary(String minutes, String difficulty, String meal);
+
+  /// No description provided for @recipeDifficultyEasy.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get recipeDifficultyEasy;
+
+  /// No description provided for @recipeDifficultyEasyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy / Medium'**
+  String get recipeDifficultyEasyMedium;
+
+  /// No description provided for @recipeDifficultyInstant.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant'**
+  String get recipeDifficultyInstant;
+
+  /// No description provided for @recipeEstimated.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from ingredients'**
+  String get recipeEstimated;
+
+  /// No description provided for @recipeOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by {kcal} kcal'**
+  String recipeOver(String kcal);
+
+  /// No description provided for @recipeNutritionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition not available'**
+  String get recipeNutritionUnavailable;
+
+  /// No description provided for @recipeLogging.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging...'**
+  String get recipeLogging;
+
+  /// No description provided for @recipeLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get recipeLog;
+
+  /// No description provided for @recipePhotosError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load recipe photos.'**
+  String get recipePhotosError;
+
+  /// No description provided for @recipePhotoIllustration.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo is for illustration'**
+  String get recipePhotoIllustration;
+
+  /// No description provided for @recipePhotoCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo: {credit}'**
+  String recipePhotoCredit(String credit);
+
+  /// No description provided for @recipeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe details'**
+  String get recipeDetails;
+
+  /// No description provided for @recipeNutritionPerServing.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition per serving'**
+  String get recipeNutritionPerServing;
+
+  /// No description provided for @recipeMacroLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein {protein} g · Carbs {carbs} g · Fat {fat} g'**
+  String recipeMacroLine(String protein, String carbs, String fat);
+
+  /// No description provided for @recipeMicroLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber {fiber} g · Sugar {sugar} g · Sodium {sodium} mg'**
+  String recipeMicroLine(String fiber, String sugar, String sodium);
+
+  /// No description provided for @recipeIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get recipeIngredients;
+
+  /// No description provided for @recipeIngredientAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {amount} g'**
+  String recipeIngredientAmount(String name, String amount);
+
+  /// No description provided for @recipeIngredientUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredient details unavailable.'**
+  String get recipeIngredientUnavailable;
+
+  /// No description provided for @recipeHowToCook.
+  ///
+  /// In en, this message translates to:
+  /// **'How to cook'**
+  String get recipeHowToCook;
+
+  /// No description provided for @recipeStep.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}. {step}'**
+  String recipeStep(String number, String step);
+
   /// No description provided for @cravingLogin.
   ///
   /// In en, this message translates to:

@@ -9,6 +9,179 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get recipeSignIn => 'سجل الدخول لحفظ المفضلة.';
+
+  @override
+  String recipeLoadFavoritesError(String error) {
+    return 'تعذر تحميل المفضلة: $error';
+  }
+
+  @override
+  String recipeSaveFavoriteError(String error) {
+    return 'تعذر حفظ الوصفة في المفضلة: $error';
+  }
+
+  @override
+  String get recipeDeviceSaveError => 'لم يحفظ الجهاز الوصفة في المفضلة.';
+
+  @override
+  String recipeLogged(String name, String kcal) {
+    return 'تم تسجيل $name ($kcal سعرة)';
+  }
+
+  @override
+  String recipeLogError(String error) {
+    return 'تعذر تسجيل الوصفة: $error';
+  }
+
+  @override
+  String get recipeDatabaseError => 'تعذر تحميل قاعدة بيانات الطعام.';
+
+  @override
+  String get recipeSampleNotice =>
+      'وصفات نموذجية. تُحفظ المفضلة على هذا الجهاز.';
+
+  @override
+  String get recipeLoadingActivity => 'جارٍ تحميل نشاط اليوم...';
+
+  @override
+  String get recipeActivityUnavailable => 'نشاط اليوم غير متاح.';
+
+  @override
+  String get recipeTargetUnavailable => 'الهدف اليومي غير متاح.';
+
+  @override
+  String recipeRemaining(String kcal, String protein) {
+    return 'المتبقي اليوم: $kcal سعرة · $protein جم بروتين';
+  }
+
+  @override
+  String get recipeTargetReached => 'لقد وصلت إلى هدف اليوم';
+
+  @override
+  String get recipeBestFit => 'الأنسب لليوم';
+
+  @override
+  String get recipeAll => 'كل الوصفات';
+
+  @override
+  String get recipeFilterAll => 'الكل';
+
+  @override
+  String get recipeFits => 'تناسب اليوم';
+
+  @override
+  String get recipeHighProtein => 'غنية بالبروتين';
+
+  @override
+  String get recipeHighFiber => 'غنية بالألياف';
+
+  @override
+  String get recipeLight => 'خفيفة';
+
+  @override
+  String get recipeQuick => 'سريعة';
+
+  @override
+  String get recipeRetryFavorites => 'إعادة تحميل المفضلة';
+
+  @override
+  String get recipeNoMatches => 'لا توجد وصفات تطابق هذا الفلتر.';
+
+  @override
+  String get recipeRemoveFavorite => 'إزالة من المفضلة';
+
+  @override
+  String get recipeAddFavorite => 'إضافة إلى المفضلة';
+
+  @override
+  String recipeKcal(String amount) {
+    return '$amount سعرة';
+  }
+
+  @override
+  String recipeMacro(String amount, String macro) {
+    return '$amount جم $macro';
+  }
+
+  @override
+  String recipeSummary(String minutes, String difficulty, String meal) {
+    return '$minutes دقيقة · $difficulty · $meal';
+  }
+
+  @override
+  String get recipeDifficultyEasy => 'سهلة';
+
+  @override
+  String get recipeDifficultyEasyMedium => 'سهلة إلى متوسطة';
+
+  @override
+  String get recipeDifficultyInstant => 'فورية';
+
+  @override
+  String get recipeEstimated => 'تقدير حسب المكونات';
+
+  @override
+  String recipeOver(String kcal) {
+    return 'تتجاوز المتبقي بـ $kcal سعرة';
+  }
+
+  @override
+  String get recipeNutritionUnavailable => 'المعلومات الغذائية غير متاحة';
+
+  @override
+  String get recipeLogging => 'جارٍ التسجيل...';
+
+  @override
+  String get recipeLog => 'تسجيل';
+
+  @override
+  String get recipePhotosError => 'تعذر تحميل صور الوصفات.';
+
+  @override
+  String get recipePhotoIllustration => 'الصورة للتوضيح';
+
+  @override
+  String recipePhotoCredit(String credit) {
+    return 'الصورة: $credit';
+  }
+
+  @override
+  String get recipeDetails => 'تفاصيل الوصفة';
+
+  @override
+  String get recipeNutritionPerServing => 'القيم الغذائية للحصة';
+
+  @override
+  String recipeMacroLine(String protein, String carbs, String fat) {
+    return 'بروتين $protein جم · كربوهيدرات $carbs جم · دهون $fat جم';
+  }
+
+  @override
+  String recipeMicroLine(String fiber, String sugar, String sodium) {
+    return 'ألياف $fiber جم · سكر $sugar جم · صوديوم $sodium مجم';
+  }
+
+  @override
+  String get recipeIngredients => 'المكونات';
+
+  @override
+  String recipeIngredientAmount(String name, String amount) {
+    return '$name: $amount جم';
+  }
+
+  @override
+  String get recipeIngredientUnavailable => 'تفاصيل المكونات غير متاحة.';
+
+  @override
+  String get recipeHowToCook => 'طريقة التحضير';
+
+  @override
+  String recipeStep(String number, String step) {
+    return '$number. $step';
+  }
+
+  @override
   String get cravingLogin => 'يرجى تسجيل الدخول مرة أخرى.';
 
   @override

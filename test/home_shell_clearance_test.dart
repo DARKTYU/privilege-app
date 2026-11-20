@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/calorie_target.dart';
 import 'package:privilege/logic/user_profile.dart';
 import 'package:privilege/screens/home_shell.dart';
@@ -25,6 +28,51 @@ class FakeCoachClient implements CoachClient {
 
 void main() {
   setUpAll(() async => FoodDatabase().load());
+  test('home shell contains no hardcoded UI strings or Arabic', () {
+    final source = File('lib/screens/home_shell.dart').readAsStringSync();
+    final labels = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:tooltip|labelText|hintText|semanticLabel)\s*:\s*)['"]""");
+    expect(labels.allMatches(source), isEmpty);
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+  });
+  for (final language in ['en', 'ar']) {
+    testWidgets('shell navigation fits at 360 in $language', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final state = AppState(plannerRepository: FakePlanner());
+      addTearDown(state.dispose);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        theme: buildTheme(),
+        home: HomeShell(
+            alertBell: const SizedBox(height: 32),
+            progressionRepository: FakeProgression(),
+            plannerState: state),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(HomeShell)))!;
+      expect(find.byTooltip(l.botTooltip), findsOneWidget);
+      for (final label in [
+        l.home,
+        l.splits,
+        l.calories,
+        l.profile,
+        l.community,
+        l.recipes
+      ]) {
+        expect(find.text(label), findsWidgets);
+      }
+      await tester.tap(find.text(l.splits));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('bot button opens sheet and preserves selected tab',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
