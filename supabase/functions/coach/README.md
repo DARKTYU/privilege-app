@@ -34,6 +34,7 @@ a fixed reply without an age check, quota consumption or AI call. For that reply
 `remaining` and `reset_at` are null. Keyword checks are limited, not a safety
 guarantee; the system prompt is an additional layer for non-matching messages.
 Birth dates are self-reported, so the age check is not age verification.
+The function logs only error codes for server errors, not request or response data.
 
 Run the pure logic tests locally with Node 22.18+:
 

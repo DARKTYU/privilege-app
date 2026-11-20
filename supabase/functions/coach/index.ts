@@ -119,7 +119,8 @@ export function assemblePrompt(message: string, consent: unknown, value: unknown
   };
 }
 
-function json(status: number, body: JsonObject): Response {
+function json(status: number, body: JsonObject, logError = true): Response {
+  if (status >= 500 && logError) console.error('coach_error', body.error);
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
@@ -206,11 +207,16 @@ export async function handler(request: Request): Promise<Response> {
     const age = ageError(profiles[0]?.birth_date, new Date());
     if (age) return json(403, { error: age });
 
-    const key = Deno.env.get('GEMINI_API_KEY');
-    const model = Deno.env.get('COACH_MODEL');
-    if (!key || !/^[a-zA-Z0-9_-]+$/.test(key) ||
-        !model || !/^[a-zA-Z0-9._-]+$/.test(model)) {
+    const key = Deno.env.get('GEMINI_API_KEY')?.trim();
+    const model = Deno.env.get('COACH_MODEL')?.trim();
+    if (!key || !model) {
       return json(503, { error: 'provider_not_configured' });
+    }
+    if (!/^[\x21-\x7E]{20,200}$/.test(key)) {
+      return json(503, { error: 'provider_key_invalid' });
+    }
+    if (!/^[a-zA-Z0-9._-]+$/.test(model)) {
+      return json(503, { error: 'provider_model_invalid' });
     }
 
     const rawLimit = Deno.env.get('COACH_DAILY_LIMIT') ?? '30';
@@ -239,7 +245,31 @@ export async function handler(request: Request): Promise<Response> {
         body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
         signal: AbortSignal.timeout(20000),
       });
-      if (!provider.ok) return json(502, { error: 'provider_unavailable' });
+    } catch (error) {
+      const name = error instanceof Error ? error.name : '';
+      const safeName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
+        ? name : 'UnknownError';
+      console.error(safeName);
+      if (name === 'TimeoutError' || name === 'AbortError') {
+        return json(504, { error: 'provider_timeout' }, false);
+      }
+      return json(502, { error: 'provider_unavailable' }, false);
+    }
+    if (!provider.ok) {
+      let reason = '';
+      try {
+        const data = await provider.json();
+        const status = data?.error?.status;
+        if (typeof status === 'string' && /^[A-Z_]{3,40}$/.test(status)) {
+          reason = ` reason=${status}`;
+        }
+      } catch {
+        // A missing or invalid JSON body has no safe reason to report.
+      }
+      console.error(`coach_error provider_unavailable status=${provider.status}${reason}`);
+      return json(502, { error: 'provider_unavailable' }, false);
+    }
+    try {
       const result = await provider.json();
       const parts = result.candidates?.[0]?.content?.parts;
       const reply = Array.isArray(parts)

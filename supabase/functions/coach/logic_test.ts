@@ -87,7 +87,7 @@ test('emergency bypasses age and exhausted quota after authentication and valida
   const env: Record<string, string> = {
     SUPABASE_URL: 'https://example.invalid',
     SUPABASE_SERVICE_ROLE_KEY: 'test-only',
-    GEMINI_API_KEY: 'test-key',
+    GEMINI_API_KEY: 'test-key-123456789012345',
     COACH_MODEL: 'test-model',
   };
   Object.defineProperty(globalThis, 'Deno', {
@@ -142,18 +142,36 @@ test('emergency bypasses age and exhausted quota after authentication and valida
 
     calls.length = 0;
     birthDate = '1990-01-01';
-    for (const [name, value] of [
-      ['GEMINI_API_KEY', ''], ['GEMINI_API_KEY', 'invalid key'],
-      ['COACH_MODEL', ''], ['COACH_MODEL', '../invalid'],
+    for (const [name, value, code] of [
+      ['GEMINI_API_KEY', '', 'provider_not_configured'],
+      ['GEMINI_API_KEY', ' \n', 'provider_not_configured'],
+      ['GEMINI_API_KEY', 'invalid key with spaces long', 'provider_key_invalid'],
+      ['GEMINI_API_KEY', 'short', 'provider_key_invalid'],
+      ['GEMINI_API_KEY', 'x'.repeat(201), 'provider_key_invalid'],
+      ['COACH_MODEL', '', 'provider_not_configured'],
+      ['COACH_MODEL', '../invalid', 'provider_model_invalid'],
     ]) {
       const saved = env[name];
       env[name] = value;
       const unconfigured = await handler(request('How can I train?'));
       assert.equal(unconfigured.status, 503);
-      assert.equal((await unconfigured.json()).error, 'provider_not_configured');
+      assert.equal((await unconfigured.json()).error, code);
       assert.equal(calls.length, 2);
       calls.length = 0;
       env[name] = saved;
+    }
+    for (const key of [
+      'test.key.123456789012345',
+      'test.key.123456789012345 ',
+      'test.key.123456789012345\n',
+    ]) {
+      env.GEMINI_API_KEY = key;
+      env.COACH_MODEL = ' test-model\n';
+      const accepted = await handler(request('How can I train?'));
+      assert.equal(accepted.status, 429);
+      assert.equal((await accepted.json()).error, 'quota_exceeded');
+      assert.equal(calls.length, 3);
+      calls.length = 0;
     }
     const quota = await handler(request('How can I train?'));
     assert.equal(quota.status, 429);
@@ -204,4 +222,97 @@ test('preflight and errors include CORS headers', async () => {
       assert.equal(response.headers.get(name), value);
     }
   }
+});
+
+test('server errors log only the fixed error code', async () => {
+  const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
+  const originalError = console.error;
+  const logs: unknown[][] = [];
+  Object.defineProperty(globalThis, 'Deno', {
+    configurable: true,
+    value: { env: { get: () => undefined } },
+  });
+  console.error = (...args: unknown[]) => { logs.push(args); };
+  try {
+    const response = await handler(new Request('https://example.invalid', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-token' },
+      body: JSON.stringify({ message: 'private message', context: { calorie_target: 1234 } }),
+    }));
+    assert.equal(response.status, 503);
+    assert.deepEqual(logs, [['coach_error', 'server_not_configured']]);
+    await handler(new Request('https://example.invalid', { method: 'POST' }));
+    assert.equal(logs.length, 1);
+  } finally {
+    console.error = originalError;
+    if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
+    else Reflect.deleteProperty(globalThis, 'Deno');
+  }
+});
+
+test('provider failures log only status, safe reason or error name', async () => {
+    const originalFetch = globalThis.fetch;
+    const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
+    const originalError = console.error;
+    const logs: unknown[][] = [];
+    let providerResult: Response | Error = new Response();
+    const env: Record<string, string> = {
+      SUPABASE_URL: 'https://example.invalid',
+      SUPABASE_SERVICE_ROLE_KEY: 'test-only',
+      GEMINI_API_KEY: 'test-key-123456789012345',
+      COACH_MODEL: 'test-model',
+    };
+    Object.defineProperty(globalThis, 'Deno', {
+      configurable: true, value: { env: { get: (name: string) => env[name] } },
+    });
+    console.error = (...args: unknown[]) => { logs.push(args); };
+    globalThis.fetch = async (input) => {
+      const url = String(input);
+      if (url.endsWith('/auth/v1/user')) {
+        return Response.json({ id: '00000000-0000-4000-8000-00000000c101', is_anonymous: false });
+      }
+      if (url.includes('/rest/v1/profiles?')) return Response.json([{ birth_date: '1990-01-01' }]);
+      if (url.endsWith('/rest/v1/rpc/coach_consume_quota')) {
+        return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
+      }
+      if (providerResult instanceof Error) throw providerResult;
+      return providerResult;
+    };
+    const invoke = () => handler(new Request('https://example.invalid', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-token' },
+      body: JSON.stringify({ message: 'private message' }),
+    }));
+    try {
+      providerResult = Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'private provider detail' } }, { status: 429 });
+      assert.equal((await invoke()).status, 502);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=429 reason=RESOURCE_EXHAUSTED']]);
+      logs.length = 0;
+      providerResult = Response.json({ error: { status: 'BAD status private' } }, { status: 400 });
+      assert.equal((await invoke()).status, 502);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=400']]);
+      logs.length = 0;
+      providerResult = new Response('private response body', { status: 503 });
+      assert.equal((await invoke()).status, 502);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=503']]);
+      logs.length = 0;
+      providerResult = new TypeError('private exception message');
+      assert.equal((await invoke()).status, 502);
+      assert.deepEqual(logs, [['TypeError']]);
+      logs.length = 0;
+      providerResult = new Error('private exception message');
+      providerResult.name = 'TimeoutError';
+      assert.equal((await invoke()).status, 504);
+      assert.deepEqual(logs, [['TimeoutError']]);
+      logs.length = 0;
+      providerResult = new Error('private exception message');
+      providerResult.name = 'private sensitive data';
+      assert.equal((await invoke()).status, 502);
+      assert.deepEqual(logs, [['UnknownError']]);
+    } finally {
+      globalThis.fetch = originalFetch;
+      console.error = originalError;
+      if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
+      else Reflect.deleteProperty(globalThis, 'Deno');
+    }
 });
