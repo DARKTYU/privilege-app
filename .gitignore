@@ -31,7 +31,10 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+**/build/
 /coverage/
+.dart_tool/chrome-device/Default/Local Storage/leveldb/
+.dart_tool/chrome-device/Default/shared_proto_db/
 
 # Backend credentials and user data
 .env
@@ -56,5 +59,7 @@ app.*.map.json
 node_modules/
 *.jks
 *.keystore
+*.p12
+*.pfx
 key.properties
 *.pem
