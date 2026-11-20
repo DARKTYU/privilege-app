@@ -343,9 +343,11 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                           const Text('Nothing planned for this day.')
                         else ...[
                           Text(day.name),
-                          Text(day.kind == 'rest'
-                              ? 'Rest day'
-                              : 'Workout · ${day.duration} min · ${day.effort}% effort'),
+                          if (day.kind != 'rest' ||
+                              day.name.trim().toLowerCase() != 'rest day')
+                            Text(day.kind == 'rest'
+                                ? 'Rest day'
+                                : 'Workout · ${day.duration} min · ${day.effort}% effort'),
                           if (day.kind == 'workout')
                             Text(state.plannerWorkoutDates.contains(date)
                                 ? 'Workout logged'
@@ -456,13 +458,16 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
     final complete =
         day?.kind == 'workout' && state.plannerWorkoutDates.contains(key);
     final label = const ['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.weekday % 7];
+    final background = selected == date ? kMaroon : kCard;
+    final todayColor =
+        background.computeLuminance() > 0.179 ? Colors.black : Colors.white;
     return InkWell(
       key: ValueKey('planner-date-$key'),
       onTap: () => setState(() => selected = date),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: selected == date ? kMaroon : kCard,
+          color: background,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: selected == date ? kGold : kLine),
         ),
@@ -478,7 +483,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                       key: ValueKey('today-$key'),
                       width: 18,
                       height: 2,
-                      color: kGold,
+                      color: todayColor,
                     ),
                   )
                 : null,
@@ -564,13 +569,15 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   TextFormField(
                       controller: name,
-                      decoration: const InputDecoration(labelText: 'Name'),
+                      decoration: const InputDecoration(
+                          labelText: 'Name', errorMaxLines: 3),
                       validator: (value) => value == null ||
                               value.trim().isEmpty ||
                               value.trim().runes.length > 100
                           ? 'Enter a name between 1 and 100 characters.'
                           : null),
-                  if (widget.chooseKind)
+                  if (widget.chooseKind) ...[
+                    const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                         initialValue: kind,
                         decoration: const InputDecoration(labelText: 'Type'),
@@ -580,7 +587,9 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                           DropdownMenuItem(value: 'rest', child: Text('Rest'))
                         ],
                         onChanged: (value) => setState(() => kind = value!)),
+                  ],
                   if (kind == 'workout') ...[
+                    const SizedBox(height: 12),
                     TextFormField(
                         controller: duration,
                         keyboardType: TextInputType.number,
@@ -588,21 +597,26 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                           FilteringTextInputFormatter.digitsOnly
                         ],
                         decoration: const InputDecoration(
-                            labelText: 'Duration (minutes)'),
+                            labelText: 'Duration (minutes)',
+                            helperText: '1 to 600 minutes',
+                            errorMaxLines: 3),
                         validator: (value) {
                           final n = int.tryParse(value ?? '');
                           return n == null || n < 1 || n > 600
                               ? 'Enter 1 to 600 minutes.'
                               : null;
                         }),
+                    const SizedBox(height: 12),
                     TextFormField(
                         controller: effort,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly
                         ],
-                        decoration:
-                            const InputDecoration(labelText: 'Effort (%)'),
+                        decoration: const InputDecoration(
+                            labelText: 'Effort (%)',
+                            helperText: '0 to 100',
+                            errorMaxLines: 3),
                         validator: (value) {
                           final n = int.tryParse(value ?? '');
                           return n == null || n < 0 || n > 100

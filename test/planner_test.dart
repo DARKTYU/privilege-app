@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/screens/plan.dart';
 import 'package:privilege/services/planner_repository.dart';
 import 'package:privilege/state.dart';
+import 'package:privilege/theme_settings.dart';
 import 'package:privilege/ui.dart';
 
 import 'planner_fake.dart';
@@ -310,6 +311,113 @@ void main() {
         find.descendant(of: dialog, matching: find.byType(ListTile)));
     expect(tiles.map((tile) => (tile.title! as Text).data),
         ['Rest day', 'Workout A', 'Workout B', 'Custom rest', 'Another rest']);
+  });
+
+  for (final scale in [1.0, 1.5]) {
+    testWidgets(
+        'split dialogs space fields and show validation at scale $scale',
+        (tester) async {
+      final (_, state) = await render(tester, scale: scale);
+      await tester.scrollUntilVisible(
+          find.text('Create your first split'), 200,
+          scrollable: find.descendant(
+              of: find.byType(ListView), matching: find.byType(Scrollable)));
+      await tester.pumpAndSettle();
+      await tapVisible(tester, find.text('Create your first split'));
+
+      Future<void> checkForm() async {
+        final name = find.widgetWithText(TextFormField, 'Name');
+        final type = find.byType(DropdownButtonFormField<String>);
+        final duration =
+            find.widgetWithText(TextFormField, 'Duration (minutes)');
+        final effort = find.widgetWithText(TextFormField, 'Effort (%)');
+        expect(find.text('1 to 600 minutes'), findsOneWidget);
+        expect(find.text('0 to 100'), findsOneWidget);
+        expect(tester.getTopLeft(type).dy - tester.getBottomLeft(name).dy,
+            greaterThanOrEqualTo(12));
+        expect(tester.getTopLeft(duration).dy - tester.getBottomLeft(type).dy,
+            greaterThanOrEqualTo(12));
+        expect(tester.getTopLeft(effort).dy - tester.getBottomLeft(duration).dy,
+            greaterThanOrEqualTo(12));
+        await tester.enterText(name, '');
+        await tester.enterText(duration, '601');
+        await tester.enterText(effort, '101');
+        tester.testTextInput.hide();
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(tester.state<FormFieldState<String>>(name).errorText,
+            'Enter a name between 1 and 100 characters.');
+        expect(tester.state<FormFieldState<String>>(duration).errorText,
+            'Enter 1 to 600 minutes.');
+        expect(tester.state<FormFieldState<String>>(effort).errorText,
+            'Enter effort from 0 to 100%.');
+        for (final (field, message) in [
+          (name, 'Enter a name between 1 and 100 characters.'),
+          (duration, 'Enter 1 to 600 minutes.'),
+          (effort, 'Enter effort from 0 to 100%.'),
+        ]) {
+          expect(find.descendant(of: field, matching: find.text(message)),
+              findsOneWidget);
+        }
+        expect(tester.takeException(), isNull);
+        await tester.ensureVisible(effort);
+        await tester.pumpAndSettle();
+        expect(
+            tester.getRect(find.text('Save')).bottom, lessThanOrEqualTo(640));
+      }
+
+      await checkForm();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      await state.createPlannerSplits([
+        const PlannerSplit(
+            id: '', name: 'Push', kind: 'workout', duration: 60, effort: 70)
+      ]);
+      await tester.pumpAndSettle();
+      await tapVisible(tester, find.byTooltip('Edit Push'));
+      await checkForm();
+    });
+  }
+
+  testWidgets('rest day avoids duplicate label but keeps custom names',
+      (tester) async {
+    final (_, state) = await render(tester);
+    await state.markPlannerRest('2026-11-20');
+    await tester.pumpAndSettle();
+    expect(find.text('Rest day'), findsOneWidget);
+    await state.savePlannerDay(
+        const PlannerDay(date: '2026-11-20', name: 'Recovery', kind: 'rest'));
+    await tester.pumpAndSettle();
+    expect(find.text('Recovery'), findsOneWidget);
+    expect(find.text('Rest day'), findsOneWidget);
+  });
+
+  testWidgets('today marker contrasts with selected and unselected backgrounds',
+      (tester) async {
+    final (_, state) = await render(tester, scale: 1.5);
+    final previous = themeSettings.selected;
+    addTearDown(() => themeSettings.selected = previous);
+    final marker = find.byKey(const ValueKey('today-2026-11-20'));
+    final today = find.byKey(const ValueKey('planner-date-2026-11-20'));
+    final other = find.byKey(const ValueKey('planner-date-2026-11-19'));
+    for (final preset in AppThemePreset.values) {
+      themeSettings.selected = preset;
+      state.notifyListeners();
+      await tester.pumpAndSettle();
+      for (final isSelected in [true, false]) {
+        await tester.tap(isSelected ? today : other);
+        await tester.pumpAndSettle();
+        final color = tester.widget<Container>(marker).color!;
+        final background = isSelected ? preset.primary : preset.surface;
+        final a = color.computeLuminance();
+        final b = background.computeLuminance();
+        final contrast = ((a > b ? a : b) + 0.05) / ((a < b ? a : b) + 0.05);
+        expect(contrast, greaterThanOrEqualTo(3), reason: preset.label);
+        expect(tester.getSize(marker).width, greaterThanOrEqualTo(18));
+        expect(tester.getSize(marker).height, greaterThanOrEqualTo(2));
+      }
+    }
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('planner renders at 360x640 with large text', (tester) async {
