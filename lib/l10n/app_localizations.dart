@@ -98,6 +98,204 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @coachTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privilege Coach'**
+  String get coachTitle;
+
+  /// No description provided for @coachAiBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'AI'**
+  String get coachAiBadge;
+
+  /// No description provided for @coachNewChat.
+  ///
+  /// In en, this message translates to:
+  /// **'New chat'**
+  String get coachNewChat;
+
+  /// No description provided for @coachClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close chat'**
+  String get coachClose;
+
+  /// No description provided for @coachInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'AI can make mistakes - not medical advice - tap for details'**
+  String get coachInfo;
+
+  /// No description provided for @coachAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About the coach'**
+  String get coachAbout;
+
+  /// No description provided for @coachNoticeMistakes.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach can make mistakes.'**
+  String get coachNoticeMistakes;
+
+  /// No description provided for @coachNoticeMedical.
+  ///
+  /// In en, this message translates to:
+  /// **'Not medical advice. For health problems, ask a doctor.'**
+  String get coachNoticeMedical;
+
+  /// No description provided for @coachNoticeCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages are sent to Google Gemini to get a reply.'**
+  String get coachNoticeCloud;
+
+  /// No description provided for @coachNoticePrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not share personal or health details you do not want sent.'**
+  String get coachNoticePrivacy;
+
+  /// No description provided for @coachNoticeMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach does not remember earlier messages.'**
+  String get coachNoticeMemory;
+
+  /// No description provided for @coachGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get coachGotIt;
+
+  /// No description provided for @coachConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Share my calorie target and today’s totals with the coach'**
+  String get coachConsent;
+
+  /// No description provided for @coachWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Hi! How can I help today?'**
+  String get coachWelcome;
+
+  /// No description provided for @coachTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Training ideas'**
+  String get coachTraining;
+
+  /// No description provided for @coachProteinRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'High-protein recipe'**
+  String get coachProteinRecipe;
+
+  /// No description provided for @coachCaloriesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Calories left?'**
+  String get coachCaloriesLeft;
+
+  /// No description provided for @coachSnacks.
+  ///
+  /// In en, this message translates to:
+  /// **'Snack ideas'**
+  String get coachSnacks;
+
+  /// No description provided for @coachResponding.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach is responding…'**
+  String get coachResponding;
+
+  /// No description provided for @coachRequestsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests left today: {count}'**
+  String coachRequestsLeft(String count);
+
+  /// No description provided for @coachInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the coach'**
+  String get coachInputHint;
+
+  /// No description provided for @coachSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get coachSend;
+
+  /// No description provided for @coachCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/2000'**
+  String coachCounter(String count);
+
+  /// No description provided for @coachPreferenceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save or load consent. Please try again.'**
+  String get coachPreferenceError;
+
+  /// No description provided for @coachSignInError.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with an account to use the coach.'**
+  String get coachSignInError;
+
+  /// No description provided for @coachBirthDateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your birth date in Profile to use the coach.'**
+  String get coachBirthDateError;
+
+  /// No description provided for @coachAgeError.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI coach is for users 18 and over.'**
+  String get coachAgeError;
+
+  /// No description provided for @coachQuotaError.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit reached.'**
+  String get coachQuotaError;
+
+  /// No description provided for @coachQuotaResetError.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit reached. Resets: {date}'**
+  String coachQuotaResetError(String date);
+
+  /// No description provided for @coachUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach is unavailable right now.'**
+  String get coachUnavailable;
+
+  /// No description provided for @coachLocalHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Local help (not AI): ask about your calories, weekly plan or streak in the app.'**
+  String get coachLocalHelp;
+
+  /// No description provided for @coachUnavailableHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'{error}\n\n{help}'**
+  String coachUnavailableHelp(String error, String help);
+
+  /// No description provided for @coachTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get coachTryAgain;
+
   /// No description provided for @recipeSignIn.
   ///
   /// In en, this message translates to:

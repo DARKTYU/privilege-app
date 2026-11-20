@@ -94,7 +94,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.byType(ChatScreen), findsOneWidget);
-    await tester.tap(find.byTooltip('Close chat / إغلاق المحادثة'));
+    await tester.tap(find.byTooltip('Close chat'));
     await tester.pumpAndSettle();
     expect(find.byType(ChatScreen), findsNothing);
     expect(find.byType(ProfileScreen), findsOneWidget);

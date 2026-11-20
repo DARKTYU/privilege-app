@@ -9,6 +9,122 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get coachTitle => 'Privilege Coach';
+
+  @override
+  String get coachAiBadge => 'AI';
+
+  @override
+  String get coachNewChat => 'New chat';
+
+  @override
+  String get coachClose => 'Close chat';
+
+  @override
+  String get coachInfo =>
+      'AI can make mistakes - not medical advice - tap for details';
+
+  @override
+  String get coachAbout => 'About the coach';
+
+  @override
+  String get coachNoticeMistakes => 'The coach can make mistakes.';
+
+  @override
+  String get coachNoticeMedical =>
+      'Not medical advice. For health problems, ask a doctor.';
+
+  @override
+  String get coachNoticeCloud =>
+      'Messages are sent to Google Gemini to get a reply.';
+
+  @override
+  String get coachNoticePrivacy =>
+      'Do not share personal or health details you do not want sent.';
+
+  @override
+  String get coachNoticeMemory =>
+      'The coach does not remember earlier messages.';
+
+  @override
+  String get coachGotIt => 'Got it';
+
+  @override
+  String get coachConsent =>
+      'Share my calorie target and today’s totals with the coach';
+
+  @override
+  String get coachWelcome => 'Hi! How can I help today?';
+
+  @override
+  String get coachTraining => 'Training ideas';
+
+  @override
+  String get coachProteinRecipe => 'High-protein recipe';
+
+  @override
+  String get coachCaloriesLeft => 'Calories left?';
+
+  @override
+  String get coachSnacks => 'Snack ideas';
+
+  @override
+  String get coachResponding => 'Coach is responding…';
+
+  @override
+  String coachRequestsLeft(String count) {
+    return 'Requests left today: $count';
+  }
+
+  @override
+  String get coachInputHint => 'Message the coach';
+
+  @override
+  String get coachSend => 'Send';
+
+  @override
+  String coachCounter(String count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get coachPreferenceError =>
+      'Could not save or load consent. Please try again.';
+
+  @override
+  String get coachSignInError => 'Sign in with an account to use the coach.';
+
+  @override
+  String get coachBirthDateError =>
+      'Add your birth date in Profile to use the coach.';
+
+  @override
+  String get coachAgeError => 'The AI coach is for users 18 and over.';
+
+  @override
+  String get coachQuotaError => 'Daily limit reached.';
+
+  @override
+  String coachQuotaResetError(String date) {
+    return 'Daily limit reached. Resets: $date';
+  }
+
+  @override
+  String get coachUnavailable => 'The coach is unavailable right now.';
+
+  @override
+  String get coachLocalHelp =>
+      'Local help (not AI): ask about your calories, weekly plan or streak in the app.';
+
+  @override
+  String coachUnavailableHelp(String error, String help) {
+    return '$error\n\n$help';
+  }
+
+  @override
+  String get coachTryAgain => 'Try again';
+
+  @override
   String get recipeSignIn => 'Sign in to save favorites.';
 
   @override

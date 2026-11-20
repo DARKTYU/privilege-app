@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n_strings.dart';
 import '../logic/coach_safety.dart';
+import '../logic/localized_dates.dart';
 import '../services/coach_client.dart';
 import '../state.dart';
 import '../ui.dart';
@@ -41,7 +43,7 @@ class _CoachAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Semantics(
-        label: 'Privilege Coach',
+        label: strings(context).coachTitle,
         image: true,
         child: Container(
           width: size,
@@ -74,46 +76,20 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   static const _consentKey = 'coach_share_calorie_context';
-  static const _noticeRows = <(IconData, String, String)>[
-    (
-      Icons.warning_amber_rounded,
-      'The coach can make mistakes.',
-      'المدرب قد يخطئ.'
-    ),
-    (
-      Icons.medical_services_outlined,
-      'Not medical advice. For health problems, ask a doctor.',
-      'ليست نصيحة طبية. للمشاكل الصحية استشر طبيباً.'
-    ),
-    (
-      Icons.cloud_outlined,
-      'Messages are sent to Google Gemini to get a reply.',
-      'تُرسل رسائلك إلى Google Gemini للحصول على رد.'
-    ),
-    (
-      Icons.lock_outline,
-      'Do not share personal or health details you do not want sent.',
-      'لا تشارك تفاصيل شخصية أو صحية لا تريد إرسالها.'
-    ),
-    (
-      Icons.memory,
-      'The coach does not remember earlier messages.',
-      'المدرب لا يتذكر الرسائل السابقة.'
-    ),
-  ];
-  static const _fallback = 'Local help (not AI): ask about your calories, '
-      'weekly plan or streak in the app.\n'
-      'مساعدة محلية (ليست ذكاءً اصطناعياً): راجع السعرات والخطة الأسبوعية وسلسلة التقدم في التطبيق.';
-  static const _suggestions = [
-    'Training ideas',
-    'High-protein recipe',
-    'Calories left?',
-    'Snack ideas',
-  ];
+  List<String> get _suggestions {
+    final l = strings(context);
+    return [
+      l.coachTraining,
+      l.coachProteinRecipe,
+      l.coachCaloriesLeft,
+      l.coachSnacks
+    ];
+  }
 
   final _input = TextEditingController();
   final _scroll = ScrollController();
-  final List<({bool bot, String text, String? retry})> _messages = [];
+  final List<({bool bot, String text, String? retry, CoachException? error})>
+      _messages = [];
   late final CoachClient _client = widget.client ?? SupabaseCoachClient();
   late final AppState _state = widget.state ?? appState;
   bool _consent = false;
@@ -182,9 +158,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showPreferenceError() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-      content: Text(
-          'Could not save or load consent. Please try again.\nتعذر حفظ أو تحميل الموافقة. حاول مرة أخرى.'),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(strings(context).coachPreferenceError),
     ));
   }
 
@@ -207,24 +182,24 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   String _errorText(CoachException error) {
+    final l = strings(context);
     switch (error.code) {
       case 'authentication_required':
       case 'registered_user_required':
-        return 'Sign in with an account to use the coach.\nسجّل الدخول بحساب لاستخدام المدرب.';
+        return l.coachSignInError;
       case 'birth_date_required':
-        return 'Add your birth date in Profile to use the coach.\nأضف تاريخ ميلادك في الملف الشخصي لاستخدام المدرب.';
+        return l.coachBirthDateError;
       case 'underage':
-        return 'The AI coach is for users 18 and over.\nالمدرب الذكي للمستخدمين بعمر 18 سنة فأكثر.';
+        return l.coachAgeError;
       case 'quota_exceeded':
         final reset = error.resetAt?.toLocal();
-        final date = reset == null
-            ? ''
-            : ' ${MaterialLocalizations.of(context).formatFullDate(reset)} '
-                '${MaterialLocalizations.of(context).formatTimeOfDay(TimeOfDay.fromDateTime(reset), alwaysUse24HourFormat: true)}';
-        return 'Daily limit reached.${reset == null ? '' : ' Resets:$date'}\n'
-            'تم الوصول إلى الحد اليومي.${reset == null ? '' : ' موعد التجديد:$date'}';
+        if (reset == null) return l.coachQuotaError;
+        final material = MaterialLocalizations.of(context);
+        final date = westernDigits('${material.formatFullDate(reset)} '
+            '${material.formatTimeOfDay(TimeOfDay.fromDateTime(reset), alwaysUse24HourFormat: true)}');
+        return l.coachQuotaResetError(date);
       default:
-        return 'The coach is unavailable right now.\nالمدرب غير متاح حالياً.\n\n$_fallback';
+        return l.coachUnavailableHelp(l.coachUnavailable, l.coachLocalHelp);
     }
   }
 
@@ -242,7 +217,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final shareRequested = _consent;
     if (!isRetry) _input.clear();
     setState(() {
-      if (!isRetry) _messages.add((bot: false, text: text, retry: null));
+      if (!isRetry) {
+        _messages.add((bot: false, text: text, retry: null, error: null));
+      }
       _sending = true;
       _remaining = null;
     });
@@ -250,7 +227,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final emergency = coachEmergencyReply(text);
     if (emergency != null) {
       setState(() {
-        _messages.add((bot: true, text: emergency, retry: null));
+        _messages.add((bot: true, text: emergency, retry: null, error: null));
         _sending = false;
       });
       _scrollToEnd();
@@ -293,7 +270,7 @@ class _ChatScreenState extends State<ChatScreen> {
         return;
       }
       setState(() {
-        _messages.add((bot: true, text: reply.text, retry: null));
+        _messages.add((bot: true, text: reply.text, retry: null, error: null));
         _remaining = reply.remaining;
       });
     } on CoachException catch (error) {
@@ -309,11 +286,8 @@ class _ChatScreenState extends State<ChatScreen> {
         'underage',
         'quota_exceeded',
       }.contains(error.code);
-      setState(() => _messages.add((
-            bot: true,
-            text: _errorText(error),
-            retry: retryable ? text : null
-          )));
+      setState(() => _messages.add(
+          (bot: true, text: '', retry: retryable ? text : null, error: error)));
     } catch (_) {
       if (!mounted ||
           generation != _chatGeneration ||
@@ -322,8 +296,9 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       setState(() => _messages.add((
             bot: true,
-            text: _errorText(const CoachException('unavailable')),
-            retry: text
+            text: '',
+            retry: text,
+            error: const CoachException('unavailable')
           )));
     } finally {
       if (mounted) {
@@ -377,7 +352,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             const _CoachAvatar(size: 44),
             const SizedBox(width: 12),
-            const Expanded(child: Text('About the coach / عن المدرب')),
+            Expanded(child: Text(strings(context).coachAbout)),
           ],
         ),
         content: SingleChildScrollView(
@@ -385,7 +360,19 @@ class _ChatScreenState extends State<ChatScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final (icon, english, arabic) in _noticeRows)
+              for (final (icon, text) in [
+                (
+                  Icons.warning_amber_rounded,
+                  strings(context).coachNoticeMistakes
+                ),
+                (
+                  Icons.medical_services_outlined,
+                  strings(context).coachNoticeMedical
+                ),
+                (Icons.cloud_outlined, strings(context).coachNoticeCloud),
+                (Icons.lock_outline, strings(context).coachNoticePrivacy),
+                (Icons.memory, strings(context).coachNoticeMemory),
+              ])
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Row(
@@ -394,18 +381,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Icon(icon, size: 20, color: kMaroon),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(english,
-                                textDirection: TextDirection.ltr,
-                                textAlign: TextAlign.left),
-                            const SizedBox(height: 4),
-                            Text(arabic,
-                                textDirection: TextDirection.rtl,
-                                textAlign: TextAlign.right),
-                          ],
-                        ),
+                        child: Text(text),
                       ),
                     ],
                   ),
@@ -423,7 +399,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text('Got it / فهمت'),
+              child: Text(strings(context).coachGotIt),
             ),
           ),
         ],
@@ -431,7 +407,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _bubble(({bool bot, String text, String? retry}) message) {
+  Widget _bubble(
+      ({bool bot, String text, String? retry, CoachException? error}) message) {
+    final text =
+        message.error == null ? message.text : _errorText(message.error!);
     final bubble = Container(
       constraints: const BoxConstraints(maxWidth: 290),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -444,25 +423,25 @@ class _ChatScreenState extends State<ChatScreen> {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SelectableText(message.text,
-                    textDirection: containsArabic(message.text)
+                SelectableText(text,
+                    textDirection: containsArabic(text)
                         ? TextDirection.rtl
                         : TextDirection.ltr),
                 TextButton(
                   onPressed: _sending || _savingConsent || !_consentReady
                       ? null
                       : () => _send(message.retry, true),
-                  child: const Text('Try again / حاول مرة أخرى'),
+                  child: Text(strings(context).coachTryAgain),
                 ),
               ],
             )
-          : message.bot && message.text.contains('**')
-              ? SelectableText.rich(_coachText(message.text),
-                  textDirection: containsArabic(message.text)
+          : message.bot && text.contains('**')
+              ? SelectableText.rich(_coachText(text),
+                  textDirection: containsArabic(text)
                       ? TextDirection.rtl
                       : TextDirection.ltr)
-              : SelectableText(message.text,
-                  textDirection: containsArabic(message.text)
+              : SelectableText(text,
+                  textDirection: containsArabic(text)
                       ? TextDirection.rtl
                       : TextDirection.ltr),
     );
@@ -497,7 +476,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     }
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsetsDirectional.only(end: 8),
       child: ActionChip(
         label: Text(question, style: const TextStyle(fontSize: 12)),
         backgroundColor: kCard2,
@@ -512,7 +491,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(children: [
           const _CoachAvatar(size: 88),
           const SizedBox(height: 12),
-          Text('Hi! How can I help today?\nأهلاً! كيف أقدر أساعدك اليوم؟',
+          Text(strings(context).coachWelcome,
               textAlign: TextAlign.center,
               style: TextStyle(color: kCream, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
@@ -551,9 +530,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: SizedBox(
                     height: 48,
                     child: FittedBox(
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       fit: BoxFit.scaleDown,
-                      child: Text('Privilege Coach\nمدرب بريفيلج',
+                      child: Text(strings(context).coachTitle,
                           style: TextStyle(
                               color: kCream,
                               fontSize: 14,
@@ -566,16 +545,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                       color: kMaroon, borderRadius: BorderRadius.circular(6)),
-                  child:
-                      const Text('AI', style: TextStyle(color: Colors.white)),
+                  child: Text(strings(context).coachAiBadge,
+                      style: const TextStyle(color: Colors.white)),
                 ),
                 IconButton(
-                  tooltip: 'New chat / محادثة جديدة',
+                  tooltip: strings(context).coachNewChat,
                   onPressed: _newChat,
                   icon: const Icon(Icons.add_comment_outlined),
                 ),
                 IconButton(
-                  tooltip: 'Close chat / إغلاق المحادثة',
+                  tooltip: strings(context).coachClose,
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
                 ),
@@ -596,8 +575,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'AI can make mistakes - not medical advice - tap for details\n'
-                            'قد يخطئ الذكاء الاصطناعي - ليس نصيحة طبية - اضغط للتفاصيل',
+                            strings(context).coachInfo,
                             style: TextStyle(color: kMuted, fontSize: 11),
                           ),
                         ),
@@ -607,9 +585,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
-                    title: const Text(
-                        'Share my calorie target and today’s totals with the coach\nمشاركة هدف السعرات وإجمالي اليوم مع المدرب',
-                        style: TextStyle(fontSize: 12)),
+                    title: Text(strings(context).coachConsent,
+                        style: const TextStyle(fontSize: 12)),
                     value: _consent,
                     onChanged: _consentReady && !_savingConsent && !_sending
                         ? _setConsent
@@ -619,7 +596,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   for (final message in _messages) _bubble(message),
                   if (_sending)
                     Semantics(
-                      label: 'Coach is responding… / المدرب يرد…',
+                      label: strings(context).coachResponding,
                       child: ExcludeSemantics(
                         child: Align(
                           alignment: Alignment.centerLeft,
@@ -640,7 +617,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Text(
-                          'Requests left today: $_remaining\nالمتبقي اليوم: $_remaining',
+                          strings(context)
+                              .coachRequestsLeft(_remaining.toString()),
                           style: TextStyle(color: kMuted, fontSize: 11)),
                     ),
                 ],
@@ -675,23 +653,23 @@ class _ChatScreenState extends State<ChatScreen> {
                             {required currentLength,
                             required isFocused,
                             required maxLength}) =>
-                        Text('${_input.text.runes.length}/2000'),
+                        Text(strings(context)
+                            .coachCounter(_input.text.runes.length.toString())),
                     minLines: 1,
                     maxLines: 3,
                     onSubmitted: (_) => _send(),
-                    decoration:
-                        fieldDecoration('Message the coach / اكتب للمدرب')
-                            .copyWith(
-                                hintMaxLines: 1,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(24))),
+                    decoration: fieldDecoration(strings(context).coachInputHint)
+                        .copyWith(
+                            hintMaxLines: 1,
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24))),
                   ),
                 ),
                 const SizedBox(width: 6),
                 CircleAvatar(
                   backgroundColor: kMaroon,
                   child: IconButton(
-                    tooltip: 'Send / إرسال',
+                    tooltip: strings(context).coachSend,
                     icon: const Icon(Icons.send_rounded, size: 20),
                     color: Theme.of(context).colorScheme.onPrimary,
                     onPressed: _sending ||

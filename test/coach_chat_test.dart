@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/coach_safety.dart';
 import 'package:privilege/screens/chat.dart';
@@ -33,12 +35,16 @@ void main() {
       {AppState? state,
       Future<void> Function()? refresh,
       Size size = const Size(800, 900),
-      double scale = 1}) async {
+      double scale = 1,
+      String language = 'en'}) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
+      locale: Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(size: size, textScaler: TextScaler.linear(scale)),
         child: ChatScreen(
@@ -53,9 +59,176 @@ void main() {
   Future<void> send(WidgetTester tester, String message) async {
     await tester.enterText(find.byType(TextField), message);
     await tester.pump();
-    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.tap(find.byTooltip('Send'));
     await tester.pumpAndSettle();
   }
+
+  test('chat has no hardcoded UI strings or Arabic', () {
+    final source = File('lib/screens/chat.dart').readAsStringSync();
+    final labels = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:label|tooltip|hintText)\s*:\s*|fieldDecoration\(\s*)['"]""");
+    final matches = labels.allMatches(source).map((m) => m.group(0)).toList();
+    expect(matches, ['Text(\'']);
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+  });
+
+  for (final language in ['en', 'ar']) {
+    for (final index in [0, 1, 2, 3]) {
+      testWidgets('suggestion $index sends in $language', (tester) async {
+        final client = FakeCoach();
+        await start(tester, client,
+            language: language, size: const Size(360, 640));
+        final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+        final question = [
+          l.coachTraining,
+          l.coachProteinRecipe,
+          l.coachCaloriesLeft,
+          l.coachSnacks
+        ][index];
+        await tester.ensureVisible(find.text(question));
+        await tester.tap(find.text(question));
+        await tester.pumpAndSettle();
+        expect(client.requests.single['message'], question);
+        expect(tester.takeException(), isNull);
+      });
+    }
+
+    testWidgets('localized chat controls and suggestions at 360 in $language',
+        (tester) async {
+      final client = FakeCoach();
+      await start(tester, client,
+          language: language, size: const Size(360, 640));
+      final context = tester.element(find.byType(ChatScreen));
+      final l = AppLocalizations.of(context)!;
+      expect(find.text(l.coachTitle), findsOneWidget);
+      expect(find.text(l.coachWelcome), findsOneWidget);
+      expect(find.text(l.coachConsent), findsOneWidget);
+      expect(find.byTooltip(l.coachNewChat), findsOneWidget);
+      expect(find.byTooltip(l.coachClose), findsOneWidget);
+      expect(find.byTooltip(l.coachSend), findsOneWidget);
+      expect(find.text(l.coachAiBadge), findsOneWidget);
+      await tester.tap(find.text(l.coachInfo));
+      await tester.pumpAndSettle();
+      expect(find.text(l.coachAbout), findsOneWidget);
+      for (final text in [
+        l.coachNoticeMistakes,
+        l.coachNoticeMedical,
+        l.coachNoticeCloud,
+        l.coachNoticePrivacy,
+        l.coachNoticeMemory
+      ]) {
+        expect(find.text(text), findsOneWidget);
+      }
+      await tester.tap(find.text(l.coachGotIt));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text(l.coachTraining));
+      await tester.tap(find.text(l.coachTraining));
+      await tester.pumpAndSettle();
+      expect(client.requests.single['message'], l.coachTraining);
+      expect(find.text(l.coachRequestsLeft('29')), findsOneWidget);
+      expect(find.text(l.coachWelcome), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('localized failures and retry in $language', (tester) async {
+      final client = FakeCoach()..error = const CoachException('unavailable');
+      await start(tester, client,
+          language: language, size: const Size(360, 640));
+      final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+      await tester.enterText(find.byType(TextField), 'Hello');
+      await tester.pump();
+      await tester.tap(find.byTooltip(l.coachSend));
+      await tester.pumpAndSettle();
+      expect(
+          find.text(
+              l.coachUnavailableHelp(l.coachUnavailable, l.coachLocalHelp)),
+          findsOneWidget);
+      expect(find.text(l.coachTryAgain), findsOneWidget);
+      client.error = null;
+      await tester.tap(find.text(l.coachTryAgain));
+      await tester.pumpAndSettle();
+      expect(client.requests.map((request) => request['message']),
+          ['Hello', 'Hello']);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('changing locale updates local errors without changing history',
+      (tester) async {
+    final client = FakeCoach()..error = const CoachException('unavailable');
+    final locale = ValueNotifier(const Locale('en'));
+    addTearDown(locale.dispose);
+    await tester.pumpWidget(ValueListenableBuilder<Locale>(
+      valueListenable: locale,
+      builder: (context, value, _) => MaterialApp(
+        locale: value,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: ChatScreen(client: client, refreshActivity: () async {}),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await send(tester, 'Hello');
+    expect(find.text('Try again'), findsOneWidget);
+    locale.value = const Locale('ar');
+    await tester.pumpAndSettle();
+    final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+    expect(find.text(l.coachTryAgain), findsOneWidget);
+    expect(
+        find.text(l.coachUnavailableHelp(l.coachUnavailable, l.coachLocalHelp)),
+        findsOneWidget);
+    expect(find.text('Hello'), findsOneWidget);
+    expect(client.requests, hasLength(1));
+  });
+
+  for (final code in [
+    'authentication_required',
+    'registered_user_required',
+    'birth_date_required',
+    'underage',
+    'quota_exceeded'
+  ]) {
+    testWidgets('Arabic error $code has no retry and western digits',
+        (tester) async {
+      final client = FakeCoach()
+        ..error = CoachException(code, resetAt: DateTime.utc(2026, 11, 21));
+      await start(tester, client, language: 'ar', size: const Size(360, 640));
+      final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+      await tester.enterText(find.byType(TextField), 'Hello');
+      await tester.pump();
+      await tester.tap(find.byTooltip(l.coachSend));
+      await tester.pumpAndSettle();
+      final expected = switch (code) {
+        'authentication_required' ||
+        'registered_user_required' =>
+          l.coachSignInError,
+        'birth_date_required' => l.coachBirthDateError,
+        'underage' => l.coachAgeError,
+        _ => l.coachQuotaError,
+      };
+      expect(find.textContaining(expected), findsOneWidget);
+      expect(find.text(l.coachTryAgain), findsNothing);
+      final bubble = tester.widget<SelectableText>(find.byWidgetPredicate(
+          (widget) =>
+              widget is SelectableText &&
+              (widget.data?.contains(expected) ?? false)));
+      expect(bubble.data,
+          isNot(contains(RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'))));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('Arabic emergency reply is immediate in English app',
+      (tester) async {
+    final client = FakeCoach();
+    await start(tester, client, language: 'en');
+    await tester.enterText(find.byType(TextField), 'مش قادرة أتنفس');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send'));
+    await tester.pump();
+    expect(find.text(coachEmergencyReply('مش قادرة أتنفس')!), findsOneWidget);
+    expect(client.requests, isEmpty);
+  });
 
   testWidgets(
       'coach avatars contain the logo at header, welcome and bubble sizes',
@@ -97,21 +270,20 @@ void main() {
     await send(tester, 'Hello');
     expect(client.requests.single, {'message': 'Hello', 'consent': false});
     expect(find.text('Hello from the coach'), findsOneWidget);
-    expect(find.text('Requests left today: 29\nالمتبقي اليوم: 29'),
-        findsOneWidget);
-    await tester.tap(find.byTooltip('New chat / محادثة جديدة'));
+    expect(find.text('Requests left today: 29'), findsOneWidget);
+    await tester.tap(find.byTooltip('New chat'));
     await tester.pump();
     expect(find.text('Hello from the coach'), findsNothing);
     expect(find.textContaining('Requests left today:'), findsNothing);
   });
 
-  testWidgets('info row opens bilingual notice and both dismissals work',
+  testWidgets('info row opens localized notice and both dismissals work',
       (tester) async {
     await start(tester, FakeCoach());
     expect(find.textContaining('The coach can make mistakes'), findsNothing);
     await tester.tap(find.textContaining('AI can make mistakes'));
     await tester.pumpAndSettle();
-    expect(find.text('About the coach / عن المدرب'), findsOneWidget);
+    expect(find.text('About the coach'), findsOneWidget);
     final dialog = find.byType(AlertDialog);
     expect(
         find.descendant(
@@ -149,13 +321,10 @@ void main() {
     ]) {
       expect(find.descendant(of: dialog, matching: find.byIcon(icon)),
           findsOneWidget);
-      final en = tester.widget<Text>(find.text(english));
-      final ar = tester.widget<Text>(find.text(arabic));
-      expect(en.textDirection, TextDirection.ltr);
-      expect(ar.textDirection, TextDirection.rtl);
-      expect(en.style?.fontSize, ar.style?.fontSize);
+      expect(find.text(english), findsOneWidget);
+      expect(find.text(arabic), findsNothing);
     }
-    final button = find.widgetWithText(ElevatedButton, 'Got it / فهمت');
+    final button = find.widgetWithText(ElevatedButton, 'Got it');
     expect(tester.getSize(button).width, greaterThan(200));
     await tester.tap(button);
     await tester.pumpAndSettle();
@@ -178,7 +347,7 @@ void main() {
     await tester.ensureVisible(last);
     await tester.pumpAndSettle();
     expect(last.hitTestable(), findsOneWidget);
-    await tester.tap(find.text('Got it / فهمت'));
+    await tester.tap(find.text('Got it'));
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
     expect(tester.takeException(), isNull);
@@ -209,7 +378,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.text('Previous screen', skipOffstage: false), findsOneWidget);
-    expect(find.text('Privilege Coach\nمدرب بريفيلج'), findsOneWidget);
+    expect(find.text('Privilege Coach'), findsOneWidget);
     expect(find.text('AI'), findsOneWidget);
     final height = tester.getSize(find.byType(ChatScreen)).height;
     expect(height, closeTo(tester.view.physicalSize.height * .92, 1));
@@ -219,7 +388,7 @@ void main() {
         lessThanOrEqualTo(tester.view.physicalSize.height - 260));
     tester.view.resetViewInsets();
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Close chat / إغلاق المحادثة'));
+    await tester.tap(find.byTooltip('Close chat'));
     await tester.pumpAndSettle();
     expect(find.byType(ChatScreen), findsNothing);
     expect(find.text('Previous screen'), findsOneWidget);
@@ -262,7 +431,7 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.enterText(find.byType(TextField), 'Hello');
     await tester.pump();
-    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.tap(find.byTooltip('Send'));
     await tester.pumpAndSettle();
     expect(client.requests.single['message'], 'Hello');
     expect(tester.takeException(), isNull);
@@ -284,7 +453,7 @@ void main() {
       expect(client.requests.single['message'], suggestion);
       expect(find.textContaining('How can I help today?'), findsNothing);
       expect(find.byType(ActionChip), findsWidgets);
-      await tester.tap(find.byTooltip('New chat / محادثة جديدة'));
+      await tester.tap(find.byTooltip('New chat'));
       await tester.pumpAndSettle();
       expect(find.textContaining('How can I help today?'), findsOneWidget);
     });
@@ -309,8 +478,7 @@ void main() {
         FontWeight.bold);
     expect(spans.firstWhere((span) => span.text == 'Train').style!.fontWeight,
         FontWeight.bold);
-    expect(find.text('Requests left today: 25\nالمتبقي اليوم: 25'),
-        findsOneWidget);
+    expect(find.text('Requests left today: 25'), findsOneWidget);
   });
 
   testWidgets('Arabic bold reply stays selectable and right-to-left',
@@ -433,7 +601,7 @@ void main() {
       await send(tester, 'Hi');
       expect(find.textContaining(entry.value), findsOneWidget);
       if (entry.key != 'provider_unavailable') {
-        expect(find.text('Try again / حاول مرة أخرى'), findsNothing);
+        expect(find.text('Try again'), findsNothing);
       }
       if (entry.key == 'quota_exceeded') {
         expect(find.textContaining('Resets:'), findsOneWidget);
@@ -448,18 +616,18 @@ void main() {
     final client = FakeCoach()..error = const CoachException('unavailable');
     await start(tester, client);
     await send(tester, 'My question');
-    expect(find.text('Try again / حاول مرة أخرى'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
     client.error = null;
     client.pending = Completer<CoachReply>();
     await tester.enterText(find.byType(TextField), 'Draft');
-    await tester.tap(find.text('Try again / حاول مرة أخرى'));
+    await tester.tap(find.text('Try again'));
     await tester.pump();
     expect(client.requests.length, 2);
     expect(client.requests.last['message'], 'My question');
     expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
         'Draft');
-    final retry = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, 'Try again / حاول مرة أخرى'));
+    final retry =
+        tester.widget<TextButton>(find.widgetWithText(TextButton, 'Try again'));
     expect(retry.onPressed, isNull);
     client.pending!.complete(const CoachReply('Recovered', 10, null));
     await tester.pumpAndSettle();
@@ -485,11 +653,10 @@ void main() {
     await start(tester, client);
     await tester.enterText(find.byType(TextField), 'Hello');
     await tester.pump();
-    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.tap(find.byTooltip('Send'));
     await tester.pump();
     expect(find.text('•••'), findsOneWidget);
-    expect(find.bySemanticsLabel('Coach is responding… / المدرب يرد…'),
-        findsOneWidget);
+    expect(find.bySemanticsLabel('Coach is responding…'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Another');
     await tester.pump();
     expect(
@@ -524,7 +691,7 @@ void main() {
             .text
             .length,
         2000);
-    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.tap(find.byTooltip('Send'));
     await tester.pumpAndSettle();
     expect((client.requests.single['message'] as String).length, 2000);
   });
@@ -534,9 +701,9 @@ void main() {
     await start(tester, client);
     await tester.enterText(find.byType(TextField), 'Hello');
     await tester.pump();
-    await tester.tap(find.byTooltip('Send / إرسال'));
+    await tester.tap(find.byTooltip('Send'));
     await tester.pump();
-    await tester.tap(find.byTooltip('New chat / محادثة جديدة'));
+    await tester.tap(find.byTooltip('New chat'));
     client.pending!.complete(const CoachReply('Old reply', 1, null));
     await tester.pumpAndSettle();
     expect(find.text('Old reply'), findsNothing);

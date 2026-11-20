@@ -9,6 +9,120 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get coachTitle => 'مدرب بريفيلج';
+
+  @override
+  String get coachAiBadge => 'ذكاء اصطناعي';
+
+  @override
+  String get coachNewChat => 'محادثة جديدة';
+
+  @override
+  String get coachClose => 'إغلاق المحادثة';
+
+  @override
+  String get coachInfo =>
+      'قد يخطئ الذكاء الاصطناعي - ليس نصيحة طبية - اضغط للتفاصيل';
+
+  @override
+  String get coachAbout => 'عن المدرب';
+
+  @override
+  String get coachNoticeMistakes => 'المدرب قد يخطئ.';
+
+  @override
+  String get coachNoticeMedical =>
+      'ليست نصيحة طبية. للمشاكل الصحية استشر طبيباً.';
+
+  @override
+  String get coachNoticeCloud =>
+      'تُرسل رسائلك إلى Google Gemini للحصول على رد.';
+
+  @override
+  String get coachNoticePrivacy =>
+      'لا تشارك تفاصيل شخصية أو صحية لا تريد إرسالها.';
+
+  @override
+  String get coachNoticeMemory => 'المدرب لا يتذكر الرسائل السابقة.';
+
+  @override
+  String get coachGotIt => 'فهمت';
+
+  @override
+  String get coachConsent => 'مشاركة هدف السعرات وإجمالي اليوم مع المدرب';
+
+  @override
+  String get coachWelcome => 'أهلاً! كيف أقدر أساعدك اليوم؟';
+
+  @override
+  String get coachTraining => 'أفكار للتمرين';
+
+  @override
+  String get coachProteinRecipe => 'وصفة غنية بالبروتين';
+
+  @override
+  String get coachCaloriesLeft => 'كم سعرة متبقية؟';
+
+  @override
+  String get coachSnacks => 'أفكار لوجبات خفيفة';
+
+  @override
+  String get coachResponding => 'المدرب يرد…';
+
+  @override
+  String coachRequestsLeft(String count) {
+    return 'المتبقي اليوم: $count';
+  }
+
+  @override
+  String get coachInputHint => 'اكتب للمدرب';
+
+  @override
+  String get coachSend => 'إرسال';
+
+  @override
+  String coachCounter(String count) {
+    return '$count/2000';
+  }
+
+  @override
+  String get coachPreferenceError =>
+      'تعذر حفظ أو تحميل الموافقة. حاول مرة أخرى.';
+
+  @override
+  String get coachSignInError => 'سجّل الدخول بحساب لاستخدام المدرب.';
+
+  @override
+  String get coachBirthDateError =>
+      'أضف تاريخ ميلادك في الملف الشخصي لاستخدام المدرب.';
+
+  @override
+  String get coachAgeError => 'المدرب الذكي للمستخدمين بعمر 18 سنة فأكثر.';
+
+  @override
+  String get coachQuotaError => 'تم الوصول إلى الحد اليومي.';
+
+  @override
+  String coachQuotaResetError(String date) {
+    return 'تم الوصول إلى الحد اليومي. موعد التجديد: $date';
+  }
+
+  @override
+  String get coachUnavailable => 'المدرب غير متاح حالياً.';
+
+  @override
+  String get coachLocalHelp =>
+      'مساعدة محلية (ليست ذكاءً اصطناعياً): راجع السعرات والخطة الأسبوعية وسلسلة التقدم في التطبيق.';
+
+  @override
+  String coachUnavailableHelp(String error, String help) {
+    return '$error\n\n$help';
+  }
+
+  @override
+  String get coachTryAgain => 'حاول مرة أخرى';
+
+  @override
   String get recipeSignIn => 'سجل الدخول لحفظ المفضلة.';
 
   @override
