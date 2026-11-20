@@ -250,12 +250,14 @@ test('server errors log only the fixed error code', async () => {
   }
 });
 
-test('provider failures log only status, safe reason or error name', async () => {
+test('provider failures log only status, safe reason or error name', async (t) => {
     const originalFetch = globalThis.fetch;
     const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
     const originalError = console.error;
     const logs: unknown[][] = [];
     let providerResult: Response | Error = new Response();
+    let quotaCalls = 0;
+    let providerCalls = 0;
     const env: Record<string, string> = {
       SUPABASE_URL: 'https://example.invalid',
       SUPABASE_SERVICE_ROLE_KEY: 'test-only',
@@ -265,6 +267,72 @@ test('provider failures log only status, safe reason or error name', async () =>
     Object.defineProperty(globalThis, 'Deno', {
       configurable: true, value: { env: { get: (name: string) => env[name] } },
     });
+
+    const retryTest = async () => {
+      const originalFetch = globalThis.fetch;
+      const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
+      const originalError = console.error;
+      const logs: unknown[][] = [];
+      let quotaCalls = 0;
+      let providerCalls = 0;
+      let statuses: number[] = [];
+      const env: Record<string, string> = {
+        SUPABASE_URL: 'https://example.invalid',
+        SUPABASE_SERVICE_ROLE_KEY: 'test-only',
+        GEMINI_API_KEY: 'test-key-123456789012345',
+        COACH_MODEL: 'test-model',
+      };
+      Object.defineProperty(globalThis, 'Deno', {
+        configurable: true, value: { env: { get: (name: string) => env[name] } },
+      });
+      console.error = (...args: unknown[]) => { logs.push(args); };
+      globalThis.fetch = async (input) => {
+        const url = String(input);
+        if (url.endsWith('/auth/v1/user')) {
+          return Response.json({ id: '00000000-0000-4000-8000-00000000c101', is_anonymous: false });
+        }
+        if (url.includes('/rest/v1/profiles?')) return Response.json([{ birth_date: '1990-01-01' }]);
+        if (url.endsWith('/rest/v1/rpc/coach_consume_quota')) {
+          quotaCalls++;
+          return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
+        }
+        const status = statuses[providerCalls++];
+        if (status === 200) return Response.json({ candidates: [{ content: { parts: [{ text: 'Hello' }] } }] });
+        return Response.json({ error: { status: 'UNAVAILABLE' } }, { status });
+      };
+      const invoke = () => handler(new Request('https://example.invalid', {
+        method: 'POST',
+        headers: { authorization: 'Bearer test-token' },
+        body: JSON.stringify({ message: 'Hello' }),
+      }));
+      try {
+        for (const [sequence, expectedStatus, expectedCalls] of [
+          [[503, 200], 200, 2], [[503, 503], 502, 2], [[404], 502, 1], [[400], 502, 1],
+        ] as [number[], number, number][]) {
+          statuses = sequence;
+          quotaCalls = 0;
+          providerCalls = 0;
+          logs.length = 0;
+          const response = await invoke();
+          assert.equal(response.status, expectedStatus);
+          assert.equal(quotaCalls, 1);
+          assert.equal(providerCalls, expectedCalls);
+          const body = await response.json();
+          if (expectedStatus === 200) {
+            assert.equal(body.reply, 'Hello');
+            assert.deepEqual(logs, []);
+          } else {
+            assert.equal(body.error, 'provider_unavailable');
+            assert.deepEqual(logs, [[`coach_error provider_unavailable status=${sequence.at(-1)} reason=UNAVAILABLE attempts=${expectedCalls}`]]);
+          }
+        }
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.error = originalError;
+        if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
+        else Reflect.deleteProperty(globalThis, 'Deno');
+      }
+    };
     console.error = (...args: unknown[]) => { logs.push(args); };
     globalThis.fetch = async (input) => {
       const url = String(input);
@@ -273,10 +341,12 @@ test('provider failures log only status, safe reason or error name', async () =>
       }
       if (url.includes('/rest/v1/profiles?')) return Response.json([{ birth_date: '1990-01-01' }]);
       if (url.endsWith('/rest/v1/rpc/coach_consume_quota')) {
+        quotaCalls++;
         return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
       }
+      providerCalls++;
       if (providerResult instanceof Error) throw providerResult;
-      return providerResult;
+      return providerResult.clone();
     };
     const invoke = () => handler(new Request('https://example.invalid', {
       method: 'POST',
@@ -286,33 +356,36 @@ test('provider failures log only status, safe reason or error name', async () =>
     try {
       providerResult = Response.json({ error: { status: 'RESOURCE_EXHAUSTED', message: 'private provider detail' } }, { status: 429 });
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable status=429 reason=RESOURCE_EXHAUSTED']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=429 reason=RESOURCE_EXHAUSTED attempts=2']]);
+      assert.equal(providerCalls, 2);
+      assert.equal(quotaCalls, 1);
       logs.length = 0;
       providerResult = Response.json({ error: { status: 'BAD status private' } }, { status: 400 });
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable status=400']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=400 attempts=1']]);
       logs.length = 0;
       providerResult = new Response('private response body', { status: 503 });
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['coach_error provider_unavailable status=503']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable status=503 attempts=2']]);
       logs.length = 0;
       providerResult = new TypeError('private exception message');
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['TypeError']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=TypeError attempts=2']]);
       logs.length = 0;
       providerResult = new Error('private exception message');
       providerResult.name = 'TimeoutError';
       assert.equal((await invoke()).status, 504);
-      assert.deepEqual(logs, [['TimeoutError']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=TimeoutError attempts=2']]);
       logs.length = 0;
       providerResult = new Error('private exception message');
       providerResult.name = 'private sensitive data';
       assert.equal((await invoke()).status, 502);
-      assert.deepEqual(logs, [['UnknownError']]);
+      assert.deepEqual(logs, [['coach_error provider_unavailable error=UnknownError attempts=2']]);
     } finally {
       globalThis.fetch = originalFetch;
       console.error = originalError;
       if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
       else Reflect.deleteProperty(globalThis, 'Deno');
     }
+    await t.test('retry succeeds or reports final status without consuming quota twice', retryTest);
 });

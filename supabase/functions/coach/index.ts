@@ -237,24 +237,40 @@ export async function handler(request: Request): Promise<Response> {
     const denial = quotaDenial(quota);
     if (denial) return json(429, denial);
 
-    let provider: Response;
-    try {
-      provider = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
-        signal: AbortSignal.timeout(20000),
-      });
-    } catch (error) {
-      const name = error instanceof Error ? error.name : '';
-      const safeName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
-        ? name : 'UnknownError';
-      console.error(safeName);
-      if (name === 'TimeoutError' || name === 'AbortError') {
-        return json(504, { error: 'provider_timeout' }, false);
+    let provider: Response | undefined;
+    let attempts = 0;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      attempts = attempt;
+      try {
+        provider = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
+          signal: AbortSignal.timeout(attempt === 1 ? 15000 : 10000),
+        });
+      } catch (error) {
+        if (attempt === 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+        const name = error instanceof Error ? error.name : '';
+        const safeName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
+          ? name : 'UnknownError';
+        console.error(`coach_error provider_unavailable error=${safeName} attempts=${attempt}`);
+        if (name === 'TimeoutError' || name === 'AbortError') {
+          return json(504, { error: 'provider_timeout' }, false);
+        }
+        return json(502, { error: 'provider_unavailable' }, false);
       }
-      return json(502, { error: 'provider_unavailable' }, false);
+      if (provider.ok || attempt === 2 || ![429, 500, 502, 503, 504].includes(provider.status)) {
+        break;
+      }
+      if (provider.body) {
+        void provider.body.cancel().catch(() => {});
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
+    if (!provider) return json(502, { error: 'provider_unavailable' });
     if (!provider.ok) {
       let reason = '';
       try {
@@ -266,7 +282,7 @@ export async function handler(request: Request): Promise<Response> {
       } catch {
         // A missing or invalid JSON body has no safe reason to report.
       }
-      console.error(`coach_error provider_unavailable status=${provider.status}${reason}`);
+      console.error(`coach_error provider_unavailable status=${provider.status}${reason} attempts=${attempts}`);
       return json(502, { error: 'provider_unavailable' }, false);
     }
     try {
