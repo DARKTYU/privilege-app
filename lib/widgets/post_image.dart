@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n_strings.dart';
+
 class PostImage extends StatelessWidget {
   const PostImage({super.key, required this.image, this.maxHeight = 400, this.onRetry});
 
@@ -15,7 +17,7 @@ class PostImage extends StatelessWidget {
             builder: (_) => _FullScreenImage(image: image),
           )),
           child: Semantics(
-            label: 'Open post image',
+            label: strings(context).postImageOpen,
             button: true,
             child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: maxHeight),
@@ -25,8 +27,8 @@ class PostImage extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Center(
                   child: onRetry == null
-                      ? const Text('Post image is unavailable.')
-                      : TextButton(onPressed: onRetry, child: const Text('Post image is unavailable. Retry')),
+                      ? Text(strings(context).postImageUnavailable)
+                      : TextButton(onPressed: onRetry, child: Text(strings(context).postImageRetry)),
                 ),
               ),
             ),
@@ -45,7 +47,7 @@ class _FullScreenImage extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.black,
           foregroundColor: Colors.white,
-          title: const Text('Post image'),
+          title: Text(strings(context).postImageTitle),
         ),
         body: Center(
           child: InteractiveViewer(
@@ -55,9 +57,9 @@ class _FullScreenImage extends StatelessWidget {
               child: Image(
                 image: image,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Text(
-                  'Post image is unavailable.',
-                  style: TextStyle(color: Colors.white),
+                errorBuilder: (_, __, ___) => Text(
+                  strings(context).postImageUnavailable,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),

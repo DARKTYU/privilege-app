@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
 import '../services/groups_repository.dart';
 import '../services/community_repository.dart';
 import '../services/storage_image.dart';
@@ -127,7 +129,65 @@ class _GroupAvatarState extends State<GroupAvatar> {
   }
 }
 
-String _memberCount(int count) => '$count ${count == 1 ? 'member' : 'members'}';
+String _groupCategory(BuildContext context, String value) {
+  final l = strings(context);
+  return switch (value) {
+    'Weight loss' => l.groupsWeightLoss,
+    'Muscle building' => l.groupsMuscleBuilding,
+    'Running & cardio' => l.groupsRunning,
+    'Yoga & mobility' => l.groupsYoga,
+    'Nutrition' => l.groupsNutrition,
+    'Beginners' => l.groupsBeginners,
+    'General fitness' => l.groupsFitness,
+    'Other' => l.groupsOther,
+    'All' => l.groupsAll,
+    _ => value,
+  };
+}
+
+String _groupVisibility(BuildContext context, String value) {
+  final l = strings(context);
+  return switch (value) {
+    'public' => l.groupsPublic,
+    'private' => l.groupsPrivate,
+    _ => value,
+  };
+}
+
+String _localizedGroupError(BuildContext context, Object error) {
+  final l = strings(context);
+  final message = groupError(error);
+  return switch (message) {
+    'Please sign in again.' => l.communityErrorSignIn,
+    'Could not connect. Check your internet connection.' =>
+      l.communityErrorConnection,
+    'The request timed out. Please try again.' => l.communityErrorTimeout,
+    'Choose a JPG, PNG or WebP photo.' => l.groupsPhotoTypeError,
+    'Could not read the photo. Please choose it again.' =>
+      l.groupsPhotoReadError,
+    'The photo is empty. Choose another photo.' => l.groupsPhotoEmptyError,
+    'The photo does not match its file type. Choose a valid JPG, PNG or WebP image.' =>
+      l.groupsPhotoMismatchError,
+    'The photo is too large. Choose one under 2 MB.' => l.groupsPhotoSizeError,
+    'Could not read the photo. Choose a valid JPG, PNG or WebP image.' =>
+      l.groupsPhotoInvalidError,
+    'Choose a JPG, PNG or WebP image smaller than 8 MB.' =>
+      l.groupImageTypeSizeError,
+    'Could not read the image. Please choose it again.' =>
+      l.groupImageReadError,
+    'Could not upload the image. Please try again.' => l.groupImageUploadError,
+    'You are banned from this group. Only the group owner or a moderator can unban you.' =>
+      l.groupsBannedError,
+    'This group is full.' => l.groupsFullError,
+    'Only moderators can post in this group.' => l.groupsModeratorsOnlyError,
+    'Posting limit reached. Please try again later.' =>
+      l.groupsPostingLimitError,
+    'You can create up to 3 groups.' => l.groupsCreationLimitError,
+    'This group is unavailable or requires an invitation.' =>
+      l.groupsUnavailableError,
+    _ => friendlyError(error, localizations: l),
+  };
+}
 
 class GroupsTab extends StatefulWidget {
   const GroupsTab({super.key, this.repository});
@@ -213,13 +273,13 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
               children: [
                 Row(children: [
                   Expanded(
-                      child: _tab('Discover', !mine,
+                      child: _tab(strings(context).groupsDiscover, !mine,
                           () => setState(() => mine = false))),
                   Expanded(
-                      child: _tab('My groups', mine,
+                      child: _tab(strings(context).groupsMine, mine,
                           () => setState(() => mine = true))),
                   IconButton(
-                      tooltip: 'Create group',
+                      tooltip: strings(context).groupsCreate,
                       onPressed: () async {
                         final message = await Navigator.push<String>(
                             context,
@@ -237,23 +297,26 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                       icon: const Icon(Icons.add_circle_outline)),
                 ]),
                 TextField(
-                    decoration: const InputDecoration(
-                        labelText: 'Search groups',
-                        prefixIcon: Icon(Icons.search)),
+                    decoration: InputDecoration(
+                        labelText: strings(context).groupsSearch,
+                        prefixIcon: const Icon(Icons.search)),
                     onChanged: (value) => setState(() => query = value)),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: category,
-                    decoration: const InputDecoration(labelText: 'Category'),
+                    decoration: InputDecoration(
+                        labelText: strings(context).groupsCategory),
                     items: ['All', ...groupCategories]
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                        .map((c) => DropdownMenuItem(
+                            value: c, child: Text(_groupCategory(context, c))))
                         .toList(),
                     onChanged: (value) =>
                         setState(() => category = value ?? 'All')),
                 if (mine && inviteIds.isNotEmpty) ...[
-                  const Padding(
-                      padding: EdgeInsets.only(top: 16),
-                      child: Text('Invitations')),
+                  Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Text(strings(context).groupsInvitations)),
                   for (final id in inviteIds)
                     Card(
                         child: ListTile(
@@ -268,9 +331,9 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                                   .avatarPath,
                               repository: repo),
                       title: Text(groups.where((g) => g.id == id).isEmpty
-                          ? 'Group invitation'
+                          ? strings(context).groupsInvitation
                           : groups.firstWhere((g) => g.id == id).name),
-                      subtitle: const Text('Open to accept'),
+                      subtitle: Text(strings(context).groupsOpenToAccept),
                       onTap: () async {
                         await Navigator.push(
                             context,
@@ -284,9 +347,9 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                     )),
                 ],
                 if (filtered.isEmpty && (!mine || inviteIds.isEmpty))
-                  const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: Text('No groups found.')))
+                  Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Center(child: Text(strings(context).groupsNone)))
                 else
                   for (final group in filtered)
                     Card(
@@ -298,8 +361,14 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
                           path: group.avatarPath,
                           repository: repo),
                       title: Text(group.name),
-                      subtitle: Text('${group.category} · ${group.visibility}'
-                          '${pendingIds.contains(group.id) ? ' · Request pending' : ''}'),
+                      subtitle: Text(pendingIds.contains(group.id)
+                          ? strings(context).groupsPendingSummary(
+                              strings(context).groupsSummary(
+                                  _groupCategory(context, group.category),
+                                  _groupVisibility(context, group.visibility)))
+                          : strings(context).groupsSummary(
+                              _groupCategory(context, group.category),
+                              _groupVisibility(context, group.visibility))),
                       onTap: () async {
                         await Navigator.push(
                             context,
@@ -341,18 +410,18 @@ class _GroupsTabState extends State<GroupsTab> with WidgetsBindingObserver {
   }
 }
 
-String _profileName(Map<String, dynamic>? profile) {
+String _profileName(BuildContext context, Map<String, dynamic>? profile) {
   final name = (profile?['full_name'] as String?)?.trim();
   final username = (profile?['username'] as String?)?.trim();
   return name?.isNotEmpty == true
       ? name!
       : username?.isNotEmpty == true
           ? username!
-          : 'Member';
+          : strings(context).groupsMember;
 }
 
-Widget _personAvatar(Map<String, dynamic>? profile) {
-  final name = _profileName(profile);
+Widget _personAvatar(BuildContext context, Map<String, dynamic>? profile) {
+  final name = _profileName(context, profile);
   final url = profile?['avatar_url'] as String?;
   final image = storageImage(url);
   return CircleAvatar(
@@ -369,11 +438,14 @@ String _profileUsername(Map<String, dynamic>? profile) {
   return username == null || username.isEmpty ? '' : '@$username';
 }
 
-Widget _error(Object error, VoidCallback retry) => Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Text(groupError(error), textAlign: TextAlign.center),
-      TextButton(onPressed: retry, child: const Text('Try again')),
-    ]));
+Widget _error(Object error, VoidCallback retry) => Builder(
+    builder: (context) => Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(_localizedGroupError(context, error),
+              textAlign: TextAlign.center),
+          TextButton(
+              onPressed: retry, child: Text(strings(context).groupsRetry)),
+        ])));
 
 class GroupSettingsPage extends StatefulWidget {
   const GroupSettingsPage(
@@ -400,7 +472,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   late bool chat = widget.group?.chat ?? false;
   bool busy = false;
   bool choosingPhoto = false;
-  String? error;
+  String Function(BuildContext)? error;
   GroupAvatarImage? photo;
   bool removePhoto = false;
 
@@ -426,9 +498,11 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
       debugPrint('Could not choose group photo: $e\n$stack');
       if (mounted) {
         final message = e is GroupException
-            ? e.message
-            : 'Could not choose the photo. Please try again.';
-        setState(() => error = message);
+            ? _localizedGroupError(context, e)
+            : strings(context).groupsPhotoChooseError;
+        setState(() => error = e is GroupException
+            ? (context) => _localizedGroupError(context, e)
+            : (context) => strings(context).groupsPhotoChooseError);
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(message)));
       }
@@ -453,8 +527,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
         size == null ||
         size < 1 ||
         size > 10000) {
-      setState(() => error =
-          'Enter a name of at least 3 characters, a category, and a member limit from 1 to 10000.');
+      setState(() => error = (context) => strings(context).groupsValidation);
       return;
     }
     setState(() {
@@ -488,8 +561,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
         } catch (e, stack) {
           debugPrint('Group created but photo upload failed: $e\n$stack');
           if (mounted) {
-            Navigator.pop(context,
-                'Group created, but the photo could not be uploaded. You can add it from group settings.');
+            Navigator.pop(context, strings(context).groupsPhotoCreatedError);
           }
           return;
         }
@@ -501,14 +573,16 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
           debugPrint('Group photo update failed: $e\n$stack');
           if (mounted) {
             setState(() =>
-                error = 'Could not save the group photo. Please try again.');
+                error = (context) => strings(context).groupsPhotoSaveError);
           }
           return;
         }
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) setState(() => error = groupError(e));
+      if (mounted) {
+        setState(() => error = (context) => _localizedGroupError(context, e));
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -517,6 +591,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   Widget dropdown(String label, String value, Map<String, String> options,
           ValueChanged<String> change) =>
       DropdownButtonFormField<String>(
+          isExpanded: true,
           initialValue: value,
           decoration: InputDecoration(labelText: label),
           items: options.entries
@@ -531,8 +606,9 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-            title:
-                Text(widget.group == null ? 'Create group' : 'Group settings')),
+            title: Text(widget.group == null
+                ? strings(context).groupsCreate
+                : strings(context).groupsSettings)),
         body: ListView(padding: const EdgeInsets.all(16), children: [
           if (widget.group == null ||
               widget.group!.ownerId == widget.repository.userId) ...[
@@ -547,7 +623,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
             Row(children: [
               TextButton(
                   onPressed: busy || choosingPhoto ? null : choosePhoto,
-                  child: const Text('Choose photo')),
+                  child: Text(strings(context).groupsChoosePhoto)),
               if (photo != null ||
                   (!removePhoto && widget.group?.avatarPath != null))
                 TextButton(
@@ -557,83 +633,95 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
                               photo = null;
                               removePhoto = true;
                             }),
-                    child: const Text('Remove photo')),
+                    child: Text(strings(context).groupsRemovePhoto)),
             ]),
           ],
           TextField(
               controller: name,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration:
+                  InputDecoration(labelText: strings(context).groupsName),
               maxLength: 80,
               buildCounter: _counter),
           TextField(
               controller: description,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: InputDecoration(
+                  labelText: strings(context).groupsDescription),
               maxLength: 2000,
               buildCounter: _counter),
           dropdown(
-              'Category',
+              strings(context).groupsCategory,
               category,
               {
-                for (final value in groupCategories) value: value,
+                for (final value in groupCategories)
+                  value: _groupCategory(context, value),
                 if (!groupCategories.contains(category)) category: category,
               },
               (v) => category = v),
           const SizedBox(height: 12),
           dropdown(
-              'Visibility',
+              strings(context).groupsVisibility,
               visibility,
-              {'public': 'Public', 'private': 'Private'},
+              {
+                'public': strings(context).groupsPublic,
+                'private': strings(context).groupsPrivate
+              },
               (v) => visibility = v),
           const SizedBox(height: 12),
           dropdown(
-              'Join mode',
+              strings(context).groupsJoinMode,
               joinMode,
               {
-                'open': 'Open',
-                'approval': 'Approval needed',
-                'invite_only': 'Invite only'
+                'open': strings(context).groupsOpen,
+                'approval': strings(context).groupsApproval,
+                'invite_only': strings(context).groupsInviteOnly
               },
               (v) => joinMode = v),
           if (visibility == 'private')
-            const Text('Private groups require an invitation.'),
+            Text(strings(context).groupsPrivateInvitation),
           const SizedBox(height: 12),
           TextField(
               controller: limit,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Member limit')),
+              decoration: InputDecoration(
+                  labelText: strings(context).groupsMemberLimit)),
           const SizedBox(height: 12),
           dropdown(
-              'Who can post',
+              strings(context).groupsWhoCanPost,
               posting,
-              {'everyone': 'Everyone', 'moderators': 'Moderators'},
+              {
+                'everyone': strings(context).groupsEveryone,
+                'moderators': strings(context).groupsModerators
+              },
               (v) => posting = v),
           SwitchListTile(
-              title: const Text('Images allowed'),
+              title: Text(strings(context).groupsImagesAllowed),
               value: images,
               onChanged: busy ? null : (v) => setState(() => images = v)),
           SwitchListTile(
-              title: const Text('Chat (coming in phase 2)'),
-              subtitle: const Text(
-                  'This setting is saved, but chat is not available yet.'),
+              title: Text(strings(context).groupsChatPhase2),
+              subtitle: Text(strings(context).groupsChatUnavailable),
               value: chat,
               onChanged: busy ? null : (v) => setState(() => chat = v)),
           TextField(
               controller: rules,
               maxLines: 3,
               maxLength: 5000,
-              decoration: const InputDecoration(labelText: 'Rules'),
+              decoration:
+                  InputDecoration(labelText: strings(context).groupsRules),
               buildCounter: _counter),
           if (error != null)
             Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text(error!,
+                child: Text(error!(context),
                     style:
                         TextStyle(color: Theme.of(context).colorScheme.error))),
           const SizedBox(height: 12),
           ElevatedButton(
               onPressed: busy || choosingPhoto ? null : save,
-              child: Text(busy ? 'Saving...' : 'Save')),
+              child: Text(busy
+                  ? strings(context).groupsSaving
+                  : strings(context).groupsSave)),
         ]),
       );
 
@@ -642,8 +730,9 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
           required bool isFocused,
           required int? maxLength}) =>
       Align(
-        alignment: Alignment.centerRight,
-        child: Text('$currentLength / $maxLength',
+        alignment: AlignmentDirectional.centerEnd,
+        child: Text(
+            strings(context).groupsCounter('$currentLength', '$maxLength'),
             style: Theme.of(context).textTheme.bodySmall),
       );
 }
@@ -718,8 +807,8 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
       return true;
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(groupError(e))));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizedGroupError(context, e))));
       }
 
       return false;
@@ -737,7 +826,8 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
   }
 
   Future<void> report({String? post, String? user}) async {
-    final reason = await _prompt(context, 'Report', 'Reason');
+    final reason = await _prompt(
+        context, strings(context).groupReport, strings(context).groupReason);
     if (!mounted || reason == null) return;
     final success = await action(() => widget.repository.rpc('group_report', {
           'p_group': widget.groupId,
@@ -746,8 +836,8 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
           'p_user': user,
         }));
     if (mounted && success) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Report submitted.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(strings(context).communityReportSubmitted)));
     }
   }
 
@@ -756,17 +846,21 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(operation == 'ban' ? 'Ban member?' : 'Remove member?'),
+          title: Text(operation == 'ban'
+              ? strings(context).groupBanQuestion
+              : strings(context).groupRemoveQuestion),
           content: Text(operation == 'ban'
-              ? 'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.'
-              : 'This removes the member and hides their posts and comments in this group. They can join again.'),
+              ? strings(context).groupBanDetails
+              : strings(context).groupRemoveDetails),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel')),
+                child: Text(strings(context).groupCancel)),
             TextButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(operation == 'ban' ? 'Ban' : 'Remove')),
+                child: Text(operation == 'ban'
+                    ? strings(context).groupBan
+                    : strings(context).groupRemove)),
           ],
         ),
       );
@@ -781,7 +875,7 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Group')),
+        appBar: AppBar(title: Text(strings(context).groupTitle)),
         body: FutureBuilder(
           future: future,
           builder: (context, snapshot) {
@@ -800,14 +894,14 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
                     const SizedBox(height: 100),
-                    const Center(
-                        child: Text(
-                            'This group is unavailable. Private groups require an invitation.')),
+                    Center(
+                        child:
+                            Text(strings(context).groupUnavailableInvitation)),
                     if (invited)
                       TextButton(
                           onPressed:
                               busy ? null : () => changeMembership(false),
-                          child: const Text('Accept invitation')),
+                          child: Text(strings(context).groupAcceptInvitation)),
                   ],
                 ),
               );
@@ -850,7 +944,9 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                               children: [
                             Text(group.name,
                                 style: Theme.of(context).textTheme.titleLarge),
-                            Text('${group.category} · ${_memberCount(count)}'),
+                            Text(strings(context).groupHeaderDetails(
+                                _groupCategory(context, group.category),
+                                strings(context).groupsMemberCount(count))),
                           ])),
                       PopupMenuButton<String>(
                           onSelected: (v) async {
@@ -894,29 +990,34 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                           },
                           itemBuilder: (_) => [
                                 if (role == 'owner')
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                       value: 'settings',
-                                      child: Text('Settings')),
+                                      child: Text(
+                                          strings(context).groupMenuSettings)),
                                 if (moderator)
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                       value: 'invite',
-                                      child: Text('Invite people')),
+                                      child: Text(
+                                          strings(context).groupInvitePeople)),
                                 if (moderator)
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                       value: 'banned',
-                                      child: Text('Banned members')),
+                                      child: Text(
+                                          strings(context).groupBannedMembers)),
                                 if (role != 'owner')
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                       value: 'report',
-                                      child: Text('Report group')),
+                                      child: Text(
+                                          strings(context).groupReportGroup)),
                               ]),
                     ]),
                     const SizedBox(height: 8),
                     Text(group.description),
-                    if (group.rules.isNotEmpty) Text('Rules: ${group.rules}'),
+                    if (group.rules.isNotEmpty)
+                      Text(strings(context).groupRulesValue(group.rules)),
                     if (role != 'owner')
                       Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: TextButton(
                             onPressed: busy ||
                                     (!active &&
@@ -927,28 +1028,29 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                                 : () => changeMembership(
                                     active || status == 'pending'),
                             child: Text(active
-                                ? 'Leave group'
+                                ? strings(context).groupLeave
                                 : status == 'pending'
-                                    ? 'Cancel request'
+                                    ? strings(context).groupCancelRequest
                                     : invited
-                                        ? 'Accept invitation'
+                                        ? strings(context).groupAcceptInvitation
                                         : group.joinMode == 'approval'
-                                            ? 'Request to join'
+                                            ? strings(context).groupRequestJoin
                                             : group.joinMode == 'invite_only'
-                                                ? 'Invitation required'
-                                                : 'Join'),
+                                                ? strings(context)
+                                                    .groupInvitationRequired
+                                                : strings(context).groupJoin),
                           )),
                     if (!active)
                       Padding(
                           padding: const EdgeInsets.all(16),
                           child: Text(status == 'pending'
-                              ? 'Request pending'
-                              : 'Join to see posts and members.'))
+                              ? strings(context).communityRequestPending
+                              : strings(context).groupJoinToSee))
                     else ...[
                       const Divider(),
                       Row(children: [
                         Expanded(
-                            child: Text('Posts',
+                            child: Text(strings(context).groupPosts,
                                 style:
                                     Theme.of(context).textTheme.titleMedium)),
                         if (canPost)
@@ -964,10 +1066,10 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                                                 group.id, post.$1, post.$2));
                                       }
                                     },
-                              child: const Text('Create post')),
+                              child: Text(strings(context).groupCreatePost)),
                       ]),
-                      if (!canPost) const Text('Only moderators can post.'),
-                      if (posts.isEmpty) const Text('No posts yet.'),
+                      if (!canPost) Text(strings(context).groupModeratorsPost),
+                      if (posts.isEmpty) Text(strings(context).groupNoPosts),
                       for (final post in posts)
                         _GroupPost(
                             key: ValueKey(post['id']),
@@ -977,10 +1079,10 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                             onRefresh: reload,
                             onReport: () => report(post: post['id'] as String)),
                       const Divider(),
-                      Text('Members',
+                      Text(strings(context).groupMembers,
                           style: Theme.of(context).textTheme.titleMedium),
                       if (visibleMembers.isEmpty)
-                        const Text('No members found.'),
+                        Text(strings(context).groupNoMembers),
                       for (final member in visibleMembers
                           .where((m) => m['status'] == 'active'))
                         _MemberTile(
@@ -1002,7 +1104,7 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                       if (moderator &&
                           visibleMembers
                               .any((m) => m['status'] == 'pending')) ...[
-                        Text('Join requests',
+                        Text(strings(context).groupJoinRequests,
                             style: Theme.of(context).textTheme.titleMedium),
                         for (final member in visibleMembers
                             .where((m) => m['status'] == 'pending'))
@@ -1055,16 +1157,15 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unban member?'),
-        content: const Text(
-            'They can join again. Previously hidden posts and comments will remain hidden.'),
+        title: Text(strings(context).groupUnbanQuestion),
+        content: Text(strings(context).groupUnbanDetails),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel')),
+              child: Text(strings(context).groupCancel)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Unban')),
+              child: Text(strings(context).groupUnban)),
         ],
       ),
     );
@@ -1079,8 +1180,8 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
       if (mounted) reload();
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(groupError(error))));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizedGroupError(context, error))));
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -1089,7 +1190,7 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Banned members')),
+        appBar: AppBar(title: Text(strings(context).groupBannedMembers)),
         body: FutureBuilder(
           future: future,
           builder: (context, snapshot) {
@@ -1099,34 +1200,41 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
             if (snapshot.hasError) return _error(snapshot.error!, reload);
             final members = snapshot.requireData;
             if (members.isEmpty) {
-              return const Center(child: Text('No banned members.'));
+              return Center(child: Text(strings(context).groupNoBanned));
             }
             return ListView(children: [
               for (final member in members)
                 ListTile(
-                  leading: _personAvatar(member),
-                  title: Text(_profileName(member)),
+                  leading: _personAvatar(context, member),
+                  title: Text(_profileName(context, member)),
                   subtitle: Text([
                     if (_profileUsername(member).isNotEmpty)
                       _profileUsername(member),
                     if (member['banned_at'] != null &&
                         DateTime.tryParse(member['banned_at'] as String) !=
                             null)
-                      'Banned ${MaterialLocalizations.of(context).formatFullDate(DateTime.parse(member['banned_at'] as String).toLocal())}',
+                      strings(context).groupBannedDate((DateFormat.yMMMMEEEEd(
+                              Localizations.localeOf(context).languageCode)
+                            ..useNativeDigits = false)
+                          .format(DateTime.parse(member['banned_at'] as String)
+                              .toLocal())),
                     if ((member['banned_by_full_name'] as String?)
                             ?.trim()
                             .isNotEmpty ==
                         true)
-                      'By ${(member['banned_by_full_name'] as String).trim()}'
+                      strings(context).groupBannedBy(
+                          (member['banned_by_full_name'] as String).trim())
                     else if ((member['banned_by_username'] as String?)
                             ?.trim()
                             .isNotEmpty ==
                         true)
-                      'By @${(member['banned_by_username'] as String).trim()}',
+                      strings(context).groupBannedBy(strings(context)
+                          .communityUsername(
+                              (member['banned_by_username'] as String).trim())),
                   ].join(' · ')),
                   trailing: TextButton(
                       onPressed: busy ? null : () => unban(member),
-                      child: const Text('Unban')),
+                      child: Text(strings(context).groupUnban)),
                 ),
             ]);
           },
@@ -1158,7 +1266,7 @@ class _InvitePageState extends State<_InvitePage> {
       });
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Invite people')),
+        appBar: AppBar(title: Text(strings(context).groupInvitePeople)),
         body: Column(children: [
           ListTile(
             leading: GroupAvatar(
@@ -1175,17 +1283,17 @@ class _InvitePageState extends State<_InvitePage> {
                 Expanded(
                     child: TextField(
                         controller: search,
-                        decoration:
-                            const InputDecoration(labelText: 'Search users'),
+                        decoration: InputDecoration(
+                            labelText: strings(context).groupSearchUsers),
                         onSubmitted: (_) => find())),
                 IconButton(
                     onPressed: find,
-                    tooltip: 'Search',
+                    tooltip: strings(context).groupSearch,
                     icon: const Icon(Icons.search)),
               ])),
           Expanded(
               child: future == null
-                  ? const Center(child: Text('Search for someone to invite.'))
+                  ? Center(child: Text(strings(context).groupSearchInvite))
                   : FutureBuilder(
                       future: future,
                       builder: (context, snapshot) {
@@ -1197,12 +1305,13 @@ class _InvitePageState extends State<_InvitePage> {
                               child: CircularProgressIndicator());
                         }
                         if (snapshot.data!.isEmpty) {
-                          return const Center(child: Text('No people found.'));
+                          return Center(
+                              child: Text(strings(context).groupNoPeople));
                         }
                         return ListView(children: [
                           for (final person in snapshot.data!)
                             ListTile(
-                              leading: _personAvatar({
+                              leading: _personAvatar(context, {
                                 'full_name': person.fullName,
                                 'username': person.username,
                                 'avatar_url': person.avatarUrl,
@@ -1210,7 +1319,8 @@ class _InvitePageState extends State<_InvitePage> {
                               title: Text(person.fullName?.isNotEmpty == true
                                   ? person.fullName!
                                   : person.username),
-                              subtitle: Text('@${person.username}'),
+                              subtitle: Text(strings(context)
+                                  .communityUsername(person.username)),
                               trailing: TextButton(
                                   onPressed: busy
                                       ? null
@@ -1224,16 +1334,18 @@ class _InvitePageState extends State<_InvitePage> {
                                             });
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context)
-                                                  .showSnackBar(const SnackBar(
-                                                      content: Text(
-                                                          'Invitation sent.')));
+                                                  .showSnackBar(SnackBar(
+                                                      content: Text(strings(
+                                                              context)
+                                                          .groupInvitationSent)));
                                             }
                                           } catch (e) {
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                      content:
-                                                          Text(groupError(e))));
+                                                      content: Text(
+                                                          _localizedGroupError(
+                                                              context, e))));
                                             }
                                           } finally {
                                             if (mounted) {
@@ -1241,7 +1353,7 @@ class _InvitePageState extends State<_InvitePage> {
                                             }
                                           }
                                         },
-                                  child: const Text('Invite')),
+                                  child: Text(strings(context).groupInvite)),
                             ),
                         ]);
                       })),
@@ -1264,14 +1376,14 @@ Future<String?> _prompt(
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel')),
+                  child: Text(strings(context).groupCancel)),
               TextButton(
                   onPressed: () {
                     if (value.trim().isNotEmpty) {
                       Navigator.pop(context, value.trim());
                     }
                   },
-                  child: const Text('Submit'))
+                  child: Text(strings(context).communitySubmit))
             ],
           ));
 }
@@ -1283,19 +1395,21 @@ Future<(String, XFile?)?> _composeGroupPost(BuildContext context, bool images) {
     context: context,
     builder: (context) => StatefulBuilder(
         builder: (context, update) => AlertDialog(
-              title: const Text('Create post'),
+              title: Text(strings(context).groupCreatePost),
               content: Column(mainAxisSize: MainAxisSize.min, children: [
                 TextField(
                     autofocus: true,
                     maxLines: 3,
                     maxLength: 5000,
-                    decoration:
-                        const InputDecoration(labelText: 'Write a post'),
+                    decoration: InputDecoration(
+                        labelText: strings(context).groupWritePost),
                     onChanged: (value) => body = value),
                 if (images)
                   TextButton.icon(
                       icon: const Icon(Icons.image_outlined),
-                      label: Text(image == null ? 'Add image' : image!.name),
+                      label: Text(image == null
+                          ? strings(context).groupAddImage
+                          : image!.name),
                       onPressed: () async {
                         try {
                           final selected = await ImagePicker()
@@ -1306,10 +1420,9 @@ Future<(String, XFile?)?> _composeGroupPost(BuildContext context, bool images) {
                         } catch (error) {
                           debugPrint('Could not choose group image: $error');
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Could not choose the image. Please try again.')));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: Text(
+                                    strings(context).groupImageChooseError)));
                           }
                         }
                       }),
@@ -1317,14 +1430,14 @@ Future<(String, XFile?)?> _composeGroupPost(BuildContext context, bool images) {
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel')),
+                    child: Text(strings(context).groupCancel)),
                 TextButton(
                     onPressed: () {
                       if (body.trim().isNotEmpty) {
                         Navigator.pop(context, (body.trim(), image));
                       }
                     },
-                    child: const Text('Share')),
+                    child: Text(strings(context).groupShare)),
               ],
             )),
   );
@@ -1350,11 +1463,13 @@ class _MemberTile extends StatelessWidget {
       builder: (context, snapshot) {
         final p = snapshot.data;
         return ListTile(
-          leading: _personAvatar(p),
+          leading: _personAvatar(context, p),
           title: Row(children: [
             Flexible(
                 child: Text(
-              snapshot.hasError ? 'Profile unavailable' : _profileName(p),
+              snapshot.hasError
+                  ? strings(context).groupProfileUnavailable
+                  : _profileName(context, p),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             )),
@@ -1369,7 +1484,10 @@ class _MemberTile extends StatelessWidget {
                       .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(member['role'] == 'owner' ? 'Owner' : 'Moderator',
+                child: Text(
+                    member['role'] == 'owner'
+                        ? strings(context).groupOwner
+                        : strings(context).groupModerator,
                     style: Theme.of(context).textTheme.labelSmall),
               ),
             ],
@@ -1397,8 +1515,10 @@ class _MemberTile extends StatelessWidget {
                   },
                   itemBuilder: (_) => [
                         if (allowModeration && member['status'] == 'pending')
-                          const PopupMenuItem(
-                              value: 'approve', child: Text('Approve request')),
+                          PopupMenuItem(
+                              value: 'approve',
+                              child:
+                                  Text(strings(context).groupApproveRequest)),
                         if (allowModeration &&
                             owner &&
                             member['status'] == 'active')
@@ -1407,16 +1527,20 @@ class _MemberTile extends StatelessWidget {
                                   ? 'demote'
                                   : 'promote',
                               child: Text(member['role'] == 'moderator'
-                                  ? 'Remove moderator role'
-                                  : 'Make moderator')),
+                                  ? strings(context).groupRemoveModerator
+                                  : strings(context).groupMakeModerator)),
                         if (allowModeration)
-                          const PopupMenuItem(
-                              value: 'remove', child: Text('Remove')),
+                          PopupMenuItem(
+                              value: 'remove',
+                              child: Text(strings(context).groupRemove)),
                         if (allowModeration)
-                          const PopupMenuItem(value: 'ban', child: Text('Ban')),
+                          PopupMenuItem(
+                              value: 'ban',
+                              child: Text(strings(context).groupBan)),
                         if (onReport != null)
-                          const PopupMenuItem(
-                              value: 'report', child: Text('Report member')),
+                          PopupMenuItem(
+                              value: 'report',
+                              child: Text(strings(context).groupReportMember)),
                       ])
               : null,
         );
@@ -1460,10 +1584,10 @@ class _GroupPostState extends State<_GroupPost> {
             future:
                 widget.repository.profile(widget.post['author_id'] as String),
             builder: (context, snapshot) => ListTile(
-                  leading: _personAvatar(snapshot.data),
+                  leading: _personAvatar(context, snapshot.data),
                   title: Text(snapshot.hasError
-                      ? 'Profile unavailable'
-                      : _profileName(snapshot.data)),
+                      ? strings(context).groupProfileUnavailable
+                      : _profileName(context, snapshot.data)),
                   subtitle: _profileUsername(snapshot.data).isEmpty
                       ? null
                       : Text(_profileUsername(snapshot.data)),
@@ -1479,8 +1603,9 @@ class _GroupPostState extends State<_GroupPost> {
                           widget.onRefresh();
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(groupError(e))));
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content:
+                                    Text(_localizedGroupError(context, e))));
                           }
                         }
                       },
@@ -1488,12 +1613,16 @@ class _GroupPostState extends State<_GroupPost> {
                             if (widget.moderator ||
                                 widget.post['author_id'] ==
                                     widget.repository.userId)
-                              const PopupMenuItem(
-                                  value: 'delete', child: Text('Delete post')),
+                              PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text(
+                                      strings(context).communityDeletePost)),
                             if (widget.post['author_id'] !=
                                 widget.repository.userId)
-                              const PopupMenuItem(
-                                  value: 'report', child: Text('Report post')),
+                              PopupMenuItem(
+                                  value: 'report',
+                                  child: Text(
+                                      strings(context).communityReportPost)),
                           ]),
                 )),
         Padding(
@@ -1507,12 +1636,12 @@ class _GroupPostState extends State<_GroupPost> {
                 if (snapshot.hasError) {
                   return TextButton(
                       onPressed: () => setState(() {}),
-                      child: const Text('Image unavailable. Retry'));
+                      child: Text(strings(context).groupImageRetry));
                 }
                 if (!snapshot.hasData) return const LinearProgressIndicator();
                 final image = storageImage(snapshot.data);
                 if (image == null) {
-                  return const Text('Image unavailable.');
+                  return Text(strings(context).groupImageUnavailable);
                 }
                 return PostImage(image: image, onRetry: () => setState(() {}));
               }),
@@ -1522,7 +1651,7 @@ class _GroupPostState extends State<_GroupPost> {
               if (snapshot.hasError) {
                 return TextButton(
                     onPressed: () => setState(load),
-                    child: const Text('Could not load likes. Retry'));
+                    child: Text(strings(context).groupLikesRetry));
               }
               if (!snapshot.hasData) return const LinearProgressIndicator();
               final liked = snapshot.data!
@@ -1543,14 +1672,19 @@ class _GroupPostState extends State<_GroupPost> {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(groupError(e))));
+                                    SnackBar(
+                                        content: Text(
+                                            _localizedGroupError(context, e))));
                               }
                             } finally {
                               if (mounted) setState(() => busy = false);
                             }
                           },
-                    icon: Icon(liked ? Icons.favorite : Icons.favorite_border),
-                    label: Text('${snapshot.data!.length}')),
+                    icon: Icon(liked ? Icons.favorite : Icons.favorite_border,
+                        semanticLabel: liked
+                            ? strings(context).communityUnlikePost
+                            : strings(context).communityLikePost),
+                    label: Text(snapshot.data!.length.toString())),
                 TextButton(
                     onPressed: () async {
                       await Navigator.push(
@@ -1561,7 +1695,7 @@ class _GroupPostState extends State<_GroupPost> {
                                   postId: widget.post['id'] as String)));
                       if (mounted) widget.onRefresh();
                     },
-                    child: const Text('Comments')),
+                    child: Text(strings(context).communityComments)),
               ]);
             }),
       ]));
@@ -1599,7 +1733,7 @@ class _CommentsPageState extends State<_CommentsPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Comments')),
+        appBar: AppBar(title: Text(strings(context).communityComments)),
         body: Column(children: [
           Expanded(
               child: FutureBuilder(
@@ -1612,7 +1746,8 @@ class _CommentsPageState extends State<_CommentsPage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No comments yet.'));
+                      return Center(
+                          child: Text(strings(context).groupNoComments));
                     }
                     return ListView(children: [
                       for (final comment in snapshot.data!)
@@ -1621,10 +1756,11 @@ class _CommentsPageState extends State<_CommentsPage> {
                           subtitle: FutureBuilder(
                               future: widget.repository
                                   .profile(comment['author_id'] as String),
-                              builder: (_, profile) => Text(profile.hasError
-                                  ? 'Profile unavailable'
-                                  : profile.data?['username'] as String? ??
-                                      'Member')),
+                              builder: (context, profile) => Text(
+                                  profile.hasError
+                                      ? strings(context).groupProfileUnavailable
+                                      : profile.data?['username'] as String? ??
+                                          strings(context).groupsMember)),
                         ),
                     ]);
                   })),
@@ -1634,10 +1770,10 @@ class _CommentsPageState extends State<_CommentsPage> {
                 Expanded(
                     child: TextField(
                         controller: controller,
-                        decoration:
-                            const InputDecoration(labelText: 'Comment'))),
+                        decoration: InputDecoration(
+                            labelText: strings(context).groupComment))),
                 IconButton(
-                    tooltip: 'Send comment',
+                    tooltip: strings(context).groupSendComment,
                     onPressed: busy
                         ? null
                         : () async {
@@ -1653,7 +1789,9 @@ class _CommentsPageState extends State<_CommentsPage> {
                             } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(groupError(e))));
+                                    SnackBar(
+                                        content: Text(
+                                            _localizedGroupError(context, e))));
                               }
                             } finally {
                               if (mounted) setState(() => busy = false);

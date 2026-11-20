@@ -19,7 +19,9 @@ import 'progression.dart';
 import 'groups.dart';
 
 String _communityError(BuildContext context, Object error) {
-  if (error is! CommunityException) return error.toString();
+  if (error is! CommunityException) {
+    return friendlyError(error, localizations: strings(context));
+  }
   final l = strings(context);
   return switch (error.message) {
     'Please sign in again.' => l.communityErrorSignIn,
@@ -32,7 +34,7 @@ String _communityError(BuildContext context, Object error) {
     'Choose a JPG, PNG, or WebP image.' => l.communityErrorImageType,
     'You can only delete your own post.' => l.communityErrorDeleteOwn,
     'Comments must be 1–2000 characters.' => l.communityErrorCommentLength,
-    _ => error.toString(),
+    _ => friendlyError(error, localizations: l),
   };
 }
 

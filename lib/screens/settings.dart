@@ -63,10 +63,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) toast(context, strings(context).photoUpdated);
     } on PlatformException catch (error) {
       if (mounted) {
-        toast(context, error.message ?? strings(context).cameraError);
+        toast(context, friendlyError(error, localizations: strings(context)));
       }
     } on Exception catch (error) {
-      if (mounted) toast(context, '${strings(context).savePhotoError} $error');
+      if (mounted) toast(context, friendlyError(error, localizations: strings(context)));
     } finally {
       if (mounted) setState(() => _choosingPhoto = false);
     }
@@ -114,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             await themeSettings.select(preset);
           } on Exception catch (error) {
             if (mounted) {
-              toast(context, '${strings(context).saveThemeError} $error');
+              toast(context, friendlyError(error, localizations: strings(context)));
             }
           }
         },
@@ -254,7 +254,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await languageSettings.select(choice);
     } on Exception catch (error) {
-      if (mounted) toast(context, '${strings(context).languageError} $error');
+      if (mounted) toast(context, friendlyError(error, localizations: strings(context)));
     }
   }
 

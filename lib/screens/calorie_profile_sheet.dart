@@ -129,7 +129,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        setState(() => error = strings(context).profileSaveError(e.toString()));
+        setState(() => error = strings(context).profileSaveError(friendlyError(e, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => saving = false);

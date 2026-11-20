@@ -152,7 +152,7 @@ class _SplitsScreenState extends State<SplitsScreen>
       if (mounted &&
           generation == loadGeneration &&
           user == state.plannerAccountId) {
-        setState(() => loadError = error.toString());
+        setState(() => loadError = friendlyError(error, localizations: strings(context)));
       }
     } finally {
       if (mounted &&
@@ -319,7 +319,7 @@ class _SplitsScreenState extends State<SplitsScreen>
       }
     } catch (error) {
       if (mounted && user == state.plannerAccountId) {
-        _message(strings(context).mergePlanError(error.toString()));
+        _message(strings(context).mergePlanError(friendlyError(error, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => planning = false);

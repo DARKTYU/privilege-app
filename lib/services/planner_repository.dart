@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n_strings.dart';
 
 import 'session_recovery.dart';
 
@@ -9,10 +10,10 @@ String plannerDate(DateTime date) =>
 
 DateTime parsePlannerDate(String value) {
   final parts = value.split('-').map(int.parse).toList();
-  if (parts.length != 3) throw FormatException('Invalid planner date: $value');
+  if (parts.length != 3) throw FormatException(savedLanguageStrings().errorInvalidPlannerDate(value));
   final date = DateTime.utc(parts[0], parts[1], parts[2]);
   if (plannerDate(date) != value) {
-    throw FormatException('Invalid planner date: $value');
+    throw FormatException(savedLanguageStrings().errorInvalidPlannerDate(value));
   }
   return date;
 }
@@ -105,13 +106,13 @@ class PlannerRepository implements PlannerDataSource {
   @override
   String? get accountId => _client.auth.currentUser?.id;
   String get _userId =>
-      accountId ?? (throw const AuthException('Please log in again.'));
+      accountId ?? (throw AuthException(savedLanguageStrings().sessionExpired));
 
   @override
   Future<String> today() async {
     final value = await _session.request(() => _client.rpc('activity_today'));
     if (value is! String) {
-      throw const FormatException('Could not determine today’s activity date.');
+      throw FormatException(savedLanguageStrings().errorActivityDate);
     }
     parsePlannerDate(value);
     return value;
@@ -234,7 +235,7 @@ class PlannerRepository implements PlannerDataSource {
         .eq('user_id', _userId)
         .select('id'));
     if (rows.isEmpty) {
-      throw StateError('The split was not found or was already deleted.');
+      throw StateError(savedLanguageStrings().errorSplitMissing);
     }
   }
 
@@ -258,7 +259,7 @@ class PlannerRepository implements PlannerDataSource {
         .eq('planned_date', date)
         .select('id'));
     if (rows.isEmpty) {
-      throw StateError('The planned day was not found or was already removed.');
+      throw StateError(savedLanguageStrings().errorDayMissing);
     }
   }
 }

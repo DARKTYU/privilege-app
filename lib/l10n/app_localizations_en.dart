@@ -9,6 +9,572 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get genericError => 'Something went wrong. Please try again.';
+
+  @override
+  String get splashSlogan => 'Eat Well; Stay Well';
+
+  @override
+  String get postImageOpen => 'Open post image';
+
+  @override
+  String get postImageTitle => 'Post image';
+
+  @override
+  String get postImageUnavailable => 'Post image is unavailable.';
+
+  @override
+  String get postImageRetry => 'Post image is unavailable. Retry';
+
+  @override
+  String get errorUnreadCount => 'Could not load notification count.';
+
+  @override
+  String get errorAccountChanged => 'Account changed. Please try again.';
+
+  @override
+  String get errorPlannerBusy => 'A planner save is already in progress.';
+
+  @override
+  String get errorActivityLoad => 'Could not load today’s activity.';
+
+  @override
+  String get errorPointsBalance => 'Could not load the store-points balance.';
+
+  @override
+  String get errorActivityDate => 'Could not determine today’s activity date.';
+
+  @override
+  String get errorFoodNotLinked =>
+      'This meal is not linked to a food in the database.';
+
+  @override
+  String get errorFoodChanged =>
+      'The food log could not be found or has changed.';
+
+  @override
+  String get errorFoodUnavailable =>
+      'This food is no longer available in the food database. The meal was not changed.';
+
+  @override
+  String get errorSplitMissing =>
+      'The split was not found or was already deleted.';
+
+  @override
+  String get errorDayMissing =>
+      'The planned day was not found or was already removed.';
+
+  @override
+  String get errorCravingMissing =>
+      'The craving was not found or was already deleted.';
+
+  @override
+  String get errorProfileInvalid =>
+      'Enter valid profile details before saving.';
+
+  @override
+  String errorInvalidPlannerDate(String date) {
+    return 'Invalid planner date: $date';
+  }
+
+  @override
+  String get errorProfileMissing =>
+      'Your profile could not be found. Contact the app administrator.';
+
+  @override
+  String get errorProfileNotSaved => 'Your profile could not be saved.';
+
+  @override
+  String get errorSignInSession => 'Sign-in did not create a session.';
+
+  @override
+  String get errorCompleteSignIn =>
+      'Could not complete sign-in. Please try again.';
+
+  @override
+  String get errorLogInSetup => 'Please log in again to finish setup.';
+
+  @override
+  String errorReduceMeal(String amount) {
+    return 'There is no logged meal to reduce by $amount kcal.';
+  }
+
+  @override
+  String get errorReduceWorkout => 'There is no logged workout to reduce.';
+
+  @override
+  String activityTimeDuration(String time, String minutes) {
+    return '$time • ${minutes}m';
+  }
+
+  @override
+  String feedbackLoggedMeal(String name, String calories) {
+    return 'Logged $name (+$calories kcal)!';
+  }
+
+  @override
+  String feedbackUncheckedMeal(String name, String calories) {
+    return 'Unchecked $name (-$calories kcal)!';
+  }
+
+  @override
+  String feedbackAddedMeal(String name, String calories) {
+    return 'Added meal $name (+$calories kcal)!';
+  }
+
+  @override
+  String feedbackUpdated(String name) {
+    return 'Updated $name.';
+  }
+
+  @override
+  String feedbackRemovedMeal(String name, String calories) {
+    return 'Removed $name (-$calories kcal)!';
+  }
+
+  @override
+  String feedbackAddedWorkout(String name, String calories) {
+    return 'Added workout $name (-$calories kcal burn)!';
+  }
+
+  @override
+  String feedbackRemovedWorkout(String name, String calories) {
+    return 'Removed $name (-$calories kcal burn)!';
+  }
+
+  @override
+  String feedbackDeductFood(String amount) {
+    return 'Deducted $amount kcal from food intake!';
+  }
+
+  @override
+  String feedbackDeductWorkout(String amount) {
+    return 'Deducted $amount kcal from workout burn!';
+  }
+
+  @override
+  String get groupTitle => 'Group';
+
+  @override
+  String get groupReport => 'Report';
+
+  @override
+  String get groupReason => 'Reason';
+
+  @override
+  String get groupBanQuestion => 'Ban member?';
+
+  @override
+  String get groupRemoveQuestion => 'Remove member?';
+
+  @override
+  String get groupBanDetails =>
+      'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.';
+
+  @override
+  String get groupRemoveDetails =>
+      'This removes the member and hides their posts and comments in this group. They can join again.';
+
+  @override
+  String get groupCancel => 'Cancel';
+
+  @override
+  String get groupBan => 'Ban';
+
+  @override
+  String get groupRemove => 'Remove';
+
+  @override
+  String get groupUnavailableInvitation =>
+      'This group is unavailable. Private groups require an invitation.';
+
+  @override
+  String get groupAcceptInvitation => 'Accept invitation';
+
+  @override
+  String groupHeaderDetails(String category, String members) {
+    return '$category · $members';
+  }
+
+  @override
+  String get groupMenuSettings => 'Settings';
+
+  @override
+  String get groupInvitePeople => 'Invite people';
+
+  @override
+  String get groupBannedMembers => 'Banned members';
+
+  @override
+  String get groupReportGroup => 'Report group';
+
+  @override
+  String groupRulesValue(String rules) {
+    return 'Rules: $rules';
+  }
+
+  @override
+  String get groupLeave => 'Leave group';
+
+  @override
+  String get groupCancelRequest => 'Cancel request';
+
+  @override
+  String get groupRequestJoin => 'Request to join';
+
+  @override
+  String get groupInvitationRequired => 'Invitation required';
+
+  @override
+  String get groupJoin => 'Join';
+
+  @override
+  String get groupJoinToSee => 'Join to see posts and members.';
+
+  @override
+  String get groupPosts => 'Posts';
+
+  @override
+  String get groupCreatePost => 'Create post';
+
+  @override
+  String get groupModeratorsPost => 'Only moderators can post.';
+
+  @override
+  String get groupNoPosts => 'No posts yet.';
+
+  @override
+  String get groupMembers => 'Members';
+
+  @override
+  String get groupNoMembers => 'No members found.';
+
+  @override
+  String get groupJoinRequests => 'Join requests';
+
+  @override
+  String get groupUnbanQuestion => 'Unban member?';
+
+  @override
+  String get groupUnbanDetails =>
+      'They can join again. Previously hidden posts and comments will remain hidden.';
+
+  @override
+  String get groupUnban => 'Unban';
+
+  @override
+  String get groupNoBanned => 'No banned members.';
+
+  @override
+  String groupBannedDate(String date) {
+    return 'Banned $date';
+  }
+
+  @override
+  String groupBannedBy(String name) {
+    return 'By $name';
+  }
+
+  @override
+  String get groupSearchUsers => 'Search users';
+
+  @override
+  String get groupSearch => 'Search';
+
+  @override
+  String get groupSearchInvite => 'Search for someone to invite.';
+
+  @override
+  String get groupNoPeople => 'No people found.';
+
+  @override
+  String get groupInvitationSent => 'Invitation sent.';
+
+  @override
+  String get groupInvite => 'Invite';
+
+  @override
+  String get groupWritePost => 'Write a post';
+
+  @override
+  String get groupAddImage => 'Add image';
+
+  @override
+  String get groupImageChooseError =>
+      'Could not choose the image. Please try again.';
+
+  @override
+  String get groupImageTypeSizeError =>
+      'Choose a JPG, PNG or WebP image smaller than 8 MB.';
+
+  @override
+  String get groupImageReadError =>
+      'Could not read the image. Please choose it again.';
+
+  @override
+  String get groupImageUploadError =>
+      'Could not upload the image. Please try again.';
+
+  @override
+  String get groupShare => 'Share';
+
+  @override
+  String get groupProfileUnavailable => 'Profile unavailable';
+
+  @override
+  String get groupOwner => 'Owner';
+
+  @override
+  String get groupModerator => 'Moderator';
+
+  @override
+  String get groupApproveRequest => 'Approve request';
+
+  @override
+  String get groupRemoveModerator => 'Remove moderator role';
+
+  @override
+  String get groupMakeModerator => 'Make moderator';
+
+  @override
+  String get groupReportMember => 'Report member';
+
+  @override
+  String get groupImageRetry => 'Image unavailable. Retry';
+
+  @override
+  String get groupImageUnavailable => 'Image unavailable.';
+
+  @override
+  String get groupLikesRetry => 'Could not load likes. Retry';
+
+  @override
+  String get groupNoComments => 'No comments yet.';
+
+  @override
+  String get groupComment => 'Comment';
+
+  @override
+  String get groupSendComment => 'Send comment';
+
+  @override
+  String get groupsDiscover => 'Discover';
+
+  @override
+  String get groupsMine => 'My groups';
+
+  @override
+  String get groupsCreate => 'Create group';
+
+  @override
+  String get groupsSearch => 'Search groups';
+
+  @override
+  String get groupsCategory => 'Category';
+
+  @override
+  String get groupsAll => 'All';
+
+  @override
+  String get groupsWeightLoss => 'Weight loss';
+
+  @override
+  String get groupsMuscleBuilding => 'Muscle building';
+
+  @override
+  String get groupsRunning => 'Running & cardio';
+
+  @override
+  String get groupsYoga => 'Yoga & mobility';
+
+  @override
+  String get groupsNutrition => 'Nutrition';
+
+  @override
+  String get groupsBeginners => 'Beginners';
+
+  @override
+  String get groupsFitness => 'General fitness';
+
+  @override
+  String get groupsOther => 'Other';
+
+  @override
+  String get groupsPublic => 'Public';
+
+  @override
+  String get groupsPrivate => 'Private';
+
+  @override
+  String get groupsOpen => 'Open';
+
+  @override
+  String get groupsApproval => 'Approval needed';
+
+  @override
+  String get groupsInviteOnly => 'Invite only';
+
+  @override
+  String get groupsEveryone => 'Everyone';
+
+  @override
+  String get groupsModerators => 'Moderators';
+
+  @override
+  String get groupsInvitations => 'Invitations';
+
+  @override
+  String get groupsInvitation => 'Group invitation';
+
+  @override
+  String get groupsOpenToAccept => 'Open to accept';
+
+  @override
+  String get groupsNone => 'No groups found.';
+
+  @override
+  String groupsSummary(String category, String visibility) {
+    return '$category · $visibility';
+  }
+
+  @override
+  String groupsPendingSummary(String summary) {
+    return '$summary · Request pending';
+  }
+
+  @override
+  String groupsMemberCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get groupsMember => 'Member';
+
+  @override
+  String get groupsRetry => 'Try again';
+
+  @override
+  String get groupsSettings => 'Group settings';
+
+  @override
+  String get groupsChoosePhoto => 'Choose photo';
+
+  @override
+  String get groupsRemovePhoto => 'Remove photo';
+
+  @override
+  String get groupsName => 'Name';
+
+  @override
+  String get groupsDescription => 'Description';
+
+  @override
+  String get groupsVisibility => 'Visibility';
+
+  @override
+  String get groupsJoinMode => 'Join mode';
+
+  @override
+  String get groupsPrivateInvitation => 'Private groups require an invitation.';
+
+  @override
+  String get groupsMemberLimit => 'Member limit';
+
+  @override
+  String get groupsWhoCanPost => 'Who can post';
+
+  @override
+  String get groupsImagesAllowed => 'Images allowed';
+
+  @override
+  String get groupsChatPhase2 => 'Chat (coming in phase 2)';
+
+  @override
+  String get groupsChatUnavailable =>
+      'This setting is saved, but chat is not available yet.';
+
+  @override
+  String get groupsRules => 'Rules';
+
+  @override
+  String get groupsSaving => 'Saving...';
+
+  @override
+  String get groupsSave => 'Save';
+
+  @override
+  String groupsCounter(String current, String max) {
+    return '$current / $max';
+  }
+
+  @override
+  String get groupsValidation =>
+      'Enter a name of at least 3 characters, a category, and a member limit from 1 to 10000.';
+
+  @override
+  String get groupsPhotoChooseError =>
+      'Could not choose the photo. Please try again.';
+
+  @override
+  String get groupsPhotoSaveError =>
+      'Could not save the group photo. Please try again.';
+
+  @override
+  String get groupsPhotoCreatedError =>
+      'Group created, but the photo could not be uploaded. You can add it from group settings.';
+
+  @override
+  String get groupsPhotoTypeError => 'Choose a JPG, PNG or WebP photo.';
+
+  @override
+  String get groupsPhotoReadError =>
+      'Could not read the photo. Please choose it again.';
+
+  @override
+  String get groupsPhotoEmptyError =>
+      'The photo is empty. Choose another photo.';
+
+  @override
+  String get groupsPhotoMismatchError =>
+      'The photo does not match its file type. Choose a valid JPG, PNG or WebP image.';
+
+  @override
+  String get groupsPhotoSizeError =>
+      'The photo is too large. Choose one under 2 MB.';
+
+  @override
+  String get groupsPhotoInvalidError =>
+      'Could not read the photo. Choose a valid JPG, PNG or WebP image.';
+
+  @override
+  String get groupsBannedError =>
+      'You are banned from this group. Only the group owner or a moderator can unban you.';
+
+  @override
+  String get groupsFullError => 'This group is full.';
+
+  @override
+  String get groupsModeratorsOnlyError =>
+      'Only moderators can post in this group.';
+
+  @override
+  String get groupsPostingLimitError =>
+      'Posting limit reached. Please try again later.';
+
+  @override
+  String get groupsCreationLimitError => 'You can create up to 3 groups.';
+
+  @override
+  String get groupsUnavailableError =>
+      'This group is unavailable or requires an invitation.';
+
+  @override
   String communityUsername(String username) {
     return '@$username';
   }
@@ -2588,7 +3154,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get language => 'Language / اللغة';
+  String get language => 'Language';
 
   @override
   String get languageError => 'Could not save language. Please try again.';

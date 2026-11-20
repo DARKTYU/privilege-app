@@ -60,7 +60,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(app(const Scaffold(body: SettingsScreen())));
-    await tester.tap(find.text('Language / اللغة'));
+    await tester.tap(find.text('Language'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('العربية').last);
     await tester.pumpAndSettle();
@@ -76,7 +76,7 @@ void main() {
         (await SharedPreferences.getInstance()).getString('privilege_language'),
         'ar');
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('Language / اللغة'));
+    await tester.tap(find.text('اللغة'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('English').last);
     await tester.pumpAndSettle();

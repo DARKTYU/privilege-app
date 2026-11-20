@@ -6,6 +6,7 @@ import '../l10n_strings.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/workout_estimate.dart';
 import '../services/food_database.dart';
+import '../services/activity_repository.dart';
 import '../state.dart';
 import '../ui.dart';
 import 'calories_food_explorer.dart';
@@ -88,7 +89,7 @@ class FoodLogTab extends StatelessWidget {
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(strings(context).foodOpenError(error.toString()))));
+            content: Text(strings(context).foodOpenError(friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -188,7 +189,11 @@ Widget _burnTile(BuildContext context, CaloriesPalette palette, BurnItem b,
                 },
                 _burnColor(b.type)),
           ]),
-          Text(b.time == 'Just now' ? l.justNow : b.time,
+          Text(b.createdAt != null
+                  ? l.activityTimeDuration(
+                      formatActivityTime(b.createdAt!, l),
+                      b.durationMin.toString())
+                  : b.time == 'Just now' ? l.justNow : b.time,
               style: TextStyle(fontSize: 11, color: palette.muted)),
           Text(strings(context).burnedAmount(fmt(b.calories)),
               style: TextStyle(
@@ -218,7 +223,8 @@ Widget _activityStatus(
     return _activityCard(
       palette,
       Column(children: [
-        Text(state.activityError!, textAlign: TextAlign.center),
+        Text(friendlyError(state.activityError!, localizations: strings(context)),
+            textAlign: TextAlign.center),
         const SizedBox(height: 8),
         TextButton.icon(
           onPressed: state.loadActivity,
@@ -250,7 +256,7 @@ Future<void> _runActivityAction(
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-          content: Text(strings(context).activitySaveError(error.toString()))));
+          content: Text(strings(context).activitySaveError(friendlyError(error, localizations: strings(context))))));
   }
 }
 
@@ -326,7 +332,7 @@ class _AddFormState extends State<_AddForm> {
     } catch (error) {
       if (mounted) {
         setState(() =>
-            _error = strings(context).activitySaveError(error.toString()));
+            _error = strings(context).activitySaveError(friendlyError(error, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

@@ -149,7 +149,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (mounted) {
-        setState(() => error = strings(context).workoutSaveError(e.toString()));
+        setState(() => error = strings(context).workoutSaveError(friendlyError(e, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => saving = false);

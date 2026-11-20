@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
+import '../l10n_strings.dart';
 import 'account_types.dart';
 import 'session_recovery.dart';
 
@@ -13,26 +14,26 @@ class SupabaseAuthService {
   static AuthException _authError(sb.AuthException error) {
     final code = error.code ?? 'auth_error';
     if (code == 'invalid_credentials') {
-      return AuthException(code, 'Incorrect email or password.');
+      return AuthException(code, savedLanguageStrings().invalidCredentials);
     }
     if (code == 'email_not_confirmed') {
       return AuthException(
-          code, 'Please confirm your email before logging in.');
+          code, savedLanguageStrings().emailNotConfirmed);
     }
-    return AuthException(code, 'Could not sign in. Please try again.');
+    return AuthException(code, savedLanguageStrings().registrationError);
   }
 
   static AuthException _connectionError() => AuthException('network',
-      'Could not connect. Check your internet connection and try again.');
+      savedLanguageStrings().networkError);
 
   static Future<String> register(String email, String password) async {
     try {
       final result = await client.auth.signUp(email: email, password: password);
       if (result.session != null) {
         await client.auth.signOut();
-        return 'Account created. Log in to continue.';
+        return savedLanguageStrings().registrationCreated;
       }
-      return 'If this email can be registered, check your inbox for a confirmation link, then log in.';
+      return savedLanguageStrings().registrationConfirm;
     } on sb.AuthException catch (error) {
       throw _authError(error);
     } on SocketException {
@@ -53,7 +54,7 @@ class SupabaseAuthService {
       final user = response.user;
       if (user == null || response.session == null) {
         throw AuthException(
-            'invalid_session', 'Sign-in did not create a session.');
+            'invalid_session', savedLanguageStrings().errorSignInSession);
       }
       return await _account(user);
     } on sb.AuthException catch (error) {
@@ -106,7 +107,7 @@ class SupabaseAuthService {
           .maybeSingle());
       if (row == null) {
         throw AuthException('missing_profile',
-            'Your profile could not be found. Contact the app administrator.');
+            savedLanguageStrings().errorProfileMissing);
       }
       return AccountData(
         userId: user.id,
@@ -119,14 +120,14 @@ class SupabaseAuthService {
         throw const SessionExpiredException();
       }
       throw AuthException(
-          'profile_error', 'Could not complete sign-in. Please try again.');
+          'profile_error', savedLanguageStrings().errorCompleteSignIn);
     }
   }
 
   static Future<void> saveProfile(Map<String, dynamic> profile) async {
     final user = client.auth.currentUser;
     if (user == null) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException('invalid_session', savedLanguageStrings().sessionExpired);
     }
     try {
       final row = await SessionRecovery.forClient(client).request(() => client
@@ -137,21 +138,20 @@ class SupabaseAuthService {
           .maybeSingle());
       if (row == null) {
         throw AuthException(
-            'missing_profile', 'Your profile could not be saved.');
+            'missing_profile', savedLanguageStrings().errorProfileNotSaved);
       }
     } on sb.PostgrestException catch (error) {
       if (error.code == '23505' &&
           ('${error.message} ${error.details}').contains('username')) {
         throw AuthException(
-            'username_taken', 'That username is already taken.');
+            'username_taken', savedLanguageStrings().usernameTaken);
       }
       if (error.code == '23514' &&
           error.message.toLowerCase().contains('username')) {
         throw AuthException('invalid_username',
-            'Username must be 3 to 20 letters, numbers or underscores.');
+            savedLanguageStrings().invalidUsername);
       }
-      throw AuthException('profile_error',
-          'Could not save your profile. Check that the Supabase auth migration has been applied. (${error.code ?? 'database error'})');
+      throw AuthException('profile_error', friendlyError(error));
     } on SocketException {
       throw _connectionError();
     } on http.ClientException {

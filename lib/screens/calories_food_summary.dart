@@ -162,8 +162,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
               content: Text(duplicate
-                  ? strings(context).foodDuplicateError(error.toString())
-                  : strings(context).foodDeleteError(error.toString()))));
+                  ? strings(context).foodDuplicateError(friendlyError(error, localizations: strings(context)))
+                  : strings(context).foodDeleteError(friendlyError(error, localizations: strings(context))))));
       }
     } finally {
       busy.remove(meal.id);
@@ -177,7 +177,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(strings(context).foodUpdateError(error.toString()))));
+            content: Text(strings(context).foodUpdateError(friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -439,7 +439,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                 const Center(child: CircularProgressIndicator())
                               else if (state.activityError != null)
                                 Column(children: [
-                                  Text(state.activityError!,
+                                  Text(friendlyError(state.activityError!,
+                                          localizations: strings(context)),
                                       style: TextStyle(color: palette.text)),
                                   TextButton(
                                       onPressed: state.loadActivity,

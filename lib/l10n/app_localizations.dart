@@ -98,6 +98,984 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// No description provided for @genericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get genericError;
+
+  /// No description provided for @splashSlogan.
+  ///
+  /// In en, this message translates to:
+  /// **'Eat Well; Stay Well'**
+  String get splashSlogan;
+
+  /// No description provided for @postImageOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open post image'**
+  String get postImageOpen;
+
+  /// No description provided for @postImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post image'**
+  String get postImageTitle;
+
+  /// No description provided for @postImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Post image is unavailable.'**
+  String get postImageUnavailable;
+
+  /// No description provided for @postImageRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Post image is unavailable. Retry'**
+  String get postImageRetry;
+
+  /// No description provided for @errorUnreadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notification count.'**
+  String get errorUnreadCount;
+
+  /// No description provided for @errorAccountChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Account changed. Please try again.'**
+  String get errorAccountChanged;
+
+  /// No description provided for @errorPlannerBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'A planner save is already in progress.'**
+  String get errorPlannerBusy;
+
+  /// No description provided for @errorActivityLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load today’s activity.'**
+  String get errorActivityLoad;
+
+  /// No description provided for @errorPointsBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the store-points balance.'**
+  String get errorPointsBalance;
+
+  /// No description provided for @errorActivityDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not determine today’s activity date.'**
+  String get errorActivityDate;
+
+  /// No description provided for @errorFoodNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'This meal is not linked to a food in the database.'**
+  String get errorFoodNotLinked;
+
+  /// No description provided for @errorFoodChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'The food log could not be found or has changed.'**
+  String get errorFoodChanged;
+
+  /// No description provided for @errorFoodUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This food is no longer available in the food database. The meal was not changed.'**
+  String get errorFoodUnavailable;
+
+  /// No description provided for @errorSplitMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The split was not found or was already deleted.'**
+  String get errorSplitMissing;
+
+  /// No description provided for @errorDayMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The planned day was not found or was already removed.'**
+  String get errorDayMissing;
+
+  /// No description provided for @errorCravingMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The craving was not found or was already deleted.'**
+  String get errorCravingMissing;
+
+  /// No description provided for @errorProfileInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid profile details before saving.'**
+  String get errorProfileInvalid;
+
+  /// No description provided for @errorInvalidPlannerDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid planner date: {date}'**
+  String errorInvalidPlannerDate(String date);
+
+  /// No description provided for @errorProfileMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile could not be found. Contact the app administrator.'**
+  String get errorProfileMissing;
+
+  /// No description provided for @errorProfileNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile could not be saved.'**
+  String get errorProfileNotSaved;
+
+  /// No description provided for @errorSignInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in did not create a session.'**
+  String get errorSignInSession;
+
+  /// No description provided for @errorCompleteSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete sign-in. Please try again.'**
+  String get errorCompleteSignIn;
+
+  /// No description provided for @errorLogInSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in again to finish setup.'**
+  String get errorLogInSetup;
+
+  /// No description provided for @errorReduceMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no logged meal to reduce by {amount} kcal.'**
+  String errorReduceMeal(String amount);
+
+  /// No description provided for @errorReduceWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no logged workout to reduce.'**
+  String get errorReduceWorkout;
+
+  /// No description provided for @activityTimeDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} • {minutes}m'**
+  String activityTimeDuration(String time, String minutes);
+
+  /// No description provided for @feedbackLoggedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged {name} (+{calories} kcal)!'**
+  String feedbackLoggedMeal(String name, String calories);
+
+  /// No description provided for @feedbackUncheckedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked {name} (-{calories} kcal)!'**
+  String feedbackUncheckedMeal(String name, String calories);
+
+  /// No description provided for @feedbackAddedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Added meal {name} (+{calories} kcal)!'**
+  String feedbackAddedMeal(String name, String calories);
+
+  /// No description provided for @feedbackUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated {name}.'**
+  String feedbackUpdated(String name);
+
+  /// No description provided for @feedbackRemovedMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {name} (-{calories} kcal)!'**
+  String feedbackRemovedMeal(String name, String calories);
+
+  /// No description provided for @feedbackAddedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Added workout {name} (-{calories} kcal burn)!'**
+  String feedbackAddedWorkout(String name, String calories);
+
+  /// No description provided for @feedbackRemovedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed {name} (-{calories} kcal burn)!'**
+  String feedbackRemovedWorkout(String name, String calories);
+
+  /// No description provided for @feedbackDeductFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Deducted {amount} kcal from food intake!'**
+  String feedbackDeductFood(String amount);
+
+  /// No description provided for @feedbackDeductWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Deducted {amount} kcal from workout burn!'**
+  String feedbackDeductWorkout(String amount);
+
+  /// No description provided for @groupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get groupTitle;
+
+  /// No description provided for @groupReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get groupReport;
+
+  /// No description provided for @groupReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get groupReason;
+
+  /// No description provided for @groupBanQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban member?'**
+  String get groupBanQuestion;
+
+  /// No description provided for @groupRemoveQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove member?'**
+  String get groupRemoveQuestion;
+
+  /// No description provided for @groupBanDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'This bans the member until you unban them. Their posts and comments in this group are hidden and they cannot join again.'**
+  String get groupBanDetails;
+
+  /// No description provided for @groupRemoveDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the member and hides their posts and comments in this group. They can join again.'**
+  String get groupRemoveDetails;
+
+  /// No description provided for @groupCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get groupCancel;
+
+  /// No description provided for @groupBan.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban'**
+  String get groupBan;
+
+  /// No description provided for @groupRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get groupRemove;
+
+  /// No description provided for @groupUnavailableInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'This group is unavailable. Private groups require an invitation.'**
+  String get groupUnavailableInvitation;
+
+  /// No description provided for @groupAcceptInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept invitation'**
+  String get groupAcceptInvitation;
+
+  /// No description provided for @groupHeaderDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} · {members}'**
+  String groupHeaderDetails(String category, String members);
+
+  /// No description provided for @groupMenuSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get groupMenuSettings;
+
+  /// No description provided for @groupInvitePeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite people'**
+  String get groupInvitePeople;
+
+  /// No description provided for @groupBannedMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned members'**
+  String get groupBannedMembers;
+
+  /// No description provided for @groupReportGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Report group'**
+  String get groupReportGroup;
+
+  /// No description provided for @groupRulesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules: {rules}'**
+  String groupRulesValue(String rules);
+
+  /// No description provided for @groupLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave group'**
+  String get groupLeave;
+
+  /// No description provided for @groupCancelRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel request'**
+  String get groupCancelRequest;
+
+  /// No description provided for @groupRequestJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to join'**
+  String get groupRequestJoin;
+
+  /// No description provided for @groupInvitationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation required'**
+  String get groupInvitationRequired;
+
+  /// No description provided for @groupJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get groupJoin;
+
+  /// No description provided for @groupJoinToSee.
+  ///
+  /// In en, this message translates to:
+  /// **'Join to see posts and members.'**
+  String get groupJoinToSee;
+
+  /// No description provided for @groupPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get groupPosts;
+
+  /// No description provided for @groupCreatePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Create post'**
+  String get groupCreatePost;
+
+  /// No description provided for @groupModeratorsPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Only moderators can post.'**
+  String get groupModeratorsPost;
+
+  /// No description provided for @groupNoPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts yet.'**
+  String get groupNoPosts;
+
+  /// No description provided for @groupMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get groupMembers;
+
+  /// No description provided for @groupNoMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'No members found.'**
+  String get groupNoMembers;
+
+  /// No description provided for @groupJoinRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Join requests'**
+  String get groupJoinRequests;
+
+  /// No description provided for @groupUnbanQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Unban member?'**
+  String get groupUnbanQuestion;
+
+  /// No description provided for @groupUnbanDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'They can join again. Previously hidden posts and comments will remain hidden.'**
+  String get groupUnbanDetails;
+
+  /// No description provided for @groupUnban.
+  ///
+  /// In en, this message translates to:
+  /// **'Unban'**
+  String get groupUnban;
+
+  /// No description provided for @groupNoBanned.
+  ///
+  /// In en, this message translates to:
+  /// **'No banned members.'**
+  String get groupNoBanned;
+
+  /// No description provided for @groupBannedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned {date}'**
+  String groupBannedDate(String date);
+
+  /// No description provided for @groupBannedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'By {name}'**
+  String groupBannedBy(String name);
+
+  /// No description provided for @groupSearchUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search users'**
+  String get groupSearchUsers;
+
+  /// No description provided for @groupSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get groupSearch;
+
+  /// No description provided for @groupSearchInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for someone to invite.'**
+  String get groupSearchInvite;
+
+  /// No description provided for @groupNoPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'No people found.'**
+  String get groupNoPeople;
+
+  /// No description provided for @groupInvitationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent.'**
+  String get groupInvitationSent;
+
+  /// No description provided for @groupInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get groupInvite;
+
+  /// No description provided for @groupWritePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a post'**
+  String get groupWritePost;
+
+  /// No description provided for @groupAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add image'**
+  String get groupAddImage;
+
+  /// No description provided for @groupImageChooseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not choose the image. Please try again.'**
+  String get groupImageChooseError;
+
+  /// No description provided for @groupImageTypeSizeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JPG, PNG or WebP image smaller than 8 MB.'**
+  String get groupImageTypeSizeError;
+
+  /// No description provided for @groupImageReadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the image. Please choose it again.'**
+  String get groupImageReadError;
+
+  /// No description provided for @groupImageUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not upload the image. Please try again.'**
+  String get groupImageUploadError;
+
+  /// No description provided for @groupShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get groupShare;
+
+  /// No description provided for @groupProfileUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile unavailable'**
+  String get groupProfileUnavailable;
+
+  /// No description provided for @groupOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get groupOwner;
+
+  /// No description provided for @groupModerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderator'**
+  String get groupModerator;
+
+  /// No description provided for @groupApproveRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve request'**
+  String get groupApproveRequest;
+
+  /// No description provided for @groupRemoveModerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove moderator role'**
+  String get groupRemoveModerator;
+
+  /// No description provided for @groupMakeModerator.
+  ///
+  /// In en, this message translates to:
+  /// **'Make moderator'**
+  String get groupMakeModerator;
+
+  /// No description provided for @groupReportMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Report member'**
+  String get groupReportMember;
+
+  /// No description provided for @groupImageRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable. Retry'**
+  String get groupImageRetry;
+
+  /// No description provided for @groupImageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable.'**
+  String get groupImageUnavailable;
+
+  /// No description provided for @groupLikesRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load likes. Retry'**
+  String get groupLikesRetry;
+
+  /// No description provided for @groupNoComments.
+  ///
+  /// In en, this message translates to:
+  /// **'No comments yet.'**
+  String get groupNoComments;
+
+  /// No description provided for @groupComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment'**
+  String get groupComment;
+
+  /// No description provided for @groupSendComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Send comment'**
+  String get groupSendComment;
+
+  /// No description provided for @groupsDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get groupsDiscover;
+
+  /// No description provided for @groupsMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My groups'**
+  String get groupsMine;
+
+  /// No description provided for @groupsCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create group'**
+  String get groupsCreate;
+
+  /// No description provided for @groupsSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search groups'**
+  String get groupsSearch;
+
+  /// No description provided for @groupsCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get groupsCategory;
+
+  /// No description provided for @groupsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get groupsAll;
+
+  /// No description provided for @groupsWeightLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight loss'**
+  String get groupsWeightLoss;
+
+  /// No description provided for @groupsMuscleBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Muscle building'**
+  String get groupsMuscleBuilding;
+
+  /// No description provided for @groupsRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running & cardio'**
+  String get groupsRunning;
+
+  /// No description provided for @groupsYoga.
+  ///
+  /// In en, this message translates to:
+  /// **'Yoga & mobility'**
+  String get groupsYoga;
+
+  /// No description provided for @groupsNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get groupsNutrition;
+
+  /// No description provided for @groupsBeginners.
+  ///
+  /// In en, this message translates to:
+  /// **'Beginners'**
+  String get groupsBeginners;
+
+  /// No description provided for @groupsFitness.
+  ///
+  /// In en, this message translates to:
+  /// **'General fitness'**
+  String get groupsFitness;
+
+  /// No description provided for @groupsOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get groupsOther;
+
+  /// No description provided for @groupsPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Public'**
+  String get groupsPublic;
+
+  /// No description provided for @groupsPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Private'**
+  String get groupsPrivate;
+
+  /// No description provided for @groupsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get groupsOpen;
+
+  /// No description provided for @groupsApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval needed'**
+  String get groupsApproval;
+
+  /// No description provided for @groupsInviteOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite only'**
+  String get groupsInviteOnly;
+
+  /// No description provided for @groupsEveryone.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone'**
+  String get groupsEveryone;
+
+  /// No description provided for @groupsModerators.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderators'**
+  String get groupsModerators;
+
+  /// No description provided for @groupsInvitations.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get groupsInvitations;
+
+  /// No description provided for @groupsInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Group invitation'**
+  String get groupsInvitation;
+
+  /// No description provided for @groupsOpenToAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Open to accept'**
+  String get groupsOpenToAccept;
+
+  /// No description provided for @groupsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No groups found.'**
+  String get groupsNone;
+
+  /// No description provided for @groupsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} · {visibility}'**
+  String groupsSummary(String category, String visibility);
+
+  /// No description provided for @groupsPendingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{summary} · Request pending'**
+  String groupsPendingSummary(String summary);
+
+  /// No description provided for @groupsMemberCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 member} other{{count} members}}'**
+  String groupsMemberCount(int count);
+
+  /// No description provided for @groupsMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member'**
+  String get groupsMember;
+
+  /// No description provided for @groupsRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get groupsRetry;
+
+  /// No description provided for @groupsSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Group settings'**
+  String get groupsSettings;
+
+  /// No description provided for @groupsChoosePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get groupsChoosePhoto;
+
+  /// No description provided for @groupsRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get groupsRemovePhoto;
+
+  /// No description provided for @groupsName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get groupsName;
+
+  /// No description provided for @groupsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get groupsDescription;
+
+  /// No description provided for @groupsVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get groupsVisibility;
+
+  /// No description provided for @groupsJoinMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Join mode'**
+  String get groupsJoinMode;
+
+  /// No description provided for @groupsPrivateInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Private groups require an invitation.'**
+  String get groupsPrivateInvitation;
+
+  /// No description provided for @groupsMemberLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Member limit'**
+  String get groupsMemberLimit;
+
+  /// No description provided for @groupsWhoCanPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Who can post'**
+  String get groupsWhoCanPost;
+
+  /// No description provided for @groupsImagesAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Images allowed'**
+  String get groupsImagesAllowed;
+
+  /// No description provided for @groupsChatPhase2.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat (coming in phase 2)'**
+  String get groupsChatPhase2;
+
+  /// No description provided for @groupsChatUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This setting is saved, but chat is not available yet.'**
+  String get groupsChatUnavailable;
+
+  /// No description provided for @groupsRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get groupsRules;
+
+  /// No description provided for @groupsSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving...'**
+  String get groupsSaving;
+
+  /// No description provided for @groupsSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get groupsSave;
+
+  /// No description provided for @groupsCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {max}'**
+  String groupsCounter(String current, String max);
+
+  /// No description provided for @groupsValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name of at least 3 characters, a category, and a member limit from 1 to 10000.'**
+  String get groupsValidation;
+
+  /// No description provided for @groupsPhotoChooseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not choose the photo. Please try again.'**
+  String get groupsPhotoChooseError;
+
+  /// No description provided for @groupsPhotoSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the group photo. Please try again.'**
+  String get groupsPhotoSaveError;
+
+  /// No description provided for @groupsPhotoCreatedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Group created, but the photo could not be uploaded. You can add it from group settings.'**
+  String get groupsPhotoCreatedError;
+
+  /// No description provided for @groupsPhotoTypeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a JPG, PNG or WebP photo.'**
+  String get groupsPhotoTypeError;
+
+  /// No description provided for @groupsPhotoReadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the photo. Please choose it again.'**
+  String get groupsPhotoReadError;
+
+  /// No description provided for @groupsPhotoEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is empty. Choose another photo.'**
+  String get groupsPhotoEmptyError;
+
+  /// No description provided for @groupsPhotoMismatchError.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo does not match its file type. Choose a valid JPG, PNG or WebP image.'**
+  String get groupsPhotoMismatchError;
+
+  /// No description provided for @groupsPhotoSizeError.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too large. Choose one under 2 MB.'**
+  String get groupsPhotoSizeError;
+
+  /// No description provided for @groupsPhotoInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the photo. Choose a valid JPG, PNG or WebP image.'**
+  String get groupsPhotoInvalidError;
+
+  /// No description provided for @groupsBannedError.
+  ///
+  /// In en, this message translates to:
+  /// **'You are banned from this group. Only the group owner or a moderator can unban you.'**
+  String get groupsBannedError;
+
+  /// No description provided for @groupsFullError.
+  ///
+  /// In en, this message translates to:
+  /// **'This group is full.'**
+  String get groupsFullError;
+
+  /// No description provided for @groupsModeratorsOnlyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Only moderators can post in this group.'**
+  String get groupsModeratorsOnlyError;
+
+  /// No description provided for @groupsPostingLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Posting limit reached. Please try again later.'**
+  String get groupsPostingLimitError;
+
+  /// No description provided for @groupsCreationLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'You can create up to 3 groups.'**
+  String get groupsCreationLimitError;
+
+  /// No description provided for @groupsUnavailableError.
+  ///
+  /// In en, this message translates to:
+  /// **'This group is unavailable or requires an invitation.'**
+  String get groupsUnavailableError;
+
   /// No description provided for @communityUsername.
   ///
   /// In en, this message translates to:
@@ -4481,7 +5459,7 @@ abstract class AppLocalizations {
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
-  /// **'Language / اللغة'**
+  /// **'Language'**
   String get language;
 
   /// No description provided for @languageError.

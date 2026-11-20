@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/screens/groups.dart';
 import 'package:privilege/screens/alerts.dart';
 import 'package:privilege/models/community_models.dart';
@@ -16,6 +19,305 @@ void main() {
         authOptions: const AuthClientOptions(autoRefreshToken: false));
   });
   tearDownAll(() => client.dispose());
+
+  test('groups screen has no hardcoded UI literals or Arabic', () {
+    final source = File('lib/screens/groups.dart').readAsStringSync();
+    final pattern = RegExp(
+        r"""(?:Text\(\s*(?:const\s*)?|(?:labelText|hintText|tooltip|semanticLabel)\s*:\s*)['"]""");
+    expect(pattern.allMatches(source), isEmpty);
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+  });
+
+  testWidgets('group settings validation follows a live language change',
+      (tester) async {
+    final repo = _GroupsRepo(client);
+    Widget app(Locale locale) => MaterialApp(
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          home: GroupSettingsPage(repository: repo),
+        );
+    await tester.pumpWidget(app(const Locale('en')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Save'), 250,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Enter a name of at least'), findsOneWidget);
+    await tester.pumpWidget(app(const Locale('ar')));
+    await tester.pumpAndSettle();
+    final l =
+        AppLocalizations.of(tester.element(find.byType(GroupSettingsPage)))!;
+    expect(find.text(l.groupsValidation), findsOneWidget);
+    expect(find.textContaining('Enter a name of at least'), findsNothing);
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('group membership and reporting at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: GroupPage(repository: repo, groupId: 'group'),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupPage)))!;
+      expect(find.text('Fitness friends'), findsOneWidget);
+      expect(find.text('Welcome'), findsOneWidget);
+      expect(find.text(l.groupJoinToSee), findsOneWidget);
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.groupReportGroup));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupReport), findsOneWidget);
+      await tester.enterText(
+          find.widgetWithText(TextField, l.groupReason), 'Reason typed');
+      await tester.tap(find.text(l.communitySubmit));
+      await tester.pumpAndSettle();
+      expect(repo.lastParams?['p_reason'], 'Reason typed');
+      expect(find.text(l.communityReportSubmitted), findsOneWidget);
+      await tester.tap(find.text(l.groupJoin));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupLeave), findsOneWidget);
+      expect(find.text(l.groupNoPosts), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('group posts comments and member actions at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client)
+        ..status = 'active'
+        ..role = 'owner'
+        ..showPost = true
+        ..postHasImage = false
+        ..extraMembers = [
+          {'user_id': 'requester', 'status': 'pending', 'role': 'member'}
+        ];
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: GroupPage(repository: repo, groupId: 'group'),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupPage)))!;
+      await tester.tap(find.text(l.groupCreatePost));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(TextField, l.groupWritePost), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(l.groupCancel));
+      await tester.pumpAndSettle();
+      expect(find.text('Group post'), findsOneWidget);
+      await tester.tap(find.text(l.communityComments));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupNoComments), findsOneWidget);
+      await tester.enterText(
+          find.widgetWithText(TextField, l.groupComment), 'A typed comment');
+      await tester.tap(find.byTooltip(l.groupSendComment));
+      await tester.pumpAndSettle();
+      expect(repo.lastParams?['p_body'], 'A typed comment');
+      expect(find.text('A typed comment'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('requester'), 200,
+          scrollable: find.byType(Scrollable).first);
+      final tile = find
+          .ancestor(of: find.text('requester'), matching: find.byType(ListTile))
+          .first;
+      await tester.tap(find.descendant(
+          of: tile, matching: find.byType(PopupMenuButton<String>)));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupApproveRequest), findsOneWidget);
+      await tester.tap(find.text(l.groupBan));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupBanDetails), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(l.groupCancel));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('banned members and invite screens at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client)
+        ..status = 'active'
+        ..role = 'moderator'
+        ..banned = [
+          {
+            'user_id': 'banned',
+            'full_name': 'Banned Person',
+            'username': 'person',
+            'banned_at': '2026-01-02T00:00:00Z',
+            'banned_by_full_name': 'Moderator Name'
+          }
+        ];
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: GroupPage(repository: repo, groupId: 'group'),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupPage)))!;
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.groupBannedMembers));
+      await tester.pumpAndSettle();
+      expect(find.text('Banned Person'), findsOneWidget);
+      expect(find.textContaining('2026'), findsOneWidget);
+      expect(find.textContaining(l.groupBannedBy('Moderator Name')),
+          findsOneWidget);
+      await tester.tap(find.text(l.groupUnban));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupUnbanDetails), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(l.groupCancel));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.groupInvitePeople));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupSearchInvite), findsOneWidget);
+      expect(
+          find.widgetWithText(TextField, l.groupSearchUsers), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('group discovery and settings at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client);
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: GroupsTab(repository: repo)),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupsTab)))!;
+      expect(find.text(l.groupsDiscover), findsOneWidget);
+      expect(find.text(l.groupsMine), findsOneWidget);
+      expect(find.text('Fitness friends'), findsOneWidget);
+      expect(find.text(l.groupsSummary('Fitness', l.groupsPublic)),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.byTooltip(l.groupsCreate));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsCreate), findsOneWidget);
+      expect(find.text(l.groupsFitness), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text(l.groupsFitness));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsRunning), findsWidgets);
+      await tester.tap(find.text(l.groupsRunning).last);
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text(l.groupsPublic), 160,
+          scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text(l.groupsPublic));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.groupsPrivate).last);
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsPrivateInvitation), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(find.text(l.groupsSave), 250,
+          scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text(l.groupsSave));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsValidation), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.scrollUntilVisible(
+          find.widgetWithText(TextField, l.groupsName), -250,
+          scrollable: find.byType(Scrollable).first);
+      await tester.enterText(
+          find.widgetWithText(TextField, l.groupsName), 'Fitness friends');
+      await tester.scrollUntilVisible(find.text(l.groupsSave), 250,
+          scrollable: find.byType(Scrollable).first);
+      await tester.tap(find.text(l.groupsSave));
+      await tester.pumpAndSettle();
+      expect(repo.lastParams?['p_name'], 'Fitness friends');
+      expect(repo.lastParams?['p_category'], 'Running & cardio');
+      expect(repo.lastParams?['p_visibility'], 'private');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('group invitations and pending status at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client)
+        ..status = 'pending'
+        ..showInvitation = true;
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: GroupsTab(repository: repo)),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupsTab)))!;
+      expect(
+          find.text(l.groupsPendingSummary(
+              l.groupsSummary('Fitness', l.groupsPublic))),
+          findsOneWidget);
+      await tester.tap(find.text(l.groupsMine));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsInvitations), findsOneWidget);
+      expect(find.text(l.groupsOpenToAccept), findsOneWidget);
+      expect(find.text('Fitness friends'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('empty and error groups states at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final repo = _GroupsRepo(client)..emptyGroups = true;
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: GroupsTab(repository: repo)),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(GroupsTab)))!;
+      expect(find.text(l.groupsNone), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      repo.groupsFailure = const GroupException('This group is full.');
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: GroupsTab(key: UniqueKey(), repository: repo)),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text(l.groupsFullError), findsOneWidget);
+      expect(find.text(l.groupsRetry), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('create group sends the form to the secure function',
       (tester) async {
@@ -264,7 +566,7 @@ void main() {
     await tester.pumpWidget(
         MaterialApp(home: Scaffold(body: GroupsTab(repository: repo))));
     await tester.pumpAndSettle();
-    expect(find.textContaining('Fitness · public'), findsOneWidget);
+    expect(find.textContaining('Fitness · Public'), findsOneWidget);
     await tester.tap(find.text('All'));
     await tester.pumpAndSettle();
     for (final category in groupCategories) {
@@ -272,7 +574,7 @@ void main() {
     }
     await tester.tap(find.text('Other').last);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Fitness · public'), findsOneWidget);
+    expect(find.textContaining('Fitness · Public'), findsOneWidget);
     await tester.tap(find.text('Other'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nutrition').last);
@@ -329,7 +631,7 @@ void main() {
     final counter = tester.widget<Align>(find
         .ancestor(of: find.text('3 / 80'), matching: find.byType(Align))
         .first);
-    expect(counter.alignment, Alignment.centerRight);
+    expect(counter.alignment, AlignmentDirectional.centerEnd);
     final keyboardInset = 300 * tester.view.devicePixelRatio;
     tester.view.viewInsets = FakeViewPadding(bottom: keyboardInset);
     addTearDown(tester.view.resetViewInsets);
@@ -562,6 +864,11 @@ class _GroupsRepo extends GroupsRepository {
   String role = 'member';
   bool hiddenUntilJoin = false;
   bool showPost = false;
+  bool postHasImage = true;
+  final List<Map<String, dynamic>> testComments = [];
+  bool emptyGroups = false;
+  bool showInvitation = false;
+  Object? groupsFailure;
   String? avatarUrl;
   Map<String, dynamic>? lastParams;
   Object? failure;
@@ -589,7 +896,11 @@ class _GroupsRepo extends GroupsRepository {
   Future<Group?> group(String id) async =>
       hiddenUntilJoin && status != 'active' ? null : item;
   @override
-  Future<List<Group>> groups() async => [item];
+  Future<List<Group>> groups() async {
+    if (groupsFailure != null) throw groupsFailure!;
+    return emptyGroups ? [] : [item];
+  }
+
   @override
   Future<List<Map<String, dynamic>>> myMemberships() async => status == null
       ? []
@@ -597,7 +908,11 @@ class _GroupsRepo extends GroupsRepository {
           {'group_id': 'group', 'status': status}
         ];
   @override
-  Future<List<Map<String, dynamic>>> invitations() async => [];
+  Future<List<Map<String, dynamic>>> invitations() async => showInvitation
+      ? [
+          {'group_id': 'group'}
+        ]
+      : [];
   @override
   Future<List<Map<String, dynamic>>> bannedMembers(String id) async {
     bannedReads++;
@@ -630,7 +945,7 @@ class _GroupsRepo extends GroupsRepository {
               'id': 'post',
               'author_id': 'me',
               'body': 'Group post',
-              'image_path': 'photo'
+              'image_path': postHasImage ? 'photo' : null
             }
           ]
         : [];
@@ -639,17 +954,21 @@ class _GroupsRepo extends GroupsRepository {
   @override
   Future<List<Map<String, dynamic>>> likes(String id) async => [];
   @override
+  Future<List<Map<String, dynamic>>> comments(String id) async =>
+      List.of(testComments);
+  @override
   Future<String> imageUrl(String path) async =>
       '${SupabaseConfig.url}/storage/v1/object/sign/posts/image.png';
   @override
-  Future<Map<String, dynamic>?> profile(String id) async => showPost
-      ? {
-          'username': 'hossam',
-          'full_name': 'Hossam Ahmed',
-          'avatar_url':
-              '${SupabaseConfig.url}/storage/v1/object/public/avatars/avatar.png'
-        }
-      : {'username': id};
+  Future<Map<String, dynamic>?> profile(String id) async =>
+      showPost && id == 'me'
+          ? {
+              'username': 'hossam',
+              'full_name': 'Hossam Ahmed',
+              'avatar_url':
+                  '${SupabaseConfig.url}/storage/v1/object/public/avatars/avatar.png'
+            }
+          : {'username': id};
   @override
   Future<dynamic> rpc(String name, Map<String, dynamic> params) async {
     lastCall = name;
@@ -661,6 +980,9 @@ class _GroupsRepo extends GroupsRepository {
     if (name == 'group_leave') status = null;
     if (name == 'group_unban') {
       banned.removeWhere((m) => m['user_id'] == params['p_user']);
+    }
+    if (name == 'group_create_comment') {
+      testComments.add({'body': params['p_body'], 'author_id': 'me'});
     }
     if (name == 'group_manage_member' &&
         ['remove', 'ban'].contains(params['p_action'])) {

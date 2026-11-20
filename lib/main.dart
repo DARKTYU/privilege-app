@@ -87,7 +87,7 @@ class _SplashContentState extends State<_SplashContent>
                       const PrivilegeLogo(width: 190),
                       const SizedBox(height: 18),
                       Text(
-                        'EAT WELL. STAY WELL.',
+                        strings(context).splashSlogan,
                         style: TextStyle(
                           color: kCream,
                           fontSize: 11,
@@ -147,12 +147,12 @@ class PrivilegeApp extends StatelessWidget {
                         title: strings(context).arena,
                         builder: () => ArenaScreen(),
                       )),
-                  '/rewards': (_) => _protected(AppPage(
-                        title: 'Rewards Store',
+                  '/rewards': (context) => _protected(AppPage(
+                        title: strings(context).arenaRewardsStore,
                         builder: () => const RewardsStoreScreen(),
                       )),
-                  '/badges': (_) => _protected(AppPage(
-                        title: 'Badges & Achievements',
+                  '/badges': (context) => _protected(AppPage(
+                        title: strings(context).arenaBadgesAchievements,
                         builder: () => const BadgesAchievementsScreen(),
                       )),
                   '/cheats': (context) => _protected(AppPage(

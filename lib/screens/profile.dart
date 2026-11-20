@@ -107,7 +107,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ? strings(context).usernameTaken
                 : error.code == 'invalid_username'
                     ? strings(context).invalidUsername
-                    : error.message)));
+                    : friendlyError(error.message, localizations: strings(context)))));
       }
       return;
     } finally {
@@ -451,7 +451,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   } on AuthException catch (error) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(error.message)),
+                        SnackBar(content: Text(friendlyError(error.message, localizations: strings(context)))),
                       );
                     }
                   }

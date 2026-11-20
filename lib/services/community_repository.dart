@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
 import '../models/community_models.dart';
 import '../models/community_post.dart';
 import 'session_recovery.dart';
@@ -29,7 +30,7 @@ class CommunityRepository {
   String get _userId {
     final id = client.auth.currentUser?.id;
     if (id == null) {
-      throw const CommunityException('Please sign in again.');
+      throw CommunityException(savedLanguageStrings().communityErrorSignIn);
     }
     return id;
   }
@@ -42,14 +43,11 @@ class CommunityRepository {
     } on StorageException catch (error) {
       throw CommunityException(error.message);
     } on http.ClientException {
-      throw const CommunityException(
-          'Could not connect. Check your internet connection.');
+      throw CommunityException(savedLanguageStrings().communityErrorConnection);
     } on SocketException {
-      throw const CommunityException(
-          'Could not connect. Check your internet connection.');
+      throw CommunityException(savedLanguageStrings().communityErrorConnection);
     } on TimeoutException {
-      throw const CommunityException(
-          'The request timed out. Please try again.');
+      throw CommunityException(savedLanguageStrings().communityErrorTimeout);
     }
   }
 
@@ -68,20 +66,19 @@ class CommunityRepository {
 
   Future<void> post(String body, String visibility, {XFile? image}) async {
     if (body.trim().isEmpty) {
-      throw const CommunityException(
-          'Write something before sharing your post.');
+      throw CommunityException(savedLanguageStrings().communityErrorEmptyPost);
     }
     if (body.length > 5000) {
-      throw const CommunityException('Posts must be 5000 characters or fewer.');
+      throw CommunityException(savedLanguageStrings().communityErrorPostLength);
     }
     if (image != null) {
       final length = await image.length();
       if (length == 0 || length > imageMaxBytes) {
-        throw const CommunityException('Choose an image smaller than 8 MB.');
+        throw CommunityException(savedLanguageStrings().communityErrorImageSize);
       }
       final type = _mimeType(image);
       if (type != 'image/jpeg' && type != 'image/png' && type != 'image/webp') {
-        throw const CommunityException('Choose a JPG, PNG, or WebP image.');
+        throw CommunityException(savedLanguageStrings().communityErrorImageType);
       }
     }
 
@@ -115,8 +112,7 @@ class CommunityRepository {
           await _request(
               () => client.storage.from(imageBucket).remove([imagePath]));
         } on StorageException catch (cleanupError) {
-          throw CommunityException(
-              '$error (The uploaded image could not be cleaned up: ${cleanupError.message})');
+          throw CommunityException(friendlyError(cleanupError));
         }
       }
       rethrow;
@@ -155,7 +151,7 @@ class CommunityRepository {
 
   Future<void> deletePost(CommunityPost post) async {
     if (post.authorId != _userId) {
-      throw const CommunityException('You can only delete your own post.');
+      throw CommunityException(savedLanguageStrings().communityErrorDeleteOwn);
     }
     if (post.imagePath != null) {
       await _request(
@@ -255,7 +251,7 @@ class CommunityRepository {
   Future<void> comment(String postId, String body) async {
     final value = body.trim();
     if (value.isEmpty || value.length > 2000) {
-      throw const CommunityException('Comments must be 1–2000 characters.');
+      throw CommunityException(savedLanguageStrings().communityErrorCommentLength);
     }
     await _request(() => client
         .from('community_comments')
@@ -345,7 +341,7 @@ class CommunityRepository {
   Future<int> unreadCount() async {
     final count = await _request(() => client.rpc('community_unread_count'));
     if (count is! num) {
-      throw const CommunityException('Could not load notification count.');
+      throw CommunityException(savedLanguageStrings().errorUnreadCount);
     }
     return count.toInt();
   }

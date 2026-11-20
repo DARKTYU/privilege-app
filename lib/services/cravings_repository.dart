@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n_strings.dart';
 
 import 'planner_repository.dart';
 import 'session_recovery.dart';
@@ -28,7 +29,7 @@ class CravingsRepository implements CravingsDataSource {
   @override
   String? get accountId => _client.auth.currentUser?.id;
   String get _user =>
-      accountId ?? (throw const AuthException('Please log in again.'));
+      accountId ?? (throw AuthException(savedLanguageStrings().sessionExpired));
 
   @override
   Future<List<Craving>> loadMonth(String start, String end) async {
@@ -90,7 +91,7 @@ class CravingsRepository implements CravingsDataSource {
         .eq('id', id)
         .select('id'));
     if (rows.isEmpty) {
-      throw StateError('The craving was not found or was already deleted.');
+      throw StateError(savedLanguageStrings().errorCravingMissing);
     }
   }
 }

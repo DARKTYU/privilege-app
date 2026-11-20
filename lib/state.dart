@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import 'logic/fitness_logic.dart';
+import 'l10n_strings.dart';
 import 'logic/calorie_target.dart';
 import 'logic/food_nutrition.dart';
 import 'logic/user_profile.dart';
@@ -48,10 +49,10 @@ class AppState extends ChangeNotifier {
       String? Function() account, Future<T> Function() action) async {
     final user = account();
     final generation = _plannerAccountGeneration;
-    if (user == null) throw StateError('Please log in again.');
+    if (user == null) throw StateError(savedLanguageStrings().sessionExpired);
     final result = await action();
     if (user != account() || generation != _plannerAccountGeneration) {
-      throw StateError('Account changed. Please try again.');
+      throw StateError(savedLanguageStrings().errorAccountChanged);
     }
     return result;
   }
@@ -99,7 +100,7 @@ class AppState extends ChangeNotifier {
     plannerError = null;
     notifyListeners();
     try {
-      if (user == null) throw StateError('Please log in again.');
+      if (user == null) throw StateError(savedLanguageStrings().sessionExpired);
       final result = await _plannerRepository.load(start, end);
       if (generation != _plannerGeneration ||
           user != _plannerRepository.accountId) {
@@ -114,7 +115,7 @@ class AppState extends ChangeNotifier {
     } catch (error) {
       if (generation == _plannerGeneration &&
           user == _plannerRepository.accountId) {
-        plannerError = error.toString();
+        plannerError = friendlyError(error);
       }
     } finally {
       if (generation == _plannerGeneration &&
@@ -128,10 +129,10 @@ class AppState extends ChangeNotifier {
   Future<T> _plannerWrite<T>(
       Future<T> Function() action, void Function(T) apply) async {
     if (_plannerSaving) {
-      throw StateError('A planner save is already in progress.');
+      throw StateError(savedLanguageStrings().errorPlannerBusy);
     }
     final user = _plannerRepository.accountId;
-    if (user == null) throw StateError('Please log in again.');
+    if (user == null) throw StateError(savedLanguageStrings().sessionExpired);
     final accountGeneration = _plannerAccountGeneration;
     _plannerSaving = true;
     try {
@@ -344,7 +345,8 @@ class AppState extends ChangeNotifier {
     final preferences = await SharedPreferences.getInstance();
     final userId = SupabaseAuthService.client.auth.currentUser?.id;
     if (userId == null) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     await preferences.setString('privilege_profile_photo_$userId', encoded);
     profilePhotoBase64 = encoded;
@@ -355,7 +357,8 @@ class AppState extends ChangeNotifier {
     final preferences = await SharedPreferences.getInstance();
     final userId = SupabaseAuthService.client.auth.currentUser?.id;
     if (userId == null) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     await preferences.remove('privilege_profile_photo_$userId');
     profilePhotoBase64 = null;
@@ -379,7 +382,7 @@ class AppState extends ChangeNotifier {
   Future<void> completeOnboarding(UserProfile p) async {
     if (SupabaseAuthService.client.auth.currentSession == null) {
       throw AuthException(
-          'invalid_session', 'Please log in again to finish setup.');
+          'invalid_session', savedLanguageStrings().errorLogInSetup);
     }
     final goal = resolveNutritionGoal(p.targetGoal, p.nutritionGoal);
     final result = targetForProfile(
@@ -408,7 +411,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> updateProfile(UserProfile p) async {
     if (SupabaseAuthService.client.auth.currentSession == null) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     final goal = resolveNutritionGoal(p.targetGoal, p.nutritionGoal);
     final result = targetForProfile(p.copyWith(nutritionGoal: goal));
@@ -459,7 +463,8 @@ class AppState extends ChangeNotifier {
     required TargetActivity activity,
   }) async {
     if (SupabaseAuthService.client.auth.currentSession == null) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     final goal =
         resolveNutritionGoal(profile.targetGoal, profile.nutritionGoal);
@@ -474,7 +479,7 @@ class AppState extends ChangeNotifier {
         nutritionGoal: goal);
     final result = targetForProfile(candidate);
     if (result.isEstimate || result.target == null) {
-      throw StateError('Enter valid profile details before saving.');
+      throw StateError(savedLanguageStrings().errorProfileInvalid);
     }
     final date = '${birthDate.year.toString().padLeft(4, '0')}-'
         '${birthDate.month.toString().padLeft(2, '0')}-'
@@ -581,8 +586,8 @@ class AppState extends ChangeNotifier {
           loadGeneration != _activityLoadGeneration) {
         return false;
       }
-      activityError = 'Could not load today’s activity: $error';
-      debugPrint(activityError);
+      debugPrint('Could not load today’s activity: $error');
+      activityError = savedLanguageStrings().errorActivityLoad;
       return false;
     } finally {
       if (_isCurrentActivitySession(userId, generation) &&
@@ -603,7 +608,8 @@ class AppState extends ChangeNotifier {
       {String? successMessage}) async {
     final userId = SupabaseAuthService.client.auth.currentUser?.id;
     if (userId == null || !loggedIn) {
-      throw AuthException('invalid_session', 'Please log in again.');
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     await write();
     if (!loggedIn ||
@@ -632,15 +638,18 @@ class AppState extends ChangeNotifier {
     await _writeActivity(
       () => _activityRepository.setMealConsumed(id, updated),
       successMessage: updated
-          ? 'Logged ${m.name} (+${m.calories} kcal)!'
-          : 'Unchecked ${m.name} (-${m.calories} kcal)!',
+          ? savedLanguageStrings()
+              .feedbackLoggedMeal(m.name, m.calories.toString())
+          : savedLanguageStrings()
+              .feedbackUncheckedMeal(m.name, m.calories.toString()),
     );
   }
 
   Future<void> addMeal(MealItem item) async {
     await _writeActivity(
       () => _activityRepository.addMeal(item),
-      successMessage: 'Added meal ${item.name} (+${item.calories} kcal)!',
+      successMessage: savedLanguageStrings()
+          .feedbackAddedMeal(item.name, item.calories.toString()),
     );
   }
 
@@ -674,7 +683,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> updateFoodPortion(MealItem log, double newGrams) async {
     if (log.source != 'food_db' || log.foodId == null || log.foodId!.isEmpty) {
-      throw StateError('This meal is not linked to a food in the database.');
+      throw StateError(savedLanguageStrings().errorFoodNotLinked);
     }
     final grams = _foodGrams(newGrams);
     await _foodDatabase.load();
@@ -686,8 +695,7 @@ class AppState extends ChangeNotifier {
       }
     }
     if (food == null) {
-      throw StateError(
-          'This food is no longer available in the food database. The meal was not changed.');
+      throw StateError(savedLanguageStrings().errorFoodUnavailable);
     }
     final portion = calculateFoodPortion(food.per100g, grams);
     final updated = log.copyWith(
@@ -703,7 +711,7 @@ class AppState extends ChangeNotifier {
     );
     await _writeActivity(
       () => _activityRepository.updateFoodPortion(updated),
-      successMessage: 'Updated ${log.name}.',
+      successMessage: savedLanguageStrings().feedbackUpdated(log.name),
     );
   }
 
@@ -720,15 +728,16 @@ class AppState extends ChangeNotifier {
     final item = meals[i];
     await _writeActivity(
       () => _activityRepository.removeMeal(id),
-      successMessage: 'Removed ${item.name} (-${item.calories} kcal)!',
+      successMessage: savedLanguageStrings()
+          .feedbackRemovedMeal(item.name, item.calories.toString()),
     );
   }
 
   Future<void> addBurn(BurnItem workout) async {
     await _writeActivity(
       () => _activityRepository.addWorkout(workout),
-      successMessage:
-          'Added workout ${workout.title} (-${workout.calories} kcal burn)!',
+      successMessage: savedLanguageStrings()
+          .feedbackAddedWorkout(workout.title, workout.calories.toString()),
     );
   }
 
@@ -738,7 +747,8 @@ class AppState extends ChangeNotifier {
     final item = burns[i];
     await _writeActivity(
       () => _activityRepository.removeWorkout(id),
-      successMessage: 'Removed ${item.title} (-${item.calories} kcal burn)!',
+      successMessage: savedLanguageStrings()
+          .feedbackRemovedWorkout(item.title, item.calories.toString()),
     );
   }
 
@@ -763,13 +773,15 @@ class AppState extends ChangeNotifier {
     } else {
       final i = meals.indexWhere((m) => m.consumed && m.calories >= amount);
       if (i == -1) {
-        throw StateError('There is no logged meal to reduce by $amount kcal.');
+        throw StateError(
+            savedLanguageStrings().errorReduceMeal(amount.toString()));
       }
       final meal = meals[i];
       await _writeActivity(
         () => _activityRepository.setMealCalories(
             meal.id, meal.calories - amount),
-        successMessage: 'Deducted $amount kcal from food intake!',
+        successMessage:
+            savedLanguageStrings().feedbackDeductFood(amount.toString()),
       );
     }
   }
@@ -790,13 +802,14 @@ class AppState extends ChangeNotifier {
       );
     } else {
       if (burns.isEmpty) {
-        throw StateError('There is no logged workout to reduce.');
+        throw StateError(savedLanguageStrings().errorReduceWorkout);
       }
       final workout = burns.first;
       await _writeActivity(
         () => _activityRepository.setWorkoutCalories(
             workout.id, (workout.calories - amount).clamp(0, 1000000).toInt()),
-        successMessage: 'Deducted $amount kcal from workout burn!',
+        successMessage:
+            savedLanguageStrings().feedbackDeductWorkout(amount.toString()),
       );
     }
   }

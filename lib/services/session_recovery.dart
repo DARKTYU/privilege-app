@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n_strings.dart';
 
 class SessionExpiredException implements Exception {
   const SessionExpiredException();
 
   @override
-  String toString() => 'Please log in again.';
+  String toString() => savedLanguageStrings().sessionExpired;
 }
 
 class SessionRecovery {

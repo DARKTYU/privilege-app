@@ -134,7 +134,8 @@ void main() {
     repo.failure = 'network failure';
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('network failure'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(state.plannerSplits, isEmpty);
   });
 
@@ -256,7 +257,8 @@ void main() {
     await tapVisible(tester, find.text('Plan this day'));
     await tester.tap(find.text('Rest day').last);
     await tester.pumpAndSettle();
-    expect(find.textContaining('offline day'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(state.plannerDays.where((d) => d.date == '2026-11-21').single.name,
         'Future');
     repo.failure = null;
@@ -319,8 +321,7 @@ void main() {
         'split dialogs space fields and show validation at scale $scale',
         (tester) async {
       final (_, state) = await render(tester, scale: scale);
-      await tester.scrollUntilVisible(
-          find.text('Create your first split'), 200,
+      await tester.scrollUntilVisible(find.text('Create your first split'), 200,
           scrollable: find.descendant(
               of: find.byType(ListView), matching: find.byType(Scrollable)));
       await tester.pumpAndSettle();

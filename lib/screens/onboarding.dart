@@ -45,9 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       case 'Could not connect. Check your internet connection and try again.':
         return l.networkError;
       default:
-        return value.startsWith('Could not save your profile.')
-            ? '${l.profileSaveError} $value'
-            : value;
+        return friendlyError(value, localizations: l);
     }
   }
 

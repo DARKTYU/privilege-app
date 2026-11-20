@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n_strings.dart';
 
 import 'session_recovery.dart';
 
@@ -14,7 +15,7 @@ class ClassifiedChecksRepository implements ClassifiedChecksDataSource {
   @override
   String? get accountId => _client.auth.currentUser?.id;
   String get _user =>
-      accountId ?? (throw const AuthException('Please log in again.'));
+      accountId ?? (throw AuthException(savedLanguageStrings().sessionExpired));
 
   @override
   Future<Set<String>> load() async {

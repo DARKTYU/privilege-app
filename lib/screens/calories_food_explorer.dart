@@ -430,7 +430,7 @@ class _PortionSheetState extends State<_PortionSheet> {
     } catch (e) {
       if (mounted) {
         setState(
-            () => error = strings(context).explorerSaveError(e.toString()));
+            () => error = strings(context).explorerSaveError(friendlyError(e, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => saving = false);

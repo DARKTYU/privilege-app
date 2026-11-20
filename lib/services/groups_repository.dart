@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../l10n_strings.dart';
 import 'session_recovery.dart';
 
 class GroupException implements Exception {
@@ -21,18 +22,18 @@ String groupError(Object error) {
   final text = error is PostgrestException ? error.message : error.toString();
   final lower = text.toLowerCase();
   if (lower.contains('banned')) {
-    return 'You are banned from this group. Only the group owner or a moderator can unban you.';
+    return savedLanguageStrings().groupsBannedError;
   }
-  if (lower.contains('group is full')) return 'This group is full.';
+  if (lower.contains('group is full')) return savedLanguageStrings().groupsFullError;
   if (lower.contains('only moderators can post')) {
-    return 'Only moderators can post in this group.';
+    return savedLanguageStrings().groupsModeratorsOnlyError;
   }
   if (lower.contains('posting limit')) {
-    return 'Posting limit reached. Please try again later.';
+    return savedLanguageStrings().groupsPostingLimitError;
   }
-  if (lower.contains('three groups')) return 'You can create up to 3 groups.';
+  if (lower.contains('three groups')) return savedLanguageStrings().groupsCreationLimitError;
   if (lower.contains('group is unavailable')) {
-    return 'This group is unavailable or requires an invitation.';
+    return savedLanguageStrings().groupsUnavailableError;
   }
   return text;
 }
@@ -77,7 +78,7 @@ class GroupsRepository {
       _avatarCache[client] ??= {};
   String get userId =>
       client.auth.currentUser?.id ??
-      (throw const GroupException('Please sign in again.'));
+      (throw GroupException(savedLanguageStrings().communityErrorSignIn));
 
   Future<T> request<T>(Future<T> Function() action) async {
     try {
@@ -87,13 +88,11 @@ class GroupsRepository {
     } on StorageException catch (error) {
       throw GroupException(error.message);
     } on SocketException {
-      throw const GroupException(
-          'Could not connect. Check your internet connection.');
+      throw GroupException(savedLanguageStrings().communityErrorConnection);
     } on http.ClientException {
-      throw const GroupException(
-          'Could not connect. Check your internet connection.');
+      throw GroupException(savedLanguageStrings().communityErrorConnection);
     } on TimeoutException {
-      throw const GroupException('The request timed out. Please try again.');
+      throw GroupException(savedLanguageStrings().communityErrorTimeout);
     }
   }
 
@@ -189,18 +188,17 @@ class GroupsRepository {
       _ => null,
     };
     if (contentType == null || !name.contains('.')) {
-      throw const GroupException('Choose a JPG, PNG or WebP photo.');
+      throw GroupException(savedLanguageStrings().groupsPhotoTypeError);
     }
     final Uint8List bytes;
     try {
       bytes = await image.readAsBytes();
     } catch (error, stack) {
       debugPrint('Could not read group photo: $error\n$stack');
-      throw const GroupException(
-          'Could not read the photo. Please choose it again.');
+      throw GroupException(savedLanguageStrings().groupsPhotoReadError);
     }
     if (bytes.isEmpty) {
-      throw const GroupException('The photo is empty. Choose another photo.');
+      throw GroupException(savedLanguageStrings().groupsPhotoEmptyError);
     }
     final matchesType = switch (contentType) {
       'image/jpeg' => bytes.length >= 3 &&
@@ -215,8 +213,7 @@ class GroupsRepository {
       _ => false,
     };
     if (!matchesType) {
-      throw const GroupException(
-          'The photo does not match its file type. Choose a valid JPG, PNG or WebP image.');
+      throw GroupException(savedLanguageStrings().groupsPhotoMismatchError);
     }
     try {
       final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
@@ -243,8 +240,7 @@ class GroupsRepository {
         final resized =
             data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
         if (resized.length > 2 * 1024 * 1024) {
-          throw const GroupException(
-              'The photo is too large. Choose one under 2 MB.');
+          throw GroupException(savedLanguageStrings().groupsPhotoSizeError);
         }
         return GroupAvatarImage(resized, 'png', 'image/png');
       }
@@ -252,12 +248,10 @@ class GroupsRepository {
       rethrow;
     } catch (error, stack) {
       debugPrint('Could not decode group photo: $error\n$stack');
-      throw const GroupException(
-          'Could not read the photo. Choose a valid JPG, PNG or WebP image.');
+      throw GroupException(savedLanguageStrings().groupsPhotoInvalidError);
     }
     if (bytes.length > 2 * 1024 * 1024) {
-      throw const GroupException(
-          'The photo is too large. Choose one under 2 MB.');
+      throw GroupException(savedLanguageStrings().groupsPhotoSizeError);
     }
     return GroupAvatarImage(bytes, extension, contentType);
   }
@@ -303,20 +297,17 @@ class GroupsRepository {
                           ? 'image/jpeg'
                           : null;
       if (type == null) {
-        throw const GroupException(
-            'Choose a JPG, PNG or WebP image smaller than 8 MB.');
+        throw GroupException(savedLanguageStrings().groupImageTypeSizeError);
       }
       final Uint8List bytes;
       try {
         bytes = await image.readAsBytes();
       } catch (error, stack) {
         debugPrint('Could not read group image: $error\n$stack');
-        throw const GroupException(
-            'Could not read the image. Please choose it again.');
+        throw GroupException(savedLanguageStrings().groupImageReadError);
       }
       if (bytes.isEmpty || bytes.length > 8 * 1024 * 1024) {
-        throw const GroupException(
-            'Choose a JPG, PNG or WebP image smaller than 8 MB.');
+        throw GroupException(savedLanguageStrings().groupImageTypeSizeError);
       }
       final suffix = type == 'image/png'
           ? 'png'
@@ -335,8 +326,7 @@ class GroupsRepository {
                 fileOptions: FileOptions(contentType: type)));
       } on GroupException catch (error, stack) {
         debugPrint('Group image upload failed: $error\n$stack');
-        throw const GroupException(
-            'Could not upload the image. Please try again.');
+        throw GroupException(savedLanguageStrings().groupImageUploadError);
       }
     }
     try {
@@ -348,8 +338,7 @@ class GroupsRepository {
           await request(
               () => client.storage.from('group-post-images').remove([path!]));
         } catch (cleanupError) {
-          throw GroupException(
-              '${groupError(error)} Image cleanup failed: ${groupError(cleanupError)}');
+          throw GroupException(friendlyError(cleanupError));
         }
       }
       rethrow;

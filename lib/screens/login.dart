@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
       case 'If this email can be registered, check your inbox for a confirmation link, then log in.':
         return l.registrationConfirm;
       default:
-        return value;
+        return friendlyError(value, localizations: l);
     }
   }
 

@@ -1,8 +1,16 @@
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../logic/fitness_logic.dart';
+import '../l10n_strings.dart';
+import '../l10n/app_localizations.dart';
 import 'session_recovery.dart';
+
+String formatActivityTime(DateTime date, AppLocalizations localizations) =>
+    (DateFormat.jm(localizations.localeName)..useNativeDigits = false)
+        .format(date);
 
 class ActivitySnapshot {
   const ActivitySnapshot({
@@ -28,11 +36,12 @@ class ActivityRepository {
 
   String get _userId {
     final id = _client.auth.currentUser?.id;
-    if (id == null) throw const AuthException('Please log in again.');
+    if (id == null) throw AuthException(savedLanguageStrings().sessionExpired);
     return id;
   }
 
   Future<ActivitySnapshot> loadToday() async {
+    await initializeDateFormatting(savedLanguageStrings().localeName);
     final userId = _userId;
     final timezone = await FlutterTimezone.getLocalTimezone();
     await _session.request(() => _client.rpc(
@@ -63,7 +72,7 @@ class ActivityRepository {
     final pointsBalance =
         await _session.request(() => _client.rpc('store_points_balance'));
     if (pointsBalance is! num) {
-      throw const FormatException('Could not load the store-points balance.');
+      throw FormatException(savedLanguageStrings().errorPointsBalance);
     }
 
     final streak = streakRow;
@@ -119,7 +128,7 @@ class ActivityRepository {
         meal.foodId == null ||
         meal.foodId!.isEmpty ||
         meal.grams == null) {
-      throw StateError('This meal is not linked to a food in the database.');
+      throw StateError(savedLanguageStrings().errorFoodNotLinked);
     }
     final rows = await _session.request(() => _client
         .from('meal_logs')
@@ -140,7 +149,7 @@ class ActivityRepository {
         .eq('food_id', meal.foodId!)
         .select('id'));
     if (rows.isEmpty) {
-      throw StateError('The food log could not be found or has changed.');
+      throw StateError(savedLanguageStrings().errorFoodChanged);
     }
   }
 
@@ -199,7 +208,7 @@ class ActivityRepository {
   Future<String> _today() async {
     final result = await _session.request(() => _client.rpc('activity_today'));
     if (result is! String || result.isEmpty) {
-      throw const FormatException('Could not determine today’s activity date.');
+      throw FormatException(savedLanguageStrings().errorActivityDate);
     }
     return result;
   }
@@ -211,9 +220,7 @@ class ActivityRepository {
 
   MealItem _mealFromRow(Map<String, dynamic> row) {
     final date = DateTime.parse(row['created_at'] as String).toLocal();
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final suffix = date.hour < 12 ? 'AM' : 'PM';
+    final time = formatActivityTime(date, savedLanguageStrings());
     final category = MealCategory.values.firstWhere(
       (value) => value.name == row['category'],
       orElse: () => MealCategory.snack,
@@ -221,7 +228,7 @@ class ActivityRepository {
     return MealItem(
       id: row['id'] as String,
       name: row['name'] as String,
-      time: '$hour:$minute $suffix',
+      time: time,
       calories: (row['calories'] as num).round(),
       proteinGrams: (row['protein_g'] as num).round(),
       carbsGrams: (row['carbs_g'] as num).round(),
@@ -241,9 +248,7 @@ class ActivityRepository {
 
   BurnItem _workoutFromRow(Map<String, dynamic> row) {
     final date = DateTime.parse(row['created_at'] as String).toLocal();
-    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final suffix = date.hour < 12 ? 'AM' : 'PM';
+    final time = formatActivityTime(date, savedLanguageStrings());
     final type = BurnType.values.firstWhere(
       (value) => value.name == row['category'],
       orElse: () => BurnType.strength,
@@ -252,11 +257,13 @@ class ActivityRepository {
     return BurnItem(
       id: row['id'] as String,
       title: row['name'] as String,
-      time: '$hour:$minute $suffix • ${duration}m',
+      time: savedLanguageStrings()
+          .activityTimeDuration(time, duration.toString()),
       calories: (row['calories_burned'] as num).toInt(),
       type: type,
       durationMin: duration,
       icon: row['icon'] as String,
+      createdAt: date,
     );
   }
 }

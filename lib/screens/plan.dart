@@ -118,7 +118,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
       });
       await _loadWeek();
     } catch (error) {
-      if (mounted) setState(() => initialError = error.toString());
+      if (mounted) setState(() => initialError = friendlyError(error, localizations: strings(context)));
     }
   }
 
@@ -164,7 +164,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content:
-                Text(strings(context).plannerSaveError(error.toString()))));
+                Text(strings(context).plannerSaveError(friendlyError(error, localizations: strings(context))))));
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -312,7 +312,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content:
-                Text(strings(context).plannerOpenError(error.toString()))));
+                Text(strings(context).plannerOpenError(friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -326,7 +326,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                 child: initialError == null
                     ? const CircularProgressIndicator()
                     : Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text(strings(context).plannerLoadError(initialError!)),
+                        Text(strings(context).plannerLoadError(friendlyError(
+                            initialError!, localizations: strings(context)))),
                         TextButton(
                             onPressed: _initialize,
                             child: Text(strings(context).plannerRetry)),
@@ -363,7 +364,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                 ]),
                 if (state.plannerLoading) const LinearProgressIndicator(),
                 if (state.plannerError != null) ...[
-                  Text(strings(context).plannerLoadError(state.plannerError!),
+                  Text(strings(context).plannerLoadError(friendlyError(
+                      state.plannerError!, localizations: strings(context))),
                       style: TextStyle(
                           color: Theme.of(context).colorScheme.error)),
                   TextButton(

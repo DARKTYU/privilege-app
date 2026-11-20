@@ -154,7 +154,8 @@ void main() {
     ]);
     await tester.enterText(find.byType(TextField), 'More');
     await tapVisible(tester, find.text('Add craving'));
-    expect(find.textContaining('cheat meal limit'), findsOneWidget);
+    expect(find.textContaining('The selected month already has 2 cravings.'),
+        findsOneWidget);
     expect(find.text('2 of 2 used this month'), findsOneWidget);
     expect(repo.current, hasLength(2));
   });
@@ -180,7 +181,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('cheat meal limit'), findsOneWidget);
+    expect(find.textContaining('The selected month already has 2 cravings.'),
+        findsOneWidget);
     expect(repo.current.first.date, '2026-11-20');
     expect(find.text('Original'), findsOneWidget);
   });
@@ -212,7 +214,8 @@ void main() {
     final state = create(meals, checks);
     addTearDown(state.dispose);
     await mount(tester, CheatsScreen(state: state));
-    expect(find.textContaining('offline meals'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(find.text('0 of 2 used this month'), findsNothing);
     meals.error = null;
     await tester.tap(find.text('Retry'));
@@ -221,7 +224,8 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await mount(tester,
         ChampionScreen(state: state, progressionRepository: FakeProgression()));
-    expect(find.textContaining('offline checks'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     final checkbox = tester.widget<CheckboxListTile>(find.ancestor(
         of: find.text('Set a personal training goal'),
         matching: find.byType(CheckboxListTile)));
@@ -229,7 +233,8 @@ void main() {
     checks.error = null;
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('offline checks'), findsNothing);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsNothing);
   });
 
   testWidgets('save error leaves data unchanged and is displayed',
@@ -241,7 +246,8 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Cake');
     meals.error = 'network unavailable';
     await tapVisible(tester, find.text('Add craving'));
-    expect(find.textContaining('network unavailable'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(meals.current, isEmpty);
     expect(find.text('0 of 2 used this month'), findsOneWidget);
   });
@@ -265,7 +271,8 @@ void main() {
     checks.error = 'offline';
     await tapVisible(tester, text);
     expect(tile().value, isTrue);
-    expect(find.textContaining('offline'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     checks.error = null;
     await tapVisible(tester, text);
     expect(tile().value, isFalse);

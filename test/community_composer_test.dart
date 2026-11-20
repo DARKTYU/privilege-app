@@ -30,6 +30,24 @@ void main() {
     expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
   });
   for (final language in ['en', 'ar']) {
+    testWidgets('unknown server error is hidden in $language', (tester) async {
+      final repository = _FakeCommunityRepository(client)
+        ..postError = const CommunityException('private server diagnostic');
+      await tester.pumpWidget(MaterialApp(
+        locale: Locale(language),
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Scaffold(body: CommunityScreen(repository: repository)),
+      ));
+      await tester.pumpAndSettle();
+      final l = AppLocalizations.of(tester.element(find.byType(CommunityScreen)))!;
+      await tester.tap(find.byTooltip(l.communityCreatePost));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.communitySharePost));
+      await tester.pumpAndSettle();
+      expect(find.text(l.genericError), findsOneWidget);
+      expect(find.textContaining('private server diagnostic'), findsNothing);
+    });
     testWidgets('post validation is localized in $language', (tester) async {
       final repository = _FakeCommunityRepository(client)
         ..postError = const CommunityException(

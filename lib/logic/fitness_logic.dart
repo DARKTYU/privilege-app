@@ -131,10 +131,12 @@ class BurnItem {
     required this.type,
     required this.durationMin,
     required this.icon,
+    this.createdAt,
   });
   final String id, title, time, icon;
   final int calories, durationMin;
   final BurnType type;
+  final DateTime? createdAt;
 
   BurnItem copyWith({String? id}) => BurnItem(
         id: id ?? this.id,
@@ -144,6 +146,7 @@ class BurnItem {
         type: type,
         durationMin: durationMin,
         icon: icon,
+        createdAt: createdAt,
       );
 }
 

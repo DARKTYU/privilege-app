@@ -178,7 +178,7 @@ class _AlertsPageState extends State<AlertsPage> {
     } catch (error) {
       if (!mounted || request != _request) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyError(error, localizations: strings(context));
         _loading = false;
       });
     }
@@ -199,7 +199,7 @@ class _AlertsPageState extends State<AlertsPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+            .showSnackBar(SnackBar(content: Text(friendlyError(error, localizations: strings(context)))));
       }
     }
   }
@@ -246,7 +246,7 @@ class _AlertsPageState extends State<AlertsPage> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
-                                            content: Text(error.toString())));
+                                            content: Text(friendlyError(error, localizations: strings(context)))));
                                   }
                                 }
                               },
@@ -376,7 +376,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         });
       }
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+      if (mounted) setState(() => _error = friendlyError(error, localizations: strings(context)));
     }
   }
 
@@ -389,7 +389,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error.toString())));
+            .showSnackBar(SnackBar(content: Text(friendlyError(error, localizations: strings(context)))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

@@ -58,7 +58,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
       }
     } catch (e) {
       if (mounted && token == generation && user == state.classifiedAccountId) {
-        setState(() => loadError = e.toString());
+        setState(() => loadError = friendlyError(e, localizations: strings(context)));
       }
     } finally {
       if (mounted && token == generation && user == state.classifiedAccountId) {
@@ -88,7 +88,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
-              content: Text(strings(context).pathSaveError(e.toString()))));
+              content: Text(strings(context).pathSaveError(friendlyError(e, localizations: strings(context))))));
       }
     } finally {
       if (mounted && token == generation) setState(() => saving.remove(key));

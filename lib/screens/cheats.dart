@@ -109,7 +109,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
       if (mounted && token == generation && user == state.cravingsAccountId) {
         setState(() {
           loading = false;
-          error = e.toString();
+          error = friendlyError(e, localizations: strings(context));
         });
       }
     }
@@ -132,7 +132,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
       setState(() => meals = rows);
     } catch (e) {
       if (mounted && token == generation && user == state.cravingsAccountId) {
-        setState(() => error = e.toString());
+        setState(() => error = friendlyError(e, localizations: strings(context)));
       }
     } finally {
       if (mounted && token == generation && user == state.cravingsAccountId) {
@@ -144,9 +144,10 @@ class _CheatsScreenState extends State<CheatsScreen> {
   void _message(Object e) {
     final text = e.toString();
     final l = strings(context);
+    final safe = friendlyError(e, localizations: l);
     final message = text.toLowerCase().contains('cheat meal limit')
-        ? l.cravingLimitError(text)
-        : l.cravingSaveError(text);
+        ? l.cravingLimitError(safe)
+        : l.cravingSaveError(safe);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(message)));

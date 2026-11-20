@@ -315,7 +315,8 @@ void main() {
     repo.failure = 'offline save';
     await tester.tap(find.text('Replace'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('offline save'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(repo.days.single.effort, 81);
   });
 
@@ -367,7 +368,8 @@ void main() {
     repo.failure = 'offline read';
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('offline read'), findsOneWidget);
+    expect(find.textContaining('Something went wrong. Please try again.'),
+        findsOneWidget);
     expect(repo.days, isEmpty);
   });
 

@@ -133,7 +133,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _challengeError = error.toString();
+        _challengeError = friendlyError(error, localizations: strings(context));
         _challengesLoading = false;
       });
     }
@@ -155,7 +155,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _invitationError = error.toString();
+        _invitationError = friendlyError(error, localizations: strings(context));
         _invitationsLoading = false;
       });
     }
@@ -181,7 +181,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _leaderboardError = error.toString();
+        _leaderboardError = friendlyError(error, localizations: strings(context));
         _leaderboardLoading = false;
       });
     }
@@ -302,7 +302,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       if (mounted) _message(strings(context).arenaCreated);
       await _loadChallenges();
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(friendlyError(error, localizations: strings(context)));
     } finally {
       if (mounted) setState(() => _creating = false);
     }
@@ -335,7 +335,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       setState(() => _challengeScope = 'mine');
       await _loadChallenges();
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(friendlyError(error, localizations: strings(context)));
     } finally {
       if (mounted) setState(() => _creating = false);
     }
@@ -354,7 +354,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       if (mounted) _message(strings(context).arenaJoined);
       await _loadChallenges();
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(friendlyError(error, localizations: strings(context)));
     } finally {
       _busyIds.remove(challenge.id);
       if (mounted) setState(() {});
@@ -373,7 +373,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       }
       await Future.wait([_loadInvitations(), _loadChallenges()]);
     } catch (error) {
-      _message(error.toString());
+      if (mounted) _message(friendlyError(error, localizations: strings(context)));
     } finally {
       _busyIds.remove(invitation.id);
       if (mounted) setState(() {});
@@ -458,7 +458,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
       Panel(
         child: Column(children: [
           if (state.activityError != null) ...[
-            Text(state.activityError!, textAlign: TextAlign.center),
+            Text(friendlyError(state.activityError!, localizations: strings(context)),
+                textAlign: TextAlign.center),
             TextButton.icon(
               onPressed: state.loadActivity,
               icon: const Icon(Icons.refresh),
@@ -722,7 +723,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
         if (snapshot.hasError) {
           return Padding(
             padding: const EdgeInsets.all(14),
-            child: Text(snapshot.error.toString()),
+            child: Text(friendlyError(snapshot.error!, localizations: strings(context))),
           );
         }
         if (!snapshot.hasData) {
@@ -866,7 +867,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   Widget _errorPanel(String message, Future<void> Function() retry) => Panel(
         child: Column(children: [
-          Text(message, textAlign: TextAlign.center),
+          Text(friendlyError(message, localizations: strings(context)),
+              textAlign: TextAlign.center),
           TextButton.icon(
             onPressed: () => unawaited(retry()),
             icon: const Icon(Icons.refresh),

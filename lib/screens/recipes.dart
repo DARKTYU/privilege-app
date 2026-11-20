@@ -201,7 +201,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         ScaffoldMessenger.of(feedbackContext).showSnackBar(
           SnackBar(
               content:
-                  Text(strings(feedbackContext).recipeLogError(e.toString()))),
+                  Text(strings(feedbackContext).recipeLogError(friendlyError(e, localizations: strings(feedbackContext))))),
         );
       }
     } finally {

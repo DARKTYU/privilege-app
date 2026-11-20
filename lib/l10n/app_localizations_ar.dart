@@ -9,6 +9,556 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get genericError => 'حدث خطأ. حاول مرة أخرى.';
+
+  @override
+  String get splashSlogan => 'كُل جيداً؛ وعِش بصحة';
+
+  @override
+  String get postImageOpen => 'فتح صورة المنشور';
+
+  @override
+  String get postImageTitle => 'صورة المنشور';
+
+  @override
+  String get postImageUnavailable => 'صورة المنشور غير متاحة.';
+
+  @override
+  String get postImageRetry => 'صورة المنشور غير متاحة. حاول مجدداً';
+
+  @override
+  String get errorUnreadCount => 'تعذر تحميل عدد الإشعارات.';
+
+  @override
+  String get errorAccountChanged => 'تغير الحساب. حاول مرة أخرى.';
+
+  @override
+  String get errorPlannerBusy => 'يجري حفظ خطة بالفعل.';
+
+  @override
+  String get errorActivityLoad => 'تعذر تحميل نشاط اليوم.';
+
+  @override
+  String get errorPointsBalance => 'تعذر تحميل رصيد نقاط المتجر.';
+
+  @override
+  String get errorActivityDate => 'تعذر تحديد تاريخ نشاط اليوم.';
+
+  @override
+  String get errorFoodNotLinked =>
+      'هذه الوجبة غير مرتبطة بطعام في قاعدة البيانات.';
+
+  @override
+  String get errorFoodChanged => 'تعذر العثور على سجل الطعام أو أنه تغير.';
+
+  @override
+  String get errorFoodUnavailable =>
+      'لم يعد هذا الطعام متاحاً في قاعدة البيانات. لم تتغير الوجبة.';
+
+  @override
+  String get errorSplitMissing =>
+      'لم يتم العثور على التمرين أو أنه حُذف بالفعل.';
+
+  @override
+  String get errorDayMissing =>
+      'لم يتم العثور على اليوم المخطط أو أنه أُزيل بالفعل.';
+
+  @override
+  String get errorCravingMissing =>
+      'لم يتم العثور على الوجبة أو أنها حُذفت بالفعل.';
+
+  @override
+  String get errorProfileInvalid => 'أدخل بيانات شخصية صحيحة قبل الحفظ.';
+
+  @override
+  String errorInvalidPlannerDate(String date) {
+    return 'تاريخ الخطة غير صالح: $date';
+  }
+
+  @override
+  String get errorProfileMissing =>
+      'تعذر العثور على ملفك الشخصي. تواصل مع مسؤول التطبيق.';
+
+  @override
+  String get errorProfileNotSaved => 'تعذر حفظ ملفك الشخصي.';
+
+  @override
+  String get errorSignInSession => 'لم يتم إنشاء جلسة تسجيل دخول.';
+
+  @override
+  String get errorCompleteSignIn => 'تعذر إكمال تسجيل الدخول. حاول مرة أخرى.';
+
+  @override
+  String get errorLogInSetup => 'يرجى تسجيل الدخول مرة أخرى لإكمال الإعداد.';
+
+  @override
+  String errorReduceMeal(String amount) {
+    return 'لا توجد وجبة مسجلة يمكن تقليلها بمقدار $amount سعرة.';
+  }
+
+  @override
+  String get errorReduceWorkout => 'لا يوجد تمرين مسجل يمكن تقليله.';
+
+  @override
+  String activityTimeDuration(String time, String minutes) {
+    return '$time • $minutes د';
+  }
+
+  @override
+  String feedbackLoggedMeal(String name, String calories) {
+    return 'تم تسجيل $name (+$calories سعرة)!';
+  }
+
+  @override
+  String feedbackUncheckedMeal(String name, String calories) {
+    return 'تم إلغاء تسجيل $name (-$calories سعرة)!';
+  }
+
+  @override
+  String feedbackAddedMeal(String name, String calories) {
+    return 'تمت إضافة وجبة $name (+$calories سعرة)!';
+  }
+
+  @override
+  String feedbackUpdated(String name) {
+    return 'تم تحديث $name.';
+  }
+
+  @override
+  String feedbackRemovedMeal(String name, String calories) {
+    return 'تمت إزالة $name (-$calories سعرة)!';
+  }
+
+  @override
+  String feedbackAddedWorkout(String name, String calories) {
+    return 'تمت إضافة تمرين $name (-$calories سعرة محروقة)!';
+  }
+
+  @override
+  String feedbackRemovedWorkout(String name, String calories) {
+    return 'تمت إزالة $name (-$calories سعرة محروقة)!';
+  }
+
+  @override
+  String feedbackDeductFood(String amount) {
+    return 'تم خصم $amount سعرة من الطعام!';
+  }
+
+  @override
+  String feedbackDeductWorkout(String amount) {
+    return 'تم خصم $amount سعرة من حرق التمرين!';
+  }
+
+  @override
+  String get groupTitle => 'المجموعة';
+
+  @override
+  String get groupReport => 'إبلاغ';
+
+  @override
+  String get groupReason => 'السبب';
+
+  @override
+  String get groupBanQuestion => 'حظر العضو؟';
+
+  @override
+  String get groupRemoveQuestion => 'إزالة العضو؟';
+
+  @override
+  String get groupBanDetails =>
+      'سيُحظر العضو حتى تلغي حظره. ستُخفى منشوراته وتعليقاته في هذه المجموعة ولن يتمكن من الانضمام مجدداً.';
+
+  @override
+  String get groupRemoveDetails =>
+      'ستتم إزالة العضو وإخفاء منشوراته وتعليقاته في هذه المجموعة. يمكنه الانضمام مجدداً.';
+
+  @override
+  String get groupCancel => 'إلغاء';
+
+  @override
+  String get groupBan => 'حظر';
+
+  @override
+  String get groupRemove => 'إزالة';
+
+  @override
+  String get groupUnavailableInvitation =>
+      'هذه المجموعة غير متاحة. تحتاج المجموعات الخاصة إلى دعوة.';
+
+  @override
+  String get groupAcceptInvitation => 'قبول الدعوة';
+
+  @override
+  String groupHeaderDetails(String category, String members) {
+    return '$category · $members';
+  }
+
+  @override
+  String get groupMenuSettings => 'الإعدادات';
+
+  @override
+  String get groupInvitePeople => 'دعوة أشخاص';
+
+  @override
+  String get groupBannedMembers => 'الأعضاء المحظورون';
+
+  @override
+  String get groupReportGroup => 'الإبلاغ عن المجموعة';
+
+  @override
+  String groupRulesValue(String rules) {
+    return 'القواعد: $rules';
+  }
+
+  @override
+  String get groupLeave => 'مغادرة المجموعة';
+
+  @override
+  String get groupCancelRequest => 'إلغاء الطلب';
+
+  @override
+  String get groupRequestJoin => 'طلب الانضمام';
+
+  @override
+  String get groupInvitationRequired => 'تحتاج إلى دعوة';
+
+  @override
+  String get groupJoin => 'انضمام';
+
+  @override
+  String get groupJoinToSee => 'انضم لرؤية المنشورات والأعضاء.';
+
+  @override
+  String get groupPosts => 'المنشورات';
+
+  @override
+  String get groupCreatePost => 'إنشاء منشور';
+
+  @override
+  String get groupModeratorsPost => 'يمكن للمشرفين فقط النشر.';
+
+  @override
+  String get groupNoPosts => 'لا توجد منشورات بعد.';
+
+  @override
+  String get groupMembers => 'الأعضاء';
+
+  @override
+  String get groupNoMembers => 'لم يتم العثور على أعضاء.';
+
+  @override
+  String get groupJoinRequests => 'طلبات الانضمام';
+
+  @override
+  String get groupUnbanQuestion => 'إلغاء حظر العضو؟';
+
+  @override
+  String get groupUnbanDetails =>
+      'يمكنه الانضمام مجدداً. ستبقى المنشورات والتعليقات المخفية سابقاً مخفية.';
+
+  @override
+  String get groupUnban => 'إلغاء الحظر';
+
+  @override
+  String get groupNoBanned => 'لا يوجد أعضاء محظورون.';
+
+  @override
+  String groupBannedDate(String date) {
+    return 'تاريخ الحظر: $date';
+  }
+
+  @override
+  String groupBannedBy(String name) {
+    return 'بواسطة $name';
+  }
+
+  @override
+  String get groupSearchUsers => 'البحث عن مستخدمين';
+
+  @override
+  String get groupSearch => 'بحث';
+
+  @override
+  String get groupSearchInvite => 'ابحث عن شخص لدعوته.';
+
+  @override
+  String get groupNoPeople => 'لم يتم العثور على أشخاص.';
+
+  @override
+  String get groupInvitationSent => 'تم إرسال الدعوة.';
+
+  @override
+  String get groupInvite => 'دعوة';
+
+  @override
+  String get groupWritePost => 'اكتب منشوراً';
+
+  @override
+  String get groupAddImage => 'إضافة صورة';
+
+  @override
+  String get groupImageChooseError => 'تعذر اختيار الصورة. حاول مرة أخرى.';
+
+  @override
+  String get groupImageTypeSizeError =>
+      'اختر صورة JPG أو PNG أو WebP أصغر من 8 ميجابايت.';
+
+  @override
+  String get groupImageReadError => 'تعذرت قراءة الصورة. اخترها مرة أخرى.';
+
+  @override
+  String get groupImageUploadError => 'تعذر رفع الصورة. حاول مرة أخرى.';
+
+  @override
+  String get groupShare => 'مشاركة';
+
+  @override
+  String get groupProfileUnavailable => 'الملف الشخصي غير متاح';
+
+  @override
+  String get groupOwner => 'المالك';
+
+  @override
+  String get groupModerator => 'مشرف';
+
+  @override
+  String get groupApproveRequest => 'قبول الطلب';
+
+  @override
+  String get groupRemoveModerator => 'إزالة دور المشرف';
+
+  @override
+  String get groupMakeModerator => 'تعيين مشرف';
+
+  @override
+  String get groupReportMember => 'الإبلاغ عن العضو';
+
+  @override
+  String get groupImageRetry => 'الصورة غير متاحة. حاول مجدداً';
+
+  @override
+  String get groupImageUnavailable => 'الصورة غير متاحة.';
+
+  @override
+  String get groupLikesRetry => 'تعذر تحميل الإعجابات. حاول مجدداً';
+
+  @override
+  String get groupNoComments => 'لا توجد تعليقات بعد.';
+
+  @override
+  String get groupComment => 'تعليق';
+
+  @override
+  String get groupSendComment => 'إرسال التعليق';
+
+  @override
+  String get groupsDiscover => 'اكتشف';
+
+  @override
+  String get groupsMine => 'مجموعاتي';
+
+  @override
+  String get groupsCreate => 'إنشاء مجموعة';
+
+  @override
+  String get groupsSearch => 'البحث عن مجموعات';
+
+  @override
+  String get groupsCategory => 'الفئة';
+
+  @override
+  String get groupsAll => 'الكل';
+
+  @override
+  String get groupsWeightLoss => 'إنقاص الوزن';
+
+  @override
+  String get groupsMuscleBuilding => 'بناء العضلات';
+
+  @override
+  String get groupsRunning => 'الجري والتمارين الهوائية';
+
+  @override
+  String get groupsYoga => 'اليوغا والمرونة';
+
+  @override
+  String get groupsNutrition => 'التغذية';
+
+  @override
+  String get groupsBeginners => 'المبتدئون';
+
+  @override
+  String get groupsFitness => 'اللياقة العامة';
+
+  @override
+  String get groupsOther => 'أخرى';
+
+  @override
+  String get groupsPublic => 'عامة';
+
+  @override
+  String get groupsPrivate => 'خاصة';
+
+  @override
+  String get groupsOpen => 'مفتوح';
+
+  @override
+  String get groupsApproval => 'تحتاج إلى موافقة';
+
+  @override
+  String get groupsInviteOnly => 'بالدعوة فقط';
+
+  @override
+  String get groupsEveryone => 'الجميع';
+
+  @override
+  String get groupsModerators => 'المشرفون';
+
+  @override
+  String get groupsInvitations => 'الدعوات';
+
+  @override
+  String get groupsInvitation => 'دعوة إلى مجموعة';
+
+  @override
+  String get groupsOpenToAccept => 'افتح لقبول الدعوة';
+
+  @override
+  String get groupsNone => 'لم يتم العثور على مجموعات.';
+
+  @override
+  String groupsSummary(String category, String visibility) {
+    return '$category · $visibility';
+  }
+
+  @override
+  String groupsPendingSummary(String summary) {
+    return '$summary · الطلب قيد الانتظار';
+  }
+
+  @override
+  String groupsMemberCount(int count) {
+    return 'عدد الأعضاء: $count';
+  }
+
+  @override
+  String get groupsMember => 'عضو';
+
+  @override
+  String get groupsRetry => 'حاول مرة أخرى';
+
+  @override
+  String get groupsSettings => 'إعدادات المجموعة';
+
+  @override
+  String get groupsChoosePhoto => 'اختيار صورة';
+
+  @override
+  String get groupsRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get groupsName => 'الاسم';
+
+  @override
+  String get groupsDescription => 'الوصف';
+
+  @override
+  String get groupsVisibility => 'الظهور';
+
+  @override
+  String get groupsJoinMode => 'طريقة الانضمام';
+
+  @override
+  String get groupsPrivateInvitation => 'تحتاج المجموعات الخاصة إلى دعوة.';
+
+  @override
+  String get groupsMemberLimit => 'الحد الأقصى للأعضاء';
+
+  @override
+  String get groupsWhoCanPost => 'من يمكنه النشر';
+
+  @override
+  String get groupsImagesAllowed => 'السماح بالصور';
+
+  @override
+  String get groupsChatPhase2 => 'المحادثة (قادمة في المرحلة الثانية)';
+
+  @override
+  String get groupsChatUnavailable =>
+      'يتم حفظ هذا الإعداد، لكن المحادثة غير متاحة بعد.';
+
+  @override
+  String get groupsRules => 'القواعد';
+
+  @override
+  String get groupsSaving => 'جارٍ الحفظ...';
+
+  @override
+  String get groupsSave => 'حفظ';
+
+  @override
+  String groupsCounter(String current, String max) {
+    return '$current / $max';
+  }
+
+  @override
+  String get groupsValidation =>
+      'أدخل اسماً من 3 أحرف على الأقل، وفئة، وحداً للأعضاء من 1 إلى 10000.';
+
+  @override
+  String get groupsPhotoChooseError => 'تعذر اختيار الصورة. حاول مرة أخرى.';
+
+  @override
+  String get groupsPhotoSaveError => 'تعذر حفظ صورة المجموعة. حاول مرة أخرى.';
+
+  @override
+  String get groupsPhotoCreatedError =>
+      'تم إنشاء المجموعة، لكن تعذر رفع الصورة. يمكنك إضافتها من إعدادات المجموعة.';
+
+  @override
+  String get groupsPhotoTypeError => 'اختر صورة بصيغة JPG أو PNG أو WebP.';
+
+  @override
+  String get groupsPhotoReadError => 'تعذرت قراءة الصورة. اخترها مرة أخرى.';
+
+  @override
+  String get groupsPhotoEmptyError => 'الصورة فارغة. اختر صورة أخرى.';
+
+  @override
+  String get groupsPhotoMismatchError =>
+      'الصورة لا تطابق نوع الملف. اختر صورة JPG أو PNG أو WebP صالحة.';
+
+  @override
+  String get groupsPhotoSizeError =>
+      'الصورة كبيرة جداً. اختر صورة أقل من 2 ميجابايت.';
+
+  @override
+  String get groupsPhotoInvalidError =>
+      'تعذرت قراءة الصورة. اختر صورة JPG أو PNG أو WebP صالحة.';
+
+  @override
+  String get groupsBannedError =>
+      'أنت محظور من هذه المجموعة. يمكن للمالك أو المشرف فقط إلغاء حظرك.';
+
+  @override
+  String get groupsFullError => 'هذه المجموعة ممتلئة.';
+
+  @override
+  String get groupsModeratorsOnlyError =>
+      'يمكن للمشرفين فقط النشر في هذه المجموعة.';
+
+  @override
+  String get groupsPostingLimitError =>
+      'وصلت إلى حد النشر. حاول مرة أخرى لاحقاً.';
+
+  @override
+  String get groupsCreationLimitError => 'يمكنك إنشاء 3 مجموعات كحد أقصى.';
+
+  @override
+  String get groupsUnavailableError =>
+      'هذه المجموعة غير متاحة أو تحتاج إلى دعوة.';
+
+  @override
   String communityUsername(String username) {
     return '@$username';
   }
@@ -2539,7 +3089,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get language => 'Language / اللغة';
+  String get language => 'اللغة';
 
   @override
   String get languageError => 'تعذر حفظ اللغة. حاول مرة أخرى.';
