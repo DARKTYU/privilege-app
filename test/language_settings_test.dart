@@ -11,6 +11,7 @@ import 'package:privilege/screens/splits.dart';
 import 'package:privilege/services/food_database.dart';
 import 'package:privilege/state.dart';
 import 'package:privilege/ui.dart';
+import 'package:privilege/widgets/auth_language_toggle.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'planner_fake.dart';
@@ -134,6 +135,65 @@ void main() {
     expect(Directionality.of(tester.element(find.byType(LoginScreen))),
         TextDirection.rtl);
   });
+
+  for (final scenario in ['login', 'signup', 'onboarding']) {
+    testWidgets('$scenario language toggle switches and saves at 360px',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(app(scenario == 'onboarding'
+          ? const OnboardingScreen()
+          : const LoginScreen()));
+      await tester.pumpAndSettle();
+      if (scenario == 'signup') {
+        await tester.ensureVisible(find.text('New here? Create an account'));
+        await tester.tap(find.text('New here? Create an account'));
+        await tester.pumpAndSettle();
+      }
+      final english = switch (scenario) {
+        'signup' => 'Create your account',
+        'onboarding' => 'ATHLETE TARGET SETUP',
+        _ => 'Welcome back',
+      };
+      final arabic = switch (scenario) {
+        'signup' => 'أنشئ حسابك',
+        'onboarding' => 'إعداد أهدافك الرياضية',
+        _ => 'مرحباً بعودتك',
+      };
+      expect(find.byType(AuthLanguageToggle), findsOneWidget);
+      expect(find.bySemanticsLabel('Language / اللغة'), findsOneWidget);
+      expect(find.text(english), findsOneWidget);
+      expect(tester.getRect(find.byType(AuthLanguageToggle)).right,
+          lessThanOrEqualTo(360));
+      await tester.tap(find.descendant(
+          of: find.byType(AuthLanguageToggle), matching: find.text('ع')));
+      await tester.pumpAndSettle();
+      expect(find.text(arabic), findsOneWidget);
+      expect(find.text(english), findsNothing);
+      expect(
+          (await SharedPreferences.getInstance())
+              .getString('privilege_language'),
+          'ar');
+      final restored = LanguageSettings();
+      await restored.restore();
+      expect(restored.selected, const Locale('ar'));
+      expect(tester.getRect(find.byType(AuthLanguageToggle)).left,
+          greaterThanOrEqualTo(0));
+      await tester.tap(find.descendant(
+          of: find.byType(AuthLanguageToggle), matching: find.text('EN')));
+      await tester.pumpAndSettle();
+      expect(find.text(english), findsOneWidget);
+      expect(
+          (await SharedPreferences.getInstance())
+              .getString('privilege_language'),
+          'en');
+      expect(tester.takeException(), isNull);
+      semantics.dispose();
+    });
+  }
 
   for (final screen in <Widget>[
     const LoginScreen(),

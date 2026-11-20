@@ -7,6 +7,7 @@ import '../l10n_strings.dart';
 import '../services/account_types.dart';
 import '../state.dart';
 import '../ui.dart';
+import '../widgets/auth_language_toggle.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -246,168 +247,178 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Center(child: PrivilegeLogo(width: 150)),
-                    const SizedBox(height: 8),
-                    Center(
-                      child: Text(strings(context).setupTitle,
-                          style: TextStyle(
-                              color: kCream,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2)),
-                    ),
-                    Center(
-                      child: Text(strings(context).setupSubtitle,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: kMuted, fontSize: 12)),
-                    ),
-                    const SizedBox(height: 18),
-                    _label(
-                        strings(context).fullName, Icons.person_outline, kGold),
-                    TextField(
-                        controller: _name,
-                        decoration:
-                            fieldDecoration(strings(context).exampleName)),
-                    const SizedBox(height: 14),
-                    _label(strings(context).username, Icons.alternate_email,
-                        kGold),
-                    TextField(
-                        controller: _username,
-                        maxLength: 20,
-                        autocorrect: false,
-                        decoration:
-                            fieldDecoration(strings(context).usernameHint)),
-                    const SizedBox(height: 14),
-                    Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _measurementHeading(
-                                    label: strings(context).weight,
-                                    icon: Icons.monitor_weight_outlined,
-                                    color: kRed,
-                                    unit: _lbs ? 'LBS' : 'KG',
-                                    onUnitTap: _toggleUnit,
-                                  ),
-                                  TextField(
-                                    controller: _weight,
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                            decimal: true),
-                                    onChanged: (_) => setState(() {}),
-                                    decoration:
-                                        fieldDecoration(_lbs ? '172' : '78'),
-                                  ),
-                                ]),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  _measurementHeading(
-                                    label: strings(context).height,
-                                    icon: Icons.straighten,
-                                    color: kCyan,
-                                    unit: 'CM',
-                                  ),
-                                  TextField(
-                                    controller: _height,
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                            decimal: true),
-                                    onChanged: (_) => setState(() {}),
-                                    decoration: fieldDecoration('182'),
-                                  ),
-                                ]),
-                          ),
-                        ]),
-                    const SizedBox(height: 14),
-                    _label(strings(context).primaryGoal, Icons.flag_outlined,
-                        kGold),
-                    for (final g in goals)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          onTap: () => setState(() => _goal = g),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _goal == g ? kMaroon : kCard,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: _goal == g ? kMaroon : kLine),
-                            ),
-                            child: Row(children: [
-                              Expanded(
-                                child: Text(_goalLabel(g),
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: _goal == g
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .onPrimary
-                                            : kMuted)),
-                              ),
-                              if (_goal == g)
-                                Icon(Icons.circle, size: 10, color: kGold),
-                            ]),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Panel(
-                      borderColor: kGold.withAlpha(90),
-                      padding: const EdgeInsets.all(12),
-                      child: Row(children: [
-                        Icon(Icons.auto_awesome, size: 16, color: kGold),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(strings(context).estimatedTarget,
-                              style: TextStyle(fontSize: 12, color: kMuted)),
-                        ),
-                        Flexible(
-                          child: Text(
-                            _recommended == null
-                                ? strings(context).enterDetails
-                                : '${fmt(_recommended!)} ${strings(context).kcalPerDay}',
-                            textAlign: TextAlign.end,
-                            style: TextStyle(
-                                color: kCream, fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ]),
-                    ),
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(_translatedError(_error!),
-                            style: TextStyle(color: kRed, fontSize: 12)),
-                      ),
-                    PrimaryButton(
-                      _saving
-                          ? strings(context).saving
-                          : strings(context).completeSetup,
-                      icon: Icons.arrow_forward,
-                      onPressed: _saving ? null : _submit,
-                    ),
-                  ]),
+        child: Column(children: [
+          const Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: AuthLanguageToggle(),
             ),
           ),
-        ),
+          Expanded(
+              child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Center(child: PrivilegeLogo(width: 150)),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Text(strings(context).setupTitle,
+                            style: TextStyle(
+                                color: kCream,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2)),
+                      ),
+                      Center(
+                        child: Text(strings(context).setupSubtitle,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: kMuted, fontSize: 12)),
+                      ),
+                      const SizedBox(height: 18),
+                      _label(strings(context).fullName, Icons.person_outline,
+                          kGold),
+                      TextField(
+                          controller: _name,
+                          decoration:
+                              fieldDecoration(strings(context).exampleName)),
+                      const SizedBox(height: 14),
+                      _label(strings(context).username, Icons.alternate_email,
+                          kGold),
+                      TextField(
+                          controller: _username,
+                          maxLength: 20,
+                          autocorrect: false,
+                          decoration:
+                              fieldDecoration(strings(context).usernameHint)),
+                      const SizedBox(height: 14),
+                      Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _measurementHeading(
+                                      label: strings(context).weight,
+                                      icon: Icons.monitor_weight_outlined,
+                                      color: kRed,
+                                      unit: _lbs ? 'LBS' : 'KG',
+                                      onUnitTap: _toggleUnit,
+                                    ),
+                                    TextField(
+                                      controller: _weight,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      onChanged: (_) => setState(() {}),
+                                      decoration:
+                                          fieldDecoration(_lbs ? '172' : '78'),
+                                    ),
+                                  ]),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _measurementHeading(
+                                      label: strings(context).height,
+                                      icon: Icons.straighten,
+                                      color: kCyan,
+                                      unit: 'CM',
+                                    ),
+                                    TextField(
+                                      controller: _height,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      onChanged: (_) => setState(() {}),
+                                      decoration: fieldDecoration('182'),
+                                    ),
+                                  ]),
+                            ),
+                          ]),
+                      const SizedBox(height: 14),
+                      _label(strings(context).primaryGoal, Icons.flag_outlined,
+                          kGold),
+                      for (final g in goals)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => setState(() => _goal = g),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: _goal == g ? kMaroon : kCard,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: _goal == g ? kMaroon : kLine),
+                              ),
+                              child: Row(children: [
+                                Expanded(
+                                  child: Text(_goalLabel(g),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: _goal == g
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onPrimary
+                                              : kMuted)),
+                                ),
+                                if (_goal == g)
+                                  Icon(Icons.circle, size: 10, color: kGold),
+                              ]),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Panel(
+                        borderColor: kGold.withAlpha(90),
+                        padding: const EdgeInsets.all(12),
+                        child: Row(children: [
+                          Icon(Icons.auto_awesome, size: 16, color: kGold),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(strings(context).estimatedTarget,
+                                style: TextStyle(fontSize: 12, color: kMuted)),
+                          ),
+                          Flexible(
+                            child: Text(
+                              _recommended == null
+                                  ? strings(context).enterDetails
+                                  : '${fmt(_recommended!)} ${strings(context).kcalPerDay}',
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                  color: kCream, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ]),
+                      ),
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(_translatedError(_error!),
+                              style: TextStyle(color: kRed, fontSize: 12)),
+                        ),
+                      PrimaryButton(
+                        _saving
+                            ? strings(context).saving
+                            : strings(context).completeSetup,
+                        icon: Icons.arrow_forward,
+                        onPressed: _saving ? null : _submit,
+                      ),
+                    ]),
+              ),
+            ),
+          )),
+        ]),
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../services/supabase_auth_service.dart';
 import '../services/session_recovery.dart';
 import '../state.dart';
 import '../ui.dart';
+import '../widgets/auth_language_toggle.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -162,106 +163,117 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
         body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(child: PrivilegeLogo(width: _register ? 150 : 220)),
-                    const SizedBox(height: 16),
-                    Text(
-                      _register
-                          ? strings(context).createYourAccount
-                          : strings(context).welcomeBack,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _register
-                          ? strings(context).createAccountDescription
-                          : strings(context).loginDescription,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: kMuted),
-                    ),
-                    const SizedBox(height: 18),
-                    if (_message != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: kCard2,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: _success ? kGreen : kRed),
-                        ),
-                        child: Text(_translated(_message!),
-                            style: TextStyle(color: kCream)),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    TextField(
-                      controller: _email,
-                      keyboardType: TextInputType.emailAddress,
-                      autocorrect: false,
-                      textCapitalization: TextCapitalization.none,
-                      onChanged: (_) => _revalidate(),
-                      decoration: fieldDecoration(strings(context).email,
-                          icon: Icons.email_outlined,
-                          error: _errors['email'] == null
-                              ? null
-                              : _translated(_errors['email']!)),
-                    ),
-                    const SizedBox(height: 12),
-                    _passwordField(
-                        _password, strings(context).password, 'password'),
-                    if (_register) ...[
-                      const SizedBox(height: 12),
-                      _passwordField(_confirm, strings(context).confirmPassword,
-                          'confirm'),
-                      const SizedBox(height: 8),
-                      Text(
-                        strings(context).passwordHint,
-                        style: TextStyle(fontSize: 11, color: kMuted),
-                      ),
-                    ],
-                    const SizedBox(height: 18),
-                    PrimaryButton(
-                      _busy
-                          ? strings(context).pleaseWait
-                          : (_register
-                              ? strings(context).createAccount
-                              : strings(context).logIn),
-                      onPressed: _busy ? null : _submit,
-                    ),
-                    TextButton(
-                      onPressed: _busy
-                          ? null
-                          : () => setState(() {
-                                _register = !_register;
-                                _password.clear();
-                                _confirm.clear();
-                                _errors = {};
-                                _showErrors = false;
-                                _message = null;
-                              }),
-                      child: Text(_register
-                          ? strings(context).alreadyAccount
-                          : strings(context).newAccount),
-                    ),
-                    if (!_register)
-                      Text(
-                        strings(context).loginUnavailableFeatures,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 11, color: kMuted),
-                      ),
-                  ],
-                ),
+          child: Column(children: [
+            const Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(16, 8, 16, 0),
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: AuthLanguageToggle(),
               ),
             ),
-          ),
+            Expanded(
+                child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                          child: PrivilegeLogo(width: _register ? 150 : 220)),
+                      const SizedBox(height: 16),
+                      Text(
+                        _register
+                            ? strings(context).createYourAccount
+                            : strings(context).welcomeBack,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _register
+                            ? strings(context).createAccountDescription
+                            : strings(context).loginDescription,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: kMuted),
+                      ),
+                      const SizedBox(height: 18),
+                      if (_message != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: kCard2,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: _success ? kGreen : kRed),
+                          ),
+                          child: Text(_translated(_message!),
+                              style: TextStyle(color: kCream)),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      TextField(
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        textCapitalization: TextCapitalization.none,
+                        onChanged: (_) => _revalidate(),
+                        decoration: fieldDecoration(strings(context).email,
+                            icon: Icons.email_outlined,
+                            error: _errors['email'] == null
+                                ? null
+                                : _translated(_errors['email']!)),
+                      ),
+                      const SizedBox(height: 12),
+                      _passwordField(
+                          _password, strings(context).password, 'password'),
+                      if (_register) ...[
+                        const SizedBox(height: 12),
+                        _passwordField(_confirm,
+                            strings(context).confirmPassword, 'confirm'),
+                        const SizedBox(height: 8),
+                        Text(
+                          strings(context).passwordHint,
+                          style: TextStyle(fontSize: 11, color: kMuted),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+                      PrimaryButton(
+                        _busy
+                            ? strings(context).pleaseWait
+                            : (_register
+                                ? strings(context).createAccount
+                                : strings(context).logIn),
+                        onPressed: _busy ? null : _submit,
+                      ),
+                      TextButton(
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() {
+                                  _register = !_register;
+                                  _password.clear();
+                                  _confirm.clear();
+                                  _errors = {};
+                                  _showErrors = false;
+                                  _message = null;
+                                }),
+                        child: Text(_register
+                            ? strings(context).alreadyAccount
+                            : strings(context).newAccount),
+                      ),
+                      if (!_register)
+                        Text(
+                          strings(context).loginUnavailableFeatures,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, color: kMuted),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            )),
+          ]),
         ),
       );
 }
