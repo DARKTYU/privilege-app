@@ -15,13 +15,14 @@ class FakeCoach implements CoachClient {
   final List<Map<String, Object>> requests = [];
   CoachException? error;
   Completer<CoachReply>? pending;
+  CoachReply reply = const CoachReply('Hello from the coach', 29, null);
 
   @override
   Future<CoachReply> send(Map<String, Object> body) async {
     requests.add(body);
     if (error != null) throw error!;
     if (pending != null) return pending!.future;
-    return const CoachReply('Hello from the coach', 29, null);
+    return reply;
   }
 }
 
@@ -65,11 +66,73 @@ void main() {
     await send(tester, 'Hello');
     expect(client.requests.single, {'message': 'Hello', 'consent': false});
     expect(find.text('Hello from the coach'), findsOneWidget);
-    expect(find.textContaining('Requests remaining: 29'), findsOneWidget);
+    expect(find.text('Requests left today: 29\nالمتبقي اليوم: 29'),
+        findsOneWidget);
     await tester.tap(find.byTooltip('New chat / محادثة جديدة'));
     await tester.pump();
     expect(find.text('Hello from the coach'), findsNothing);
-    expect(find.textContaining('Requests remaining:'), findsNothing);
+    expect(find.textContaining('Requests left today:'), findsNothing);
+  });
+
+  testWidgets('notice has separate aligned English and Arabic paragraphs',
+      (tester) async {
+    await start(tester, FakeCoach());
+    final english = tester.widget<SelectableText>(find.byWidgetPredicate(
+        (widget) =>
+            widget is SelectableText &&
+            (widget.data?.startsWith('The coach can make mistakes') ?? false)));
+    final arabic = tester.widget<SelectableText>(find.byWidgetPredicate(
+        (widget) =>
+            widget is SelectableText &&
+            (widget.data?.startsWith('قد يخطئ المدرب') ?? false)));
+    expect(english.textDirection, TextDirection.ltr);
+    expect(english.textAlign, TextAlign.left);
+    expect(arabic.textDirection, TextDirection.rtl);
+    expect(arabic.textAlign, TextAlign.right);
+  });
+
+  testWidgets('coach bold spans are selectable and lists stay readable',
+      (tester) async {
+    final client = FakeCoach()
+      ..reply = const CoachReply(
+          '**Plan**\n1. Warm up\n2. **Train** safely\n**unfinished', 25, null);
+    await start(tester, client);
+    await send(tester, 'Hi');
+    final finder = find.byWidgetPredicate((widget) =>
+        widget is SelectableText &&
+        widget.textSpan?.toPlainText() ==
+            'Plan\n1. Warm up\n2. Train safely\nunfinished');
+    expect(finder, findsOneWidget);
+    final text = tester.widget<SelectableText>(finder);
+    expect(text.textDirection, TextDirection.ltr);
+    final spans = text.textSpan!.children!.cast<TextSpan>();
+    expect(spans.firstWhere((span) => span.text == 'Plan').style!.fontWeight,
+        FontWeight.bold);
+    expect(spans.firstWhere((span) => span.text == 'Train').style!.fontWeight,
+        FontWeight.bold);
+    expect(find.text('Requests left today: 25\nالمتبقي اليوم: 25'),
+        findsOneWidget);
+  });
+
+  testWidgets('Arabic bold reply stays selectable and right-to-left',
+      (tester) async {
+    final client = FakeCoach()
+      ..reply = const CoachReply('**تمرين**\n1. ابدأ بهدوء', null, null);
+    await start(tester, client);
+    await send(tester, 'مرحبا');
+    final finder = find.byWidgetPredicate((widget) =>
+        widget is SelectableText &&
+        widget.textSpan?.toPlainText() == 'تمرين\n1. ابدأ بهدوء');
+    expect(finder, findsOneWidget);
+    final text = tester.widget<SelectableText>(finder);
+    expect(text.textDirection, TextDirection.rtl);
+    expect(
+        text.textSpan!.children!
+            .cast<TextSpan>()
+            .firstWhere((span) => span.text == 'تمرين')
+            .style!
+            .fontWeight,
+        FontWeight.bold);
   });
 
   testWidgets('consent persists and sends exactly three numeric values',

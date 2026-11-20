@@ -19,10 +19,11 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   static const _consentKey = 'coach_share_calorie_context';
-  static const _notice =
+  static const _noticeEnglish =
       'The coach can make mistakes and is not medical advice. '
       'Messages are sent to Google Gemini for a reply. Do not share personal or '
-      'health details you do not want sent. The coach does not remember earlier messages.\n'
+      'health details you do not want sent. The coach does not remember earlier messages.';
+  static const _noticeArabic =
       'قد يخطئ المدرب ولا يقدم نصيحة طبية. تُرسل الرسائل إلى Google Gemini للحصول على رد. '
       'لا تشارك تفاصيل شخصية أو صحية لا تريد إرسالها. المدرب لا يتذكر الرسائل السابقة.';
   static const _fallback = 'Local help (not AI): ask about your calories, '
@@ -246,7 +247,28 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Widget _bubble(({bool bot, String text}) message) {
+  TextSpan _coachText(String text) {
+    final spans = <TextSpan>[];
+    var position = 0;
+    var bold = false;
+    while (true) {
+      final next = text.indexOf('**', position);
+      if (next == -1) {
+        spans.add(TextSpan(
+            text: text.substring(position),
+            style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null));
+        break;
+      }
+      spans.add(TextSpan(
+          text: text.substring(position, next),
+          style: bold ? const TextStyle(fontWeight: FontWeight.bold) : null));
+      bold = !bold;
+      position = next + 2;
+    }
+    return TextSpan(children: spans);
+  }
+
+  Widget _bubble(({bool bot, String text}) message, {bool notice = false}) {
     final bubble = Container(
       constraints: const BoxConstraints(maxWidth: 290),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -254,10 +276,28 @@ class _ChatScreenState extends State<ChatScreen> {
         color: message.bot ? kCard2 : kMaroon,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: SelectableText(message.text,
-          textDirection: containsArabic(message.text)
-              ? TextDirection.rtl
-              : TextDirection.ltr),
+      child: notice
+          ? const Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SelectableText(_noticeEnglish,
+                    textDirection: TextDirection.ltr,
+                    textAlign: TextAlign.left),
+                SizedBox(height: 8),
+                SelectableText(_noticeArabic,
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.right),
+              ],
+            )
+          : message.bot && message.text.contains('**')
+              ? SelectableText.rich(_coachText(message.text),
+                  textDirection: containsArabic(message.text)
+                      ? TextDirection.rtl
+                      : TextDirection.ltr)
+              : SelectableText(message.text,
+                  textDirection: containsArabic(message.text)
+                      ? TextDirection.rtl
+                      : TextDirection.ltr),
     );
     return Align(
       alignment: message.bot ? Alignment.centerLeft : Alignment.centerRight,
@@ -309,7 +349,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: _scroll,
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _bubble((bot: true, text: _notice)),
+                  _bubble((bot: true, text: ''), notice: true),
                   for (final message in _messages) _bubble(message),
                   if (_sending)
                     const Padding(
@@ -318,7 +358,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   if (_remaining != null)
                     Text(
-                        'Requests remaining: $_remaining / الطلبات المتبقية: $_remaining',
+                        'Requests left today: $_remaining\nالمتبقي اليوم: $_remaining',
                         style: TextStyle(color: kMuted)),
                 ],
               ),
