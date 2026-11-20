@@ -242,6 +242,140 @@ class AppLocalizationsAr extends AppLocalizations {
   String get intensityVigorous => 'شديد';
 
   @override
+  String get mergeTitle => 'دمج التمارين والرياضات';
+
+  @override
+  String get mergeSubtitle => 'اجمع تقسيمات النادي مع الرياضات اليومية.';
+
+  @override
+  String get mergeManage => 'إدارة التقسيمات';
+
+  @override
+  String get mergeSignIn => 'يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get mergeInvalidTotal => 'أدخل مددًا صحيحة بمجموع من 1 إلى 600 دقيقة.';
+
+  @override
+  String get mergeNameTooLong => 'يجب ألا يزيد الاسم المدمج على 100 حرف.';
+
+  @override
+  String get mergeReplaceTitle => 'استبدال الخطة الحالية؟';
+
+  @override
+  String get mergeReplace => 'استبدال';
+
+  @override
+  String get mergeSuccess => 'تمت إضافة الخطة بنجاح.';
+
+  @override
+  String get mergeWorkoutSplit => 'تقسيمة التمرين';
+
+  @override
+  String get mergeSplit => 'التقسيمة';
+
+  @override
+  String get mergeSport => 'الرياضة';
+
+  @override
+  String get mergeUnavailable => 'غير متاح';
+
+  @override
+  String get mergeInvalidDuration => 'مدة غير صالحة';
+
+  @override
+  String get mergeSprintEstimate =>
+      'تستخدم فترات العدو السريع تقدير التمرين المتقطع أو الدائري.';
+
+  @override
+  String get mergeAddWeight => 'تقدير السعرات غير متاح - أضف وزنك';
+
+  @override
+  String get mergeCompleteProfile => 'أكمل ملفك الشخصي';
+
+  @override
+  String get mergeSportUnavailable => 'تقدير السعرات غير متاح لهذه الرياضة.';
+
+  @override
+  String get mergeEstimateNote =>
+      'التقدير مبني على نوع النشاط ومدته وشدته ووزنك.';
+
+  @override
+  String get mergePlanDate => 'خطط في يوم محدد';
+
+  @override
+  String get mergeLogWorkout => 'سجل التمرين';
+
+  @override
+  String get mergeLogSport => 'سجل الرياضة';
+
+  @override
+  String get mergePlannerEffort => 'مجهود الخطة (%)';
+
+  @override
+  String get mergeContinue => 'متابعة';
+
+  @override
+  String mergeLoadError(String error) {
+    return 'تعذر تحميل التقسيمات: $error';
+  }
+
+  @override
+  String mergePlanError(String error) {
+    return 'تعذر التخطيط: $error';
+  }
+
+  @override
+  String mergeReplaceDetails(String date, String name) {
+    return 'توجد بالفعل خطة باسم \"$name\" في $date. هل تريد استبدالها؟';
+  }
+
+  @override
+  String mergeSavedName(String name) {
+    return '$name (تقسيمتي)';
+  }
+
+  @override
+  String mergeMinutesLabel(String label) {
+    return 'مدة $label بالدقائق';
+  }
+
+  @override
+  String mergeCombinedDuration(String duration) {
+    return 'المدة الإجمالية: $duration';
+  }
+
+  @override
+  String mergeMinutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String mergeShortMinutes(String minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String mergeNamedValue(String name, String value) {
+    return '$name: $value';
+  }
+
+  @override
+  String mergeCalories(String calories) {
+    return '$calories سعرة';
+  }
+
+  @override
+  String mergeEstimatedCalories(String value) {
+    return 'السعرات المحروقة المقدرة: $value';
+  }
+
+  @override
+  String mergeDate(String date) {
+    return 'التاريخ: $date';
+  }
+
+  @override
   String plannerWeekRange(String start, String end) {
     return 'من $start إلى $end';
   }

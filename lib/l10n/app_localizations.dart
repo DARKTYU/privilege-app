@@ -524,6 +524,222 @@ abstract class AppLocalizations {
   /// **'Vigorous'**
   String get intensityVigorous;
 
+  /// No description provided for @mergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Splits & Sports Merge'**
+  String get mergeTitle;
+
+  /// No description provided for @mergeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Combine gym splits with daily sports.'**
+  String get mergeSubtitle;
+
+  /// No description provided for @mergeManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage splits'**
+  String get mergeManage;
+
+  /// No description provided for @mergeSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in again.'**
+  String get mergeSignIn;
+
+  /// No description provided for @mergeInvalidTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid durations with a combined total of 1 to 600 minutes.'**
+  String get mergeInvalidTotal;
+
+  /// No description provided for @mergeNameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'The combined name must be 100 characters or fewer.'**
+  String get mergeNameTooLong;
+
+  /// No description provided for @mergeReplaceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace existing plan?'**
+  String get mergeReplaceTitle;
+
+  /// No description provided for @mergeReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get mergeReplace;
+
+  /// No description provided for @mergeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned successfully.'**
+  String get mergeSuccess;
+
+  /// No description provided for @mergeWorkoutSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout split'**
+  String get mergeWorkoutSplit;
+
+  /// No description provided for @mergeSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split'**
+  String get mergeSplit;
+
+  /// No description provided for @mergeSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sport'**
+  String get mergeSport;
+
+  /// No description provided for @mergeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get mergeUnavailable;
+
+  /// No description provided for @mergeInvalidDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid duration'**
+  String get mergeInvalidDuration;
+
+  /// No description provided for @mergeSprintEstimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Track sprint intervals use the HIIT or circuit estimate.'**
+  String get mergeSprintEstimate;
+
+  /// No description provided for @mergeAddWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie estimate unavailable - add your weight'**
+  String get mergeAddWeight;
+
+  /// No description provided for @mergeCompleteProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get mergeCompleteProfile;
+
+  /// No description provided for @mergeSportUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie estimate unavailable for this sport.'**
+  String get mergeSportUnavailable;
+
+  /// No description provided for @mergeEstimateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimate based on activity type, duration, intensity and your weight.'**
+  String get mergeEstimateNote;
+
+  /// No description provided for @mergePlanDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan on a date'**
+  String get mergePlanDate;
+
+  /// No description provided for @mergeLogWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log workout'**
+  String get mergeLogWorkout;
+
+  /// No description provided for @mergeLogSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Log sport'**
+  String get mergeLogSport;
+
+  /// No description provided for @mergePlannerEffort.
+  ///
+  /// In en, this message translates to:
+  /// **'Planner effort (%)'**
+  String get mergePlannerEffort;
+
+  /// No description provided for @mergeContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get mergeContinue;
+
+  /// No description provided for @mergeLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load splits: {error}'**
+  String mergeLoadError(String error);
+
+  /// No description provided for @mergePlanError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not plan: {error}'**
+  String mergePlanError(String error);
+
+  /// No description provided for @mergeReplaceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} already has \"{name}\". Replace it?'**
+  String mergeReplaceDetails(String date, String name);
+
+  /// No description provided for @mergeSavedName.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (My split)'**
+  String mergeSavedName(String name);
+
+  /// No description provided for @mergeMinutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} minutes'**
+  String mergeMinutesLabel(String label);
+
+  /// No description provided for @mergeCombinedDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined duration: {duration}'**
+  String mergeCombinedDuration(String duration);
+
+  /// No description provided for @mergeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String mergeMinutes(String minutes);
+
+  /// No description provided for @mergeShortMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String mergeShortMinutes(String minutes);
+
+  /// No description provided for @mergeNamedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}: {value}'**
+  String mergeNamedValue(String name, String value);
+
+  /// No description provided for @mergeCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'{calories} kcal'**
+  String mergeCalories(String calories);
+
+  /// No description provided for @mergeEstimatedCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated calories burned: {value}'**
+  String mergeEstimatedCalories(String value);
+
+  /// No description provided for @mergeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: {date}'**
+  String mergeDate(String date);
+
   /// No description provided for @plannerWeekRange.
   ///
   /// In en, this message translates to:

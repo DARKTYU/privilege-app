@@ -139,7 +139,7 @@ void main() {
           expect(find.text('كرة السلة'), findsWidgets);
           await tester.tap(find.byType(DropdownButtonFormField<String>).first);
           await tester.pumpAndSettle();
-          expect(find.text('Push (My split)'), findsOneWidget);
+          expect(find.text('دفع (تقسيمتي)'), findsOneWidget);
         }
       });
     }

@@ -244,6 +244,143 @@ class AppLocalizationsEn extends AppLocalizations {
   String get intensityVigorous => 'Vigorous';
 
   @override
+  String get mergeTitle => 'Splits & Sports Merge';
+
+  @override
+  String get mergeSubtitle => 'Combine gym splits with daily sports.';
+
+  @override
+  String get mergeManage => 'Manage splits';
+
+  @override
+  String get mergeSignIn => 'Please log in again.';
+
+  @override
+  String get mergeInvalidTotal =>
+      'Enter valid durations with a combined total of 1 to 600 minutes.';
+
+  @override
+  String get mergeNameTooLong =>
+      'The combined name must be 100 characters or fewer.';
+
+  @override
+  String get mergeReplaceTitle => 'Replace existing plan?';
+
+  @override
+  String get mergeReplace => 'Replace';
+
+  @override
+  String get mergeSuccess => 'Planned successfully.';
+
+  @override
+  String get mergeWorkoutSplit => 'Workout split';
+
+  @override
+  String get mergeSplit => 'Split';
+
+  @override
+  String get mergeSport => 'Sport';
+
+  @override
+  String get mergeUnavailable => 'Unavailable';
+
+  @override
+  String get mergeInvalidDuration => 'Invalid duration';
+
+  @override
+  String get mergeSprintEstimate =>
+      'Track sprint intervals use the HIIT or circuit estimate.';
+
+  @override
+  String get mergeAddWeight => 'Calorie estimate unavailable - add your weight';
+
+  @override
+  String get mergeCompleteProfile => 'Complete your profile';
+
+  @override
+  String get mergeSportUnavailable =>
+      'Calorie estimate unavailable for this sport.';
+
+  @override
+  String get mergeEstimateNote =>
+      'Estimate based on activity type, duration, intensity and your weight.';
+
+  @override
+  String get mergePlanDate => 'Plan on a date';
+
+  @override
+  String get mergeLogWorkout => 'Log workout';
+
+  @override
+  String get mergeLogSport => 'Log sport';
+
+  @override
+  String get mergePlannerEffort => 'Planner effort (%)';
+
+  @override
+  String get mergeContinue => 'Continue';
+
+  @override
+  String mergeLoadError(String error) {
+    return 'Could not load splits: $error';
+  }
+
+  @override
+  String mergePlanError(String error) {
+    return 'Could not plan: $error';
+  }
+
+  @override
+  String mergeReplaceDetails(String date, String name) {
+    return '$date already has \"$name\". Replace it?';
+  }
+
+  @override
+  String mergeSavedName(String name) {
+    return '$name (My split)';
+  }
+
+  @override
+  String mergeMinutesLabel(String label) {
+    return '$label minutes';
+  }
+
+  @override
+  String mergeCombinedDuration(String duration) {
+    return 'Combined duration: $duration';
+  }
+
+  @override
+  String mergeMinutes(String minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String mergeShortMinutes(String minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String mergeNamedValue(String name, String value) {
+    return '$name: $value';
+  }
+
+  @override
+  String mergeCalories(String calories) {
+    return '$calories kcal';
+  }
+
+  @override
+  String mergeEstimatedCalories(String value) {
+    return 'Estimated calories burned: $value';
+  }
+
+  @override
+  String mergeDate(String date) {
+    return 'Date: $date';
+  }
+
+  @override
   String plannerWeekRange(String start, String end) {
     return '$start – $end';
   }

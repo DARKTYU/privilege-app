@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart';
 
 import '../data.dart';
 import '../l10n_strings.dart';
+import '../logic/localized_dates.dart';
 import '../logic/workout_estimate.dart';
 import '../services/planner_repository.dart';
 import '../state.dart';
@@ -18,6 +22,33 @@ const _sportActivities = <String, WorkoutActivity>{
   'swimming': WorkoutActivity.swimming,
   'sprints': WorkoutActivity.circuit,
 };
+
+class _WesternArabicMaterialDelegate
+    extends LocalizationsDelegate<MaterialLocalizations> {
+  const _WesternArabicMaterialDelegate();
+
+  @override
+  bool isSupported(Locale locale) => locale.languageCode == 'ar';
+
+  @override
+  Future<MaterialLocalizations> load(Locale locale) {
+    DateFormat western(DateFormat format) => format..useNativeDigits = false;
+    return SynchronousFuture(MaterialLocalizationAr(
+      fullYearFormat: western(DateFormat.y('ar')),
+      compactDateFormat: western(DateFormat.yMd('ar')),
+      shortDateFormat: western(DateFormat.yMMMd('ar')),
+      mediumDateFormat: western(DateFormat.MMMEd('ar')),
+      longDateFormat: western(DateFormat.yMMMMEEEEd('ar')),
+      yearMonthFormat: western(DateFormat.yMMMM('ar')),
+      shortMonthDayFormat: western(DateFormat.MMMd('ar')),
+      decimalFormat: NumberFormat.decimalPattern('en'),
+      twoDigitZeroPaddedFormat: NumberFormat('00', 'en'),
+    ));
+  }
+
+  @override
+  bool shouldReload(_WesternArabicMaterialDelegate old) => false;
+}
 
 class SplitsScreen extends StatefulWidget {
   const SplitsScreen(
@@ -92,7 +123,10 @@ class _SplitsScreenState extends State<SplitsScreen>
       loadError = null;
     });
     try {
-      if (user == null) throw StateError('Please log in again.');
+      if (user == null) {
+        setState(() => loadError = strings(context).mergeSignIn);
+        return;
+      }
       final rows = await state.loadPlannerSplits();
       if (!mounted ||
           generation != loadGeneration ||
@@ -139,6 +173,26 @@ class _SplitsScreenState extends State<SplitsScreen>
   }
 
   String get splitName => savedSplit?.name ?? split.name;
+  String _displayStoredName(String name) {
+    final l = strings(context);
+    switch (name) {
+      case 'Push':
+        return l.plannerPush;
+      case 'Pull':
+        return l.plannerPull;
+      case 'Legs':
+        return l.plannerLegs;
+      case 'Rest':
+        return l.plannerRest;
+      case 'Rest day':
+        return l.plannerRestDay;
+    }
+    for (final option in [...defaultWorkoutSplits, ...defaultSports]) {
+      if (option.name == name) return _builtInName(option);
+    }
+    return name;
+  }
+
   String _builtInName(SplitOption option) {
     final l = strings(context);
     switch (option.id) {
@@ -208,18 +262,20 @@ class _SplitsScreenState extends State<SplitsScreen>
     final name = '$splitName + ${sport.name}';
     final sourceSplitId = savedSplit?.id;
     if (!validMinutes(a) || !validMinutes(b) || a! + b! > 600) {
-      _message(
-          'Enter valid durations with a combined total of 1 to 600 minutes.');
+      _message(strings(context).mergeInvalidTotal);
       return;
     }
     if (name.runes.length > 100) {
-      _message('The combined name must be 100 characters or fewer.');
+      _message(strings(context).mergeNameTooLong);
       return;
     }
     setState(() => planning = true);
     final user = state.plannerAccountId;
     try {
-      if (user == null) throw StateError('Please log in again.');
+      if (user == null) {
+        _message(strings(context).mergeSignIn);
+        return;
+      }
       final today = parsePlannerDate(await state.plannerLocalToday());
       if (!mounted || user != state.plannerAccountId) return;
       final result = await showDialog<(DateTime, int)>(
@@ -232,15 +288,18 @@ class _SplitsScreenState extends State<SplitsScreen>
         final replace = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Replace existing plan?'),
-            content: Text('$date already has "${existing.name}". Replace it?'),
+            title: Text(strings(context).mergeReplaceTitle),
+            content: Text(strings(context).mergeReplaceDetails(
+                westernDigits(MaterialLocalizations.of(context)
+                    .formatMediumDate(parsePlannerDate(date))),
+                _displayStoredName(existing.name))),
             actions: [
               TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel')),
+                  child: Text(strings(context).plannerCancel)),
               TextButton(
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Replace')),
+                  child: Text(strings(context).mergeReplace)),
             ],
           ),
         );
@@ -256,11 +315,11 @@ class _SplitsScreenState extends State<SplitsScreen>
           duration: a + b,
           effort: result.$2));
       if (mounted && user == state.plannerAccountId) {
-        _message('Planned successfully.');
+        _message(strings(context).mergeSuccess);
       }
     } catch (error) {
       if (mounted && user == state.plannerAccountId) {
-        _message('Could not plan: $error');
+        _message(strings(context).mergePlanError(error.toString()));
       }
     } finally {
       if (mounted) setState(() => planning = false);
@@ -278,6 +337,7 @@ class _SplitsScreenState extends State<SplitsScreen>
 
   Widget _segment(
           String label,
+          String key,
           TextEditingController controller,
           WorkoutIntensity intensity,
           ValueChanged<WorkoutIntensity> onChanged) =>
@@ -285,12 +345,13 @@ class _SplitsScreenState extends State<SplitsScreen>
         Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         TextField(
-          key: ValueKey('$label-minutes'),
+          key: ValueKey(key),
           controller: controller,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
-              labelText: '$label minutes', helperText: '1 to 600 minutes'),
+              labelText: strings(context).mergeMinutesLabel(label),
+              helperText: strings(context).plannerDurationHint),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 8),
@@ -308,6 +369,7 @@ class _SplitsScreenState extends State<SplitsScreen>
   Widget build(BuildContext context) => ListenableBuilder(
       listenable: state,
       builder: (context, _) {
+        final l = strings(context);
         final a = splitDuration;
         final b = sportDuration;
         final activity = _sportActivities[sport.id];
@@ -319,16 +381,15 @@ class _SplitsScreenState extends State<SplitsScreen>
         return ListView(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             children: [
-              ScreenHeader('Splits & Sports Merge',
-                  'Combine gym splits with daily sports.', actions: [
+              ScreenHeader(l.mergeTitle, l.mergeSubtitle, actions: [
                 TextButton(
                     onPressed: widget.onManageSplits,
-                    child: const Text('Manage splits'))
+                    child: Text(l.mergeManage))
               ]),
               if (loading) const LinearProgressIndicator(),
               if (loadError != null) ...[
-                Text('Could not load splits: $loadError'),
-                TextButton(onPressed: _loadSplits, child: const Text('Retry')),
+                Text(l.mergeLoadError(loadError!)),
+                TextButton(onPressed: _loadSplits, child: Text(l.plannerRetry)),
               ],
               Panel(
                   child: Column(
@@ -341,7 +402,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                           : 'saved:${savedSplit!.id}',
                       isExpanded: true,
                       decoration:
-                          const InputDecoration(labelText: 'Workout split'),
+                          InputDecoration(labelText: l.mergeWorkoutSplit),
                       items: [
                         for (final item in defaultWorkoutSplits)
                           DropdownMenuItem(
@@ -351,7 +412,9 @@ class _SplitsScreenState extends State<SplitsScreen>
                         for (final item in savedSplits)
                           DropdownMenuItem(
                               value: 'saved:${item.id}',
-                              child: Text('${item.name} (My split)',
+                              child: Text(
+                                  l.mergeSavedName(
+                                      _displayStoredName(item.name)),
                                   overflow: TextOverflow.ellipsis)),
                       ],
                       onChanged: (value) => setState(() {
@@ -371,7 +434,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                     DropdownButtonFormField<String>(
                       initialValue: sport.id,
                       isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Sport'),
+                      decoration: InputDecoration(labelText: l.mergeSport),
                       items: [
                         for (final item in defaultSports)
                           DropdownMenuItem(
@@ -386,63 +449,79 @@ class _SplitsScreenState extends State<SplitsScreen>
                       }),
                     ),
                     const SizedBox(height: 16),
-                    _segment('Split', splitMinutes, splitIntensity,
-                        (value) => splitIntensity = value),
+                    _segment(l.mergeSplit, 'Split-minutes', splitMinutes,
+                        splitIntensity, (value) => splitIntensity = value),
                     const SizedBox(height: 16),
-                    _segment('Sport', sportMinutes, sportIntensity,
-                        (value) => sportIntensity = value),
+                    _segment(l.mergeSport, 'Sport-minutes', sportMinutes,
+                        sportIntensity, (value) => sportIntensity = value),
                   ])),
               Panel(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text(
-                        'Combined duration: ${validMinutes(a) && validMinutes(b) ? '${a! + b!} minutes' : 'Unavailable'}'),
-                    Text(
-                        '${savedSplit?.name ?? _builtInName(split)}: ${validMinutes(a) ? '$a min' : 'Invalid duration'}'),
-                    Text(
-                        '${_builtInName(sport)}: ${validMinutes(b) ? '$b min' : 'Invalid duration'}'),
-                    if (sport.id == 'sprints')
-                      const Text(
-                          'Track sprint intervals use the HIIT or circuit estimate.'),
+                    Text(l.mergeCombinedDuration(
+                        validMinutes(a) && validMinutes(b)
+                            ? l.mergeMinutes((a! + b!).toString())
+                            : l.mergeUnavailable)),
+                    Text(l.mergeNamedValue(
+                        savedSplit == null
+                            ? _builtInName(split)
+                            : _displayStoredName(savedSplit!.name),
+                        validMinutes(a)
+                            ? l.mergeShortMinutes(a.toString())
+                            : l.mergeInvalidDuration)),
+                    Text(l.mergeNamedValue(
+                        _builtInName(sport),
+                        validMinutes(b)
+                            ? l.mergeShortMinutes(b.toString())
+                            : l.mergeInvalidDuration)),
+                    if (sport.id == 'sprints') Text(l.mergeSprintEstimate),
                     const SizedBox(height: 8),
                     if (weight == null) ...[
-                      const Text(
-                          'Calorie estimate unavailable - add your weight'),
+                      Text(l.mergeAddWeight),
                       TextButton(
                           onPressed: () =>
                               showCalorieProfileSheet(context, state),
-                          child: const Text('Complete your profile')),
+                          child: Text(l.mergeCompleteProfile)),
                     ] else if (activity == null) ...[
-                      const Text(
-                          'Calorie estimate unavailable for this sport.'),
+                      Text(l.mergeSportUnavailable),
                     ] else ...[
-                      Text(
-                          'Estimated calories burned: ${strengthKcal != null && sportKcal != null ? '${strengthKcal + sportKcal} kcal' : 'Unavailable'}'),
-                      Text(
-                          '${savedSplit?.name ?? _builtInName(split)}: ${strengthKcal == null ? 'Unavailable' : '$strengthKcal kcal'}'),
-                      Text(
-                          '${_builtInName(sport)}: ${sportKcal == null ? 'Unavailable' : '$sportKcal kcal'}'),
+                      Text(l.mergeEstimatedCalories(
+                          strengthKcal != null && sportKcal != null
+                              ? l.mergeCalories(
+                                  (strengthKcal + sportKcal).toString())
+                              : l.mergeUnavailable)),
+                      Text(l.mergeNamedValue(
+                          savedSplit == null
+                              ? _builtInName(split)
+                              : _displayStoredName(savedSplit!.name),
+                          strengthKcal == null
+                              ? l.mergeUnavailable
+                              : l.mergeCalories(strengthKcal.toString()))),
+                      Text(l.mergeNamedValue(
+                          _builtInName(sport),
+                          sportKcal == null
+                              ? l.mergeUnavailable
+                              : l.mergeCalories(sportKcal.toString()))),
                     ],
                     const SizedBox(height: 8),
-                    const Text(
-                        'Estimate based on activity type, duration, intensity and your weight.'),
+                    Text(l.mergeEstimateNote),
                     const SizedBox(height: 12),
                     Wrap(spacing: 8, runSpacing: 4, children: [
                       OutlinedButton(
                           onPressed: planning ? null : _plan,
-                          child: const Text('Plan on a date')),
+                          child: Text(l.mergePlanDate)),
                       OutlinedButton(
                           onPressed: validMinutes(a)
                               ? () => _log(
                                   WorkoutActivity.strength, a, splitIntensity)
                               : null,
-                          child: const Text('Log workout')),
+                          child: Text(l.mergeLogWorkout)),
                       OutlinedButton(
                           onPressed: activity != null && validMinutes(b)
                               ? () => _log(activity, b, sportIntensity)
                               : null,
-                          child: const Text('Log sport')),
+                          child: Text(l.mergeLogSport)),
                     ])
                   ])),
             ]);
@@ -469,7 +548,7 @@ class _PlanDateDialogState extends State<_PlanDateDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: const Text('Plan on a date'),
+        title: Text(strings(context).mergePlanDate),
         content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
           TextButton(
@@ -479,36 +558,41 @@ class _PlanDateDialogState extends State<_PlanDateDialog> {
                 initialDate: date,
                 firstDate: DateTime(1900),
                 lastDate: DateTime(2100, 12, 31),
+                builder: (context, child) => Localizations.override(
+                  context: context,
+                  delegates: const [_WesternArabicMaterialDelegate()],
+                  child: child!,
+                ),
               );
               if (picked != null && mounted) setState(() => date = picked);
             },
-            child: Text(
-                'Date: ${MaterialLocalizations.of(context).formatMediumDate(date)}'),
+            child: Text(strings(context).mergeDate(westernDigits(
+                MaterialLocalizations.of(context).formatMediumDate(date)))),
           ),
           TextField(
             controller: effort,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
-                labelText: 'Planner effort (%)',
-                helperText: '0 to 100',
+                labelText: strings(context).mergePlannerEffort,
+                helperText: strings(context).plannerEffortHint,
                 errorText: error),
           )
         ])),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+              child: Text(strings(context).plannerCancel)),
           TextButton(
               onPressed: () {
                 final value = int.tryParse(effort.text);
                 if (value == null || value < 0 || value > 100) {
-                  setState(() => error = 'Enter effort from 0 to 100%.');
+                  setState(() => error = strings(context).plannerInvalidEffort);
                   return;
                 }
                 Navigator.pop(context, (date, value));
               },
-              child: const Text('Continue'))
+              child: Text(strings(context).mergeContinue))
         ],
       );
 }

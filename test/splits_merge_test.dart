@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/data.dart';
+import 'package:privilege/l10n/app_localizations.dart';
 import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/user_profile.dart';
 import 'package:privilege/logic/workout_estimate.dart';
@@ -24,7 +26,7 @@ class _State extends AppState {
 
 void main() {
   Future<(FakePlanner, _State)> render(WidgetTester tester,
-      {double scale = 1, FakePlanner? repository}) async {
+      {double scale = 1, FakePlanner? repository, String? language}) async {
     final repo = repository ?? FakePlanner();
     final state = _State(repo)
       ..profile = defaultUserProfile.copyWith(weightKg: 80, hasWeight: true);
@@ -35,6 +37,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(MaterialApp(
       theme: buildTheme(),
+      locale: language == null ? null : Locale(language),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context)
               .copyWith(textScaler: TextScaler.linear(scale)),
@@ -70,6 +75,101 @@ void main() {
         tester, find.widgetWithText(DropdownButtonFormField<String>, label));
     await tester.tap(find.text(name).last);
     await tester.pumpAndSettle();
+  }
+
+  test('splits has no hardcoded Arabic or user-facing literal labels', () {
+    final source = File('lib/screens/splits.dart').readAsStringSync();
+    expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))));
+    expect(
+        RegExp(r"""(?:Text\(\s*(?:const\s*)?|ScreenHeader\(\s*|(?:labelText|hintText|helperText|tooltip|label|title)\s*:\s*)['"]""")
+            .allMatches(source),
+        isEmpty);
+  });
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('localized splits and planning at 360 in $language',
+        (tester) async {
+      final repo = FakePlanner()
+        ..splits.addAll([
+          const PlannerSplit(
+              id: 'starter',
+              name: 'Push',
+              kind: 'workout',
+              duration: 60,
+              effort: 70),
+          const PlannerSplit(
+              id: 'custom',
+              name: 'Custom name',
+              kind: 'workout',
+              duration: 40,
+              effort: 70),
+        ]);
+      await render(tester, repository: repo, language: language);
+      final context = tester.element(find.byType(SplitsScreen));
+      final l = AppLocalizations.of(context)!;
+      expect(Directionality.of(context),
+          language == 'ar' ? TextDirection.rtl : TextDirection.ltr);
+      expect(find.text(l.mergeTitle), findsOneWidget);
+      expect(find.text(l.mergeSubtitle), findsOneWidget);
+      expect(find.text(l.splitPushDay), findsWidgets);
+      await tap(
+          tester,
+          find.widgetWithText(
+              DropdownButtonFormField<String>, l.mergeWorkoutSplit));
+      expect(find.text(l.mergeSavedName(l.plannerPush)), findsOneWidget);
+      expect(find.text(l.mergeSavedName('Custom name')), findsOneWidget);
+      await tester.tap(find.text(l.mergeSavedName(l.plannerPush)));
+      await tester.pumpAndSettle();
+      await visible(
+          tester, find.text(l.mergeEstimatedCalories(l.mergeCalories('920'))));
+      expect(find.text(l.mergeCombinedDuration(l.mergeMinutes('120'))),
+          findsOneWidget);
+      expect(
+          find.text(
+              l.mergeNamedValue(l.plannerPush, l.mergeShortMinutes('60'))),
+          findsOneWidget);
+      expect(find.text(l.mergeEstimateNote), findsOneWidget);
+      await tap(tester, find.text(l.mergePlanDate));
+      final date = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((t) => t.data)
+          .whereType<String>()
+          .firstWhere(
+              (s) => s.startsWith(language == 'ar' ? 'التاريخ:' : 'Date:'));
+      expect(date, isNot(contains(RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'))));
+      await tester.tap(find.text(date));
+      await tester.pumpAndSettle();
+      final pickerText = tester
+          .widgetList<Text>(find.descendant(
+              of: find.byType(DatePickerDialog), matching: find.byType(Text)))
+          .map((text) => text.data ?? '')
+          .join(' ');
+      expect(
+          pickerText, isNot(contains(RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'))));
+      final pickerContext = tester.element(find.byType(DatePickerDialog));
+      await tester.tap(find
+          .text(MaterialLocalizations.of(pickerContext).cancelButtonLabel)
+          .last);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.widgetWithText(TextField, l.mergePlannerEffort), '101');
+      await tester.tap(find.text(l.mergeContinue));
+      await tester.pumpAndSettle();
+      expect(find.text(l.plannerInvalidEffort), findsOneWidget);
+      await tester.enterText(
+          find.widgetWithText(TextField, l.mergePlannerEffort), '70');
+      await tester.tap(find.text(l.mergeContinue));
+      await tester.pumpAndSettle();
+      expect(repo.days.single.name, 'Push + Basketball');
+      expect(repo.splits.first.name, 'Push');
+      await tap(tester, find.text(l.mergePlanDate));
+      await tester.tap(find.text(l.mergeContinue));
+      await tester.pumpAndSettle();
+      expect(find.text(l.mergeReplaceTitle), findsOneWidget);
+      await tester.tap(find.text(l.plannerCancel));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
   }
 
   test('sport MET rows and per-segment rounding', () {
