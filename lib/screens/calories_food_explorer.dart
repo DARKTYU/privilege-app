@@ -565,7 +565,20 @@ class _PortionSheetState extends State<_PortionSheet> {
                           MealCategory.shake => l.foodSnackSingular,
                         }),
                         selected: meal == choice,
-                        selectedColor: p.accent.withAlpha(55),
+                        selectedColor:
+                            Theme.of(context).colorScheme.primaryContainer,
+                        labelStyle: TextStyle(
+                          color: meal == choice
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer
+                              : Theme.of(context).colorScheme.onSurface,
+                          fontWeight:
+                              meal == choice ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                        side: BorderSide.none,
                         onSelected: widget.log != null
                             ? null
                             : (_) => setState(() => meal = choice),
@@ -574,7 +587,7 @@ class _PortionSheetState extends State<_PortionSheet> {
                   if (error != null)
                     Text(error!,
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
+                            color: kSmallTextAccent)),
                   const SizedBox(height: 12),
                   Row(children: [
                     Expanded(

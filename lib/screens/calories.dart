@@ -372,7 +372,7 @@ class _AddFormState extends State<_AddForm> {
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(_error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              style: TextStyle(color: kSmallTextAccent)),
         ],
         const SizedBox(height: 10),
         TextField(

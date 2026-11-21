@@ -3852,16 +3852,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get primaryGoal => 'Primary Target Goal';
 
   @override
-  String get goalChampionship => 'Natural Championship Qualification';
+  String get goalChampionship => 'Train for a natural competition';
 
   @override
-  String get goalMuscle => 'Lean Muscle Mass Hypertrophy';
+  String get goalMuscle => 'Build muscle';
 
   @override
-  String get goalSports => 'Sports & Strength Split Merger';
+  String get goalSports => 'Mix sports and strength training';
 
   @override
-  String get goalFatLoss => 'Metabolic Fat Loss & Calorie Deficit';
+  String get goalFatLoss => 'Lose body fat';
 
   @override
   String get estimatedTarget => 'Estimated Calorie Target:';

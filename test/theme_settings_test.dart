@@ -49,6 +49,11 @@ void main() {
         greaterThanOrEqualTo(4.5),
         reason: '${preset.label} supporting text',
       );
+      expect(
+        _contrastRatio(preset.smallTextAccent, preset.background),
+        greaterThanOrEqualTo(4.5),
+        reason: '${preset.label} small red text',
+      );
     }
   });
 

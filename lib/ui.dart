@@ -13,6 +13,7 @@ Color get kCream => themeSettings.selected.text;
 Color get kMuted => themeSettings.selected.mutedText;
 Color get kGreen => themeSettings.selected.success;
 Color get kRed => themeSettings.selected.error;
+Color get kSmallTextAccent => themeSettings.selected.smallTextAccent;
 Color get kBlue => themeSettings.selected.info;
 Color get kOrange => themeSettings.selected.warmAccent;
 Color get kCyan => themeSettings.selected.coolAccent;

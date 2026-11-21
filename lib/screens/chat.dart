@@ -74,8 +74,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen>
-    with WidgetsBindingObserver {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   List<String> get _suggestions {
     final l = strings(context);
     return [
@@ -639,12 +638,23 @@ class _ChatScreenState extends State<ChatScreen>
             if (_messages.isNotEmpty)
               SizedBox(
                 height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  children: [
-                    for (final question in _suggestions) _suggestion(question),
-                  ],
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (bounds) => const LinearGradient(
+                    begin: AlignmentDirectional.centerStart,
+                    end: AlignmentDirectional.centerEnd,
+                    stops: [0, 0.84, 1],
+                    colors: [Colors.white, Colors.white, Colors.transparent],
+                  ).createShader(bounds,
+                      textDirection: Directionality.of(context)),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 32, 0),
+                    children: [
+                      for (final question in _suggestions)
+                        _suggestion(question),
+                    ],
+                  ),
                 ),
               ),
             Padding(

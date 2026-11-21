@@ -4064,16 +4064,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get primaryGoal => 'الهدف الأساسي';
 
   @override
-  String get goalChampionship => 'التأهل لبطولة طبيعية';
+  String get goalChampionship => 'الاستعداد لبطولة طبيعية';
 
   @override
-  String get goalMuscle => 'زيادة الكتلة العضلية';
+  String get goalMuscle => 'زيادة العضلات';
 
   @override
   String get goalSports => 'الجمع بين الرياضة وتمارين القوة';
 
   @override
-  String get goalFatLoss => 'خسارة الدهون وتقليل السعرات';
+  String get goalFatLoss => 'خسارة دهون الجسم';
 
   @override
   String get estimatedTarget => 'هدف السعرات التقديري:';

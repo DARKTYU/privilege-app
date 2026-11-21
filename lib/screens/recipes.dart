@@ -316,7 +316,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                           _FavoriteError.deviceSave => l.recipeDeviceSaveError,
                         },
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
+                            color: kSmallTextAccent)),
                     if (!favoritesLoading && account != null)
                       TextButton(
                           onPressed: _loadFavorites,

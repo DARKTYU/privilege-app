@@ -716,7 +716,7 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
                 padding: const EdgeInsets.all(8),
                 child: Text(error!(context),
                     style:
-                        TextStyle(color: Theme.of(context).colorScheme.error))),
+                        TextStyle(color: kSmallTextAccent))),
           const SizedBox(height: 12),
           ElevatedButton(
               onPressed: busy || choosingPhoto ? null : save,

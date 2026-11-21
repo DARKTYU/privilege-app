@@ -118,7 +118,10 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
       });
       await _loadWeek();
     } catch (error) {
-      if (mounted) setState(() => initialError = friendlyError(error, localizations: strings(context)));
+      if (mounted) {
+        setState(() => initialError =
+            friendlyError(error, localizations: strings(context)));
+      }
     }
   }
 
@@ -163,8 +166,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text(strings(context).plannerSaveError(friendlyError(error, localizations: strings(context))))));
+            content: Text(strings(context).plannerSaveError(
+                friendlyError(error, localizations: strings(context))))));
       }
     } finally {
       if (mounted) setState(() => busy = false);
@@ -311,8 +314,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text(strings(context).plannerOpenError(friendlyError(error, localizations: strings(context))))));
+            content: Text(strings(context).plannerOpenError(
+                friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -327,7 +330,8 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                     ? const CircularProgressIndicator()
                     : Column(mainAxisSize: MainAxisSize.min, children: [
                         Text(strings(context).plannerLoadError(friendlyError(
-                            initialError!, localizations: strings(context)))),
+                            initialError!,
+                            localizations: strings(context)))),
                         TextButton(
                             onPressed: _initialize,
                             child: Text(strings(context).plannerRetry)),
@@ -364,10 +368,11 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                 ]),
                 if (state.plannerLoading) const LinearProgressIndicator(),
                 if (state.plannerError != null) ...[
-                  Text(strings(context).plannerLoadError(friendlyError(
-                      state.plannerError!, localizations: strings(context))),
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.error)),
+                  Text(
+                      strings(context).plannerLoadError(friendlyError(
+                          state.plannerError!,
+                          localizations: strings(context))),
+                      style: TextStyle(color: kSmallTextAccent)),
                   TextButton(
                       onPressed: _loadWeek,
                       child: Text(strings(context).plannerRetry)),
@@ -379,7 +384,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                             _calendarDay(week!.add(Duration(days: i)), days)),
                 ]),
                 const SizedBox(height: 8),
-                Wrap(spacing: 12, runSpacing: 4, children: [
+                Wrap(spacing: 8, runSpacing: 8, children: [
                   _legend(strings(context).plannerPlannedWorkout, false),
                   _legend(strings(context).plannerCompletedWorkout, true),
                   Text(strings(context).plannerRestLegend,
@@ -409,16 +414,17 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                             Text(day.kind == 'rest'
                                 ? strings(context).plannerRestDay
                                 : day.duration == null
-                                ? strings(context).plannerWorkoutNoDuration('${day.effort}')
-                                : strings(context).plannerWorkoutSummary(
-                                    day.duration!, '${day.effort}')),
+                                    ? strings(context).plannerWorkoutNoDuration(
+                                        '${day.effort}')
+                                    : strings(context).plannerWorkoutSummary(
+                                        day.duration!, '${day.effort}')),
                           if (day.kind == 'workout')
                             Text(state.plannerWorkoutDates.contains(date)
                                 ? strings(context).plannerWorkoutLogged
                                 : strings(context).plannerWorkoutNotLogged),
                         ],
                         const SizedBox(height: 8),
-                        Wrap(spacing: 8, runSpacing: 4, children: [
+                        Wrap(spacing: 8, runSpacing: 8, children: [
                           OutlinedButton(
                               onPressed: busy ? null : _chooseDay,
                               child: Text(strings(context).plannerPlanDay)),
@@ -455,7 +461,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                             date.compareTo(state.plannerToday!) > 0)
                           Text(strings(context).plannerAvailableOnDay),
                       ])),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(children: [
                     Expanded(
                         child: Text(strings(context).plannerMySplits,
@@ -490,10 +496,13 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                                     split.kind == 'rest'
                                         ? strings(context).plannerRest
                                         : split.duration == null
-                                        ? strings(context).plannerSplitNoDuration('${split.effort}')
-                                        : strings(context).plannerSplitSummary(
-                                            split.duration!,
-                                            '${split.effort}'),
+                                            ? strings(context)
+                                                .plannerSplitNoDuration(
+                                                    '${split.effort}')
+                                            : strings(context)
+                                                .plannerSplitSummary(
+                                                    split.duration!,
+                                                    '${split.effort}'),
                                     style:
                                         Theme.of(context).textTheme.bodySmall),
                               ])),
@@ -599,7 +608,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
                 shape: BoxShape.circle,
                 border: Border.all(color: kGold),
                 color: filled ? kGold : Colors.transparent)),
-        const SizedBox(width: 4),
+        const SizedBox(width: 8),
         Text(text, style: const TextStyle(fontSize: 11)),
       ]);
 }
@@ -654,7 +663,7 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                           ? strings(context).plannerInvalidName
                           : null),
                   if (widget.chooseKind) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                         initialValue: kind,
                         decoration: InputDecoration(
@@ -670,7 +679,7 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                         onChanged: (value) => setState(() => kind = value!)),
                   ],
                   if (kind == 'workout') ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextFormField(
                         controller: duration,
                         keyboardType: TextInputType.number,
@@ -687,7 +696,7 @@ class _PlannerFormState<T> extends State<_PlannerForm<T>> {
                               ? strings(context).plannerInvalidDuration
                               : null;
                         }),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextFormField(
                         controller: effort,
                         keyboardType: TextInputType.number,

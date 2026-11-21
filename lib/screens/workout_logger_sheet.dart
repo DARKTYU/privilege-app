@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../logic/fitness_logic.dart';
 import '../logic/workout_estimate.dart';
 import '../state.dart';
+import '../ui.dart';
 import 'calorie_profile_sheet.dart';
 import 'calories_food_summary.dart';
 
@@ -149,7 +150,8 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (mounted) {
-        setState(() => error = strings(context).workoutSaveError(friendlyError(e, localizations: strings(context))));
+        setState(() => error = strings(context).workoutSaveError(
+            friendlyError(e, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => saving = false);
@@ -288,9 +290,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
                   ),
                 if (error != null) ...[
                   const SizedBox(height: 8),
-                  Text(error!,
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.error)),
+                  Text(error!, style: TextStyle(color: kSmallTextAccent)),
                 ],
                 const SizedBox(height: 12),
                 FilledButton(

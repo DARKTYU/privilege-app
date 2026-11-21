@@ -76,6 +76,9 @@ void main() {
       expect(selectedDate,
           isNot(contains(RegExp(r'[\u0660-\u0669\u06f0-\u06f9]'))));
       expect(find.text(language == 'ar' ? 'دفع' : 'Push'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('My custom split'), 200,
+          scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
       expect(find.text('My custom split'), findsOneWidget);
       await tester
           .ensureVisible(find.byTooltip(l.plannerEditName(l.plannerPush)));

@@ -232,7 +232,7 @@ void main() {
     await tester.pumpAndSettle();
     final error = tester
         .widget<Text>(find.text('Enter a calorie amount greater than zero.'));
-    expect(error.style?.color, buildTheme().colorScheme.error);
+    expect(error.style?.color, AppThemePreset.privilege.smallTextAccent);
     expect(tester.takeException(), isNull);
   });
 

@@ -289,7 +289,7 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                     const SizedBox(height: 8),
                     Text(error!,
                         style: TextStyle(
-                            color: Theme.of(context).colorScheme.error)),
+                            color: kSmallTextAccent)),
                   ],
                   const SizedBox(height: 12),
                   FilledButton(

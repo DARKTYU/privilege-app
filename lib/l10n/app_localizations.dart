@@ -6089,25 +6089,25 @@ abstract class AppLocalizations {
   /// No description provided for @goalChampionship.
   ///
   /// In en, this message translates to:
-  /// **'Natural Championship Qualification'**
+  /// **'Train for a natural competition'**
   String get goalChampionship;
 
   /// No description provided for @goalMuscle.
   ///
   /// In en, this message translates to:
-  /// **'Lean Muscle Mass Hypertrophy'**
+  /// **'Build muscle'**
   String get goalMuscle;
 
   /// No description provided for @goalSports.
   ///
   /// In en, this message translates to:
-  /// **'Sports & Strength Split Merger'**
+  /// **'Mix sports and strength training'**
   String get goalSports;
 
   /// No description provided for @goalFatLoss.
   ///
   /// In en, this message translates to:
-  /// **'Metabolic Fat Loss & Calorie Deficit'**
+  /// **'Lose body fat'**
   String get goalFatLoss;
 
   /// No description provided for @estimatedTarget.

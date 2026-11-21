@@ -117,6 +117,8 @@ enum AppThemePreset {
   final Color coolAccent;
   final Color violetAccent;
 
+  Color get smallTextAccent => const Color(0xFFFFA3B1);
+
   static AppThemePreset fromId(String? id) => AppThemePreset.values.firstWhere(
         (preset) => preset.id == id,
         orElse: () => AppThemePreset.privilege,

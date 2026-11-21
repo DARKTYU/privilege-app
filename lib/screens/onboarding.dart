@@ -405,7 +405,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(_translatedError(_error!),
-                              style: TextStyle(color: kRed, fontSize: 12)),
+                              style: TextStyle(color: kSmallTextAccent, fontSize: 12)),
                         ),
                       PrimaryButton(
                         _saving
