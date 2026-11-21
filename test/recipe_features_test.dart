@@ -99,8 +99,7 @@ void main() {
       expect(logged!.name, recipe.name);
       expect(logged!.category, recipe.category);
       expect(logged!.servingLabel, 'Recipe');
-      expect(find.text(l.recipeLogged(name, logged!.calories)),
-          findsOneWidget);
+      expect(find.text(l.recipeLogged(name, logged!.calories)), findsOneWidget);
       await tester.ensureVisible(find.text(name));
       await tester.pumpAndSettle();
       await tester.tap(find.text(name));
@@ -132,6 +131,80 @@ void main() {
           find.text(l.recipeStep('1',
               language == 'ar' ? recipe.steps.first : recipe.stepsAr.first)),
           findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final language in ['en', 'ar']) {
+    testWidgets('recipe photo headers and fallbacks fit at 360 in $language',
+        (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final recipe = recipes.first;
+      final name = language == 'ar' ? recipe.nameAr : recipe.name;
+      final path = recipePhotoPath(recipe.id);
+
+      Widget app() => MaterialApp(
+            locale: Locale(language),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            theme: buildTheme(),
+            home: Scaffold(
+              body: RecipesScreen(
+                accountId: () => 'a',
+                database: CaloriesTestDatabase(FoodDatabase()),
+                recipeList: [recipe],
+              ),
+            ),
+          );
+
+      await tester.pumpWidget(DefaultAssetBundle(
+        bundle: _PhotoBundle(path),
+        child: app(),
+      ));
+      await tester.pumpAndSettle();
+      final image = tester.widget<Image>(find.byType(Image));
+      await tester.runAsync(() async {
+        await precacheImage(image.image, tester.element(find.byType(Image)));
+      });
+      await tester.pumpAndSettle();
+      expect(find.byType(AspectRatio), findsOneWidget);
+      expect(
+          find.byWidgetPredicate((widget) =>
+              widget is Semantics && widget.properties.label == name),
+          findsOneWidget);
+      expect(tester.widget<AspectRatio>(find.byType(AspectRatio)).aspectRatio,
+          16 / 9);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      final detailImage = tester.widget<Image>(find.byType(Image));
+      await tester.runAsync(() async {
+        await precacheImage(
+            detailImage.image, tester.element(find.byType(Image)));
+      });
+      await tester.pumpAndSettle();
+      expect(find.byType(AspectRatio), findsOneWidget);
+      expect(
+          find.byWidgetPredicate((widget) =>
+              widget is Semantics && widget.properties.label == name),
+          findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      expect(find.byType(AspectRatio), findsNothing);
+      expect(find.byIcon(Icons.restaurant), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+      expect(find.byType(AspectRatio), findsNothing);
+      expect(find.byIcon(Icons.restaurant), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

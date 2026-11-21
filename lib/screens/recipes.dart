@@ -339,98 +339,113 @@ class _RecipesScreenState extends State<RecipesScreen> {
       padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 16),
       child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                    builder: (_) => _RecipeDetailPage(
-                      recipe: recipe,
-                      nutrition: nutrition,
-                      manifest: _assetManifest,
-                      onLog: _log,
-                    ),
-                  )),
-              child: Padding(
-                padding: const EdgeInsets.all(14),
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => _RecipeDetailPage(
+              recipe: recipe,
+              nutrition: nutrition,
+              manifest: _assetManifest,
+              onLog: _log,
+            ),
+          )),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _RecipePhoto(
+                  recipe: recipe,
+                  manifest: _assetManifest,
+                  cardHeader: true),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _RecipePhoto(recipe: recipe, manifest: _assetManifest),
-                      const SizedBox(height: 8),
-                      Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                  Text(_recipeName(context, recipe),
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w800)),
-                                ])),
-                            IconButton(
-                              tooltip: favorites.contains(recipe.id)
-                                  ? l.recipeRemoveFavorite
-                                  : l.recipeAddFavorite,
-                              icon: Icon(favorites.contains(recipe.id)
-                                  ? Icons.favorite
-                                  : Icons.favorite_border),
-                              onPressed: favoritesLoading ||
-                                      favoriteSaving ||
-                                      account == null
-                                  ? null
-                                  : () => _toggleFavorite(recipe.id),
-                            ),
-                          ]),
-                      const SizedBox(height: 8),
-                      if (p != null)
-                        Wrap(spacing: 6, runSpacing: 6, children: [
-                          _recipePill(context, l.recipeKcal(p.kcal),
-                              Theme.of(context).colorScheme.secondary),
-                          _recipePill(
-                              context,
-                              l.recipeMacro(formatCaloriesGrams(p.proteinG),
-                                  l.foodProtein.toLowerCase()),
-                              CaloriesPalette.protein),
-                          _recipePill(
-                              context,
-                              l.recipeMacro(formatCaloriesGrams(p.carbsG),
-                                  l.foodCarbs.toLowerCase()),
-                              CaloriesPalette.carbs),
-                          _recipePill(
-                              context,
-                              l.recipeMacro(formatCaloriesGrams(p.fatG),
-                                  l.foodFat.toLowerCase()),
-                              CaloriesPalette.fat),
-                        ]),
-                      const SizedBox(height: 8),
-                      Text(_recipeSummary(context, recipe),
-                          style: Theme.of(context).textTheme.bodySmall),
-                      const SizedBox(height: 8),
-                      Text(l.recipeEstimated,
-                          style: Theme.of(context).textTheme.bodySmall),
-                      if (remaining != null && remaining > 0 && p != null)
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _recipeName(context, recipe),
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: favorites.contains(recipe.id)
+                              ? l.recipeRemoveFavorite
+                              : l.recipeAddFavorite,
+                          icon: Icon(favorites.contains(recipe.id)
+                              ? Icons.favorite
+                              : Icons.favorite_border),
+                          onPressed: favoritesLoading ||
+                                  favoriteSaving ||
+                                  account == null
+                              ? null
+                              : () => _toggleFavorite(recipe.id),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (p != null)
+                      Wrap(spacing: 6, runSpacing: 6, children: [
+                        _recipePill(context, l.recipeKcal(p.kcal),
+                            Theme.of(context).colorScheme.secondary),
                         _recipePill(
                             context,
-                            p.kcal <= remaining
-                                ? l.recipeFits
-                                : l.recipeOver(p.kcal - remaining),
-                            Theme.of(context).colorScheme.secondary),
-                      if (nutrition == null) Text(l.recipeNutritionUnavailable),
-                      const SizedBox(height: 8),
-                      _recipeTags(context, recipe, nutrition),
-                      const SizedBox(height: 12),
-                      PrimaryButton(
-                        loggingId == recipe.id ? l.recipeLogging : l.recipeLog,
-                        icon: Icons.add,
-                        onPressed: nutrition == null || loggingId != null
-                            ? null
-                            : () => _log(recipe, nutrition, context),
-                      ),
-                    ]),
-              ))),
+                            l.recipeMacro(formatCaloriesGrams(p.proteinG),
+                                l.foodProtein.toLowerCase()),
+                            CaloriesPalette.protein),
+                        _recipePill(
+                            context,
+                            l.recipeMacro(formatCaloriesGrams(p.carbsG),
+                                l.foodCarbs.toLowerCase()),
+                            CaloriesPalette.carbs),
+                        _recipePill(
+                            context,
+                            l.recipeMacro(formatCaloriesGrams(p.fatG),
+                                l.foodFat.toLowerCase()),
+                            CaloriesPalette.fat),
+                      ]),
+                    const SizedBox(height: 8),
+                    Text(_recipeSummary(context, recipe),
+                        style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 8),
+                    Text(l.recipeEstimated,
+                        style: Theme.of(context).textTheme.bodySmall),
+                    if (remaining != null && remaining > 0 && p != null)
+                      _recipePill(
+                          context,
+                          p.kcal <= remaining
+                              ? l.recipeFits
+                              : l.recipeOver(p.kcal - remaining),
+                          Theme.of(context).colorScheme.secondary),
+                    if (nutrition == null)
+                      Text(l.recipeNutritionUnavailable),
+                    const SizedBox(height: 8),
+                    _recipeTags(context, recipe, nutrition),
+                    const SizedBox(height: 12),
+                    PrimaryButton(
+                      loggingId == recipe.id ? l.recipeLogging : l.recipeLog,
+                      icon: Icons.add,
+                      onPressed: nutrition == null || loggingId != null
+                          ? null
+                          : () => _log(recipe, nutrition, context),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -478,19 +493,27 @@ Widget _recipeTags(
 
 class _RecipePhoto extends StatelessWidget {
   const _RecipePhoto(
-      {required this.recipe, required this.manifest, this.detail = false});
+      {required this.recipe,
+      required this.manifest,
+      this.detail = false,
+      this.cardHeader = false});
 
   final Recipe recipe;
   final Future<AssetManifest> manifest;
-  final bool detail;
+  final bool detail, cardHeader;
 
   @override
   Widget build(BuildContext context) {
-    Widget placeholder() => imagePlaceholder(context,
-        width: 56,
-        height: 56,
-        radius: BorderRadius.circular(12),
-        icon: Icons.restaurant);
+    Widget placeholder() => Padding(
+          padding: cardHeader
+              ? const EdgeInsets.fromLTRB(14, 14, 14, 0)
+              : EdgeInsets.zero,
+          child: imagePlaceholder(context,
+              width: 56,
+              height: 56,
+              radius: BorderRadius.circular(12),
+              icon: Icons.restaurant),
+        );
     return FutureBuilder<AssetManifest>(
       future: manifest,
       builder: (context, snapshot) {
@@ -499,44 +522,68 @@ class _RecipePhoto extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 placeholder(),
-                Text(strings(context).recipePhotosError),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 14),
+                  child: Text(strings(context).recipePhotosError),
+                ),
               ]);
         }
         final path = recipePhotoPath(recipe.id);
         if (!snapshot.hasData || !snapshot.data!.listAssets().contains(path)) {
           return placeholder();
         }
-        final width = (MediaQuery.sizeOf(context).width *
+        final cacheWidth = (MediaQuery.sizeOf(context).width *
                 MediaQuery.devicePixelRatioOf(context))
             .round()
             .clamp(1, 1600);
-        return Image.asset(
-          path,
-          cacheWidth: width,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            debugPrint('Could not load recipe photo $path: $error');
-            return placeholder();
-          },
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            if (frame == null && !wasSynchronouslyLoaded) return placeholder();
-            return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+        final radius = cardHeader
+            ? const BorderRadius.vertical(top: Radius.circular(15))
+            : BorderRadius.circular(12);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              image: true,
+              label: _recipeName(context, recipe),
+              child: Image.asset(
+                path,
+                cacheWidth: cacheWidth,
+                fit: BoxFit.cover,
+                excludeFromSemantics: true,
+                errorBuilder: (context, error, stackTrace) {
+                  debugPrint('Could not load recipe photo $path: $error');
+                  return placeholder();
+                },
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  if (frame == null && !wasSynchronouslyLoaded) {
+                    return placeholder();
+                  }
+                  final clipped = ClipRRect(
+                    borderRadius: radius,
                     child: AspectRatio(aspectRatio: 16 / 9, child: child),
-                  ),
-                  if (detail) ...[
-                    const SizedBox(height: 4),
-                    Text(strings(context).recipePhotoIllustration,
-                        style: Theme.of(context).textTheme.bodySmall),
-                    if (recipePhotoCredits[recipe.id] case final credit?)
-                      Text(strings(context).recipePhotoCredit(credit),
-                          style: Theme.of(context).textTheme.bodySmall),
-                  ],
-                ]);
-          },
+                  );
+                  if (wasSynchronouslyLoaded) return clipped;
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 180),
+                    builder: (context, opacity, child) => Opacity(
+                      opacity: opacity,
+                      child: child,
+                    ),
+                    child: clipped,
+                  );
+                },
+              ),
+            ),
+            if (detail) ...[
+              const SizedBox(height: 4),
+              Text(strings(context).recipePhotoIllustration,
+                  style: Theme.of(context).textTheme.bodySmall),
+              if (recipePhotoCredits[recipe.id] case final credit?)
+                Text(strings(context).recipePhotoCredit(credit),
+                    style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ],
         );
       },
     );
