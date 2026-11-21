@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n_strings.dart';
+import '../coach_preferences.dart';
 import '../logic/coach_safety.dart';
 import '../logic/localized_dates.dart';
 import '../services/coach_client.dart';
@@ -75,7 +75,6 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  static const _consentKey = 'coach_share_calorie_context';
   List<String> get _suggestions {
     final l = strings(context);
     return [
@@ -128,10 +127,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _restoreConsent() async {
     try {
-      final preferences = await SharedPreferences.getInstance();
+      final consent = await loadCoachConsent();
       if (!mounted) return;
       setState(() {
-        _consent = preferences.getBool(_consentKey) ?? false;
+        _consent = consent;
         _consentReady = true;
       });
     } catch (_) {
@@ -145,8 +144,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_savingConsent) return;
     setState(() => _savingConsent = true);
     try {
-      final preferences = await SharedPreferences.getInstance();
-      if (!await preferences.setBool(_consentKey, value)) {
+      if (!await saveCoachConsent(value)) {
         throw StateError('Preference could not be saved');
       }
       if (mounted) setState(() => _consent = value);
@@ -617,8 +615,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Text(
-                          strings(context)
-                              .coachRequestsLeft(_remaining!),
+                          strings(context).coachRequestsLeft(_remaining!),
                           style: TextStyle(color: kMuted, fontSize: 11)),
                     ),
                 ],

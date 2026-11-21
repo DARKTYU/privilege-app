@@ -1181,5 +1181,21 @@
   "chooseGoal": "Choose a primary target goal.",
   "usernameTaken": "That username is already taken.",
   "profileSaveError": "Could not save your profile. Please try again.",
-  "sessionExpired": "Please log in again."
+  "sessionExpired": "Please log in again.",
+  "privacyDataTitle": "Privacy & Data",
+  "privacyDataSubtitle": "How your app data is stored and used",
+  "privacyStoreTitle": "What we store",
+  "privacyStoreBody": "Your profile, food and workout logs, community content you post, and your progress are stored in the app's Supabase database. Your profile photo and theme stay only on your device.",
+  "privacyCoachTitle": "AI coach",
+  "privacyCoachBody": "Messages are sent to Google Gemini to get a reply and are not stored by the app. Calorie numbers are shared only if you turn on the consent switch. Do not share personal or health details you do not want sent. The coach can make mistakes and is not medical advice.",
+  "privacyChoicesTitle": "Your choices",
+  "privacyConsentTitle": "Share calorie information with the coach",
+  "privacyConsentSubtitle": "Uses the same consent setting as the AI coach.",
+  "privacyDeletionTitle": "Data deletion",
+  "privacyDeletionBody": "Account deletion is not available inside the app yet. To request deletion of your data, contact support.",
+  "privacySupport": "Contact support",
+  "privacyCopyEmail": "Copy email",
+  "privacyEmailCopied": "Support email copied.",
+  "privacyEmailCopyFailed": "Could not copy the support email.",
+  "privacySignOut": "Sign out"
 }

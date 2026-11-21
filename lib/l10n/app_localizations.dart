@@ -6073,6 +6073,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please log in again.'**
   String get sessionExpired;
+
+  /// No description provided for @privacyDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy & Data'**
+  String get privacyDataTitle;
+
+  /// No description provided for @privacyDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How your app data is stored and used'**
+  String get privacyDataSubtitle;
+
+  /// No description provided for @privacyStoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What we store'**
+  String get privacyStoreTitle;
+
+  /// No description provided for @privacyStoreBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile, food and workout logs, community content you post, and your progress are stored in the app\'s Supabase database. Your profile photo and theme stay only on your device.'**
+  String get privacyStoreBody;
+
+  /// No description provided for @privacyCoachTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI coach'**
+  String get privacyCoachTitle;
+
+  /// No description provided for @privacyCoachBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages are sent to Google Gemini to get a reply and are not stored by the app. Calorie numbers are shared only if you turn on the consent switch. Do not share personal or health details you do not want sent. The coach can make mistakes and is not medical advice.'**
+  String get privacyCoachBody;
+
+  /// No description provided for @privacyChoicesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your choices'**
+  String get privacyChoicesTitle;
+
+  /// No description provided for @privacyConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share calorie information with the coach'**
+  String get privacyConsentTitle;
+
+  /// No description provided for @privacyConsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the same consent setting as the AI coach.'**
+  String get privacyConsentSubtitle;
+
+  /// No description provided for @privacyDeletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data deletion'**
+  String get privacyDeletionTitle;
+
+  /// No description provided for @privacyDeletionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deletion is not available inside the app yet. To request deletion of your data, contact support.'**
+  String get privacyDeletionBody;
+
+  /// No description provided for @privacySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact support'**
+  String get privacySupport;
+
+  /// No description provided for @privacyCopyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy email'**
+  String get privacyCopyEmail;
+
+  /// No description provided for @privacyEmailCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Support email copied.'**
+  String get privacyEmailCopied;
+
+  /// No description provided for @privacyEmailCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy the support email.'**
+  String get privacyEmailCopyFailed;
+
+  /// No description provided for @privacySignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get privacySignOut;
 }
 
 class _AppLocalizationsDelegate

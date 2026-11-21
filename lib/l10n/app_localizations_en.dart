@@ -3840,4 +3840,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sessionExpired => 'Please log in again.';
+
+  @override
+  String get privacyDataTitle => 'Privacy & Data';
+
+  @override
+  String get privacyDataSubtitle => 'How your app data is stored and used';
+
+  @override
+  String get privacyStoreTitle => 'What we store';
+
+  @override
+  String get privacyStoreBody =>
+      'Your profile, food and workout logs, community content you post, and your progress are stored in the app\'s Supabase database. Your profile photo and theme stay only on your device.';
+
+  @override
+  String get privacyCoachTitle => 'AI coach';
+
+  @override
+  String get privacyCoachBody =>
+      'Messages are sent to Google Gemini to get a reply and are not stored by the app. Calorie numbers are shared only if you turn on the consent switch. Do not share personal or health details you do not want sent. The coach can make mistakes and is not medical advice.';
+
+  @override
+  String get privacyChoicesTitle => 'Your choices';
+
+  @override
+  String get privacyConsentTitle => 'Share calorie information with the coach';
+
+  @override
+  String get privacyConsentSubtitle =>
+      'Uses the same consent setting as the AI coach.';
+
+  @override
+  String get privacyDeletionTitle => 'Data deletion';
+
+  @override
+  String get privacyDeletionBody =>
+      'Account deletion is not available inside the app yet. To request deletion of your data, contact support.';
+
+  @override
+  String get privacySupport => 'Contact support';
+
+  @override
+  String get privacyCopyEmail => 'Copy email';
+
+  @override
+  String get privacyEmailCopied => 'Support email copied.';
+
+  @override
+  String get privacyEmailCopyFailed => 'Could not copy the support email.';
+
+  @override
+  String get privacySignOut => 'Sign out';
 }

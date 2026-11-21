@@ -9,6 +9,7 @@ import '../l10n_strings.dart';
 import '../language_settings.dart';
 import '../theme_settings.dart';
 import '../ui.dart';
+import 'privacy_data.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -278,6 +279,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       : 'English'),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: _chooseLanguage,
+                ),
+              ),
+            ),
+            Panel(
+              child: Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: Text(strings(context).privacyDataTitle),
+                  subtitle: Text(strings(context).privacyDataSubtitle),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PrivacyDataScreen(),
+                    ),
+                  ),
                 ),
               ),
             ),

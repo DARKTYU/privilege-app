@@ -4057,4 +4057,56 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get sessionExpired => 'يرجى تسجيل الدخول مرة أخرى.';
+
+  @override
+  String get privacyDataTitle => 'الخصوصية والبيانات';
+
+  @override
+  String get privacyDataSubtitle => 'كيف تُحفظ بياناتك وتُستخدم في التطبيق';
+
+  @override
+  String get privacyStoreTitle => 'ما الذي نحفظه';
+
+  @override
+  String get privacyStoreBody =>
+      'يُحفظ ملفك الشخصي وسجل الطعام والتمارين والمحتوى الذي تنشره في المجتمع وتقدمك في قاعدة بيانات Supabase الخاصة بالتطبيق. تبقى صورة ملفك الشخصي والمظهر على جهازك فقط.';
+
+  @override
+  String get privacyCoachTitle => 'المدرب الذكي';
+
+  @override
+  String get privacyCoachBody =>
+      'تُرسل الرسائل إلى Google Gemini للحصول على رد، ولا يخزنها التطبيق. لا تُرسل أرقام السعرات إلا إذا فعّلت الموافقة. لا تشارك بيانات شخصية أو صحية لا تريد إرسالها. قد يخطئ المدرب ولا يُعد نصيحة طبية.';
+
+  @override
+  String get privacyChoicesTitle => 'خياراتك';
+
+  @override
+  String get privacyConsentTitle => 'مشاركة بيانات السعرات مع المدرب';
+
+  @override
+  String get privacyConsentSubtitle =>
+      'يستخدم إعداد الموافقة نفسه الموجود في المدرب الذكي.';
+
+  @override
+  String get privacyDeletionTitle => 'حذف البيانات';
+
+  @override
+  String get privacyDeletionBody =>
+      'حذف الحساب غير متاح داخل التطبيق حالياً. لطلب حذف بياناتك، تواصل مع الدعم.';
+
+  @override
+  String get privacySupport => 'التواصل مع الدعم';
+
+  @override
+  String get privacyCopyEmail => 'نسخ البريد الإلكتروني';
+
+  @override
+  String get privacyEmailCopied => 'تم نسخ بريد الدعم.';
+
+  @override
+  String get privacyEmailCopyFailed => 'تعذر نسخ بريد الدعم.';
+
+  @override
+  String get privacySignOut => 'تسجيل الخروج';
 }

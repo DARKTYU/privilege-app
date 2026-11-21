@@ -996,5 +996,21 @@
   "chooseGoal": "اختر هدفاً أساسياً.",
   "usernameTaken": "اسم المستخدم مستخدم بالفعل.",
   "profileSaveError": "تعذر حفظ ملفك الشخصي. حاول مرة أخرى.",
-  "sessionExpired": "يرجى تسجيل الدخول مرة أخرى."
+  "sessionExpired": "يرجى تسجيل الدخول مرة أخرى.",
+  "privacyDataTitle": "الخصوصية والبيانات",
+  "privacyDataSubtitle": "كيف تُحفظ بياناتك وتُستخدم في التطبيق",
+  "privacyStoreTitle": "ما الذي نحفظه",
+  "privacyStoreBody": "يُحفظ ملفك الشخصي وسجل الطعام والتمارين والمحتوى الذي تنشره في المجتمع وتقدمك في قاعدة بيانات Supabase الخاصة بالتطبيق. تبقى صورة ملفك الشخصي والمظهر على جهازك فقط.",
+  "privacyCoachTitle": "المدرب الذكي",
+  "privacyCoachBody": "تُرسل الرسائل إلى Google Gemini للحصول على رد، ولا يخزنها التطبيق. لا تُرسل أرقام السعرات إلا إذا فعّلت الموافقة. لا تشارك بيانات شخصية أو صحية لا تريد إرسالها. قد يخطئ المدرب ولا يُعد نصيحة طبية.",
+  "privacyChoicesTitle": "خياراتك",
+  "privacyConsentTitle": "مشاركة بيانات السعرات مع المدرب",
+  "privacyConsentSubtitle": "يستخدم إعداد الموافقة نفسه الموجود في المدرب الذكي.",
+  "privacyDeletionTitle": "حذف البيانات",
+  "privacyDeletionBody": "حذف الحساب غير متاح داخل التطبيق حالياً. لطلب حذف بياناتك، تواصل مع الدعم.",
+  "privacySupport": "التواصل مع الدعم",
+  "privacyCopyEmail": "نسخ البريد الإلكتروني",
+  "privacyEmailCopied": "تم نسخ بريد الدعم.",
+  "privacyEmailCopyFailed": "تعذر نسخ بريد الدعم.",
+  "privacySignOut": "تسجيل الخروج"
 }
