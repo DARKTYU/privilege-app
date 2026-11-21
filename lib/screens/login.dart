@@ -7,10 +7,13 @@ import '../services/supabase_auth_service.dart';
 import '../services/session_recovery.dart';
 import '../state.dart';
 import '../ui.dart';
+import 'password_reset.dart';
 import '../widgets/auth_language_toggle.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.passwordResetService});
+
+  final PasswordResetService? passwordResetService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -239,6 +242,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       const SizedBox(height: 18),
+                      if (!_register)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: TextButton(
+                            onPressed: _busy
+                                ? null
+                                : () => Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => PasswordResetScreen(
+                                          service: widget.passwordResetService,
+                                        ),
+                                      ),
+                                    ),
+                            child: Text(strings(context).forgotPassword),
+                          ),
+                        ),
+                      const SizedBox(height: 4),
                       PrimaryButton(
                         _busy
                             ? strings(context).pleaseWait

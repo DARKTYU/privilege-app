@@ -161,6 +161,67 @@ class SupabaseAuthService {
     }
   }
 
+  static Future<void> requestPasswordReset(String email) async {
+    try {
+      await client.auth.resetPasswordForEmail(email);
+    } on sb.AuthException catch (error) {
+      throw _resetError(error);
+    } on SocketException {
+      throw _connectionError();
+    } on http.ClientException {
+      throw _connectionError();
+    } on TimeoutException {
+      throw _connectionError();
+    }
+  }
+
+  static Future<void> completePasswordReset(
+      String email, String code, String password) async {
+    try {
+      await client.auth.verifyOTP(
+        email: email,
+        token: code,
+        type: sb.OtpType.recovery,
+      );
+      await client.auth.updateUser(sb.UserAttributes(password: password));
+      await client.auth.signOut();
+    } on sb.AuthException catch (error) {
+      throw _resetError(error);
+    } on SocketException {
+      throw _connectionError();
+    } on http.ClientException {
+      throw _connectionError();
+    } on TimeoutException {
+      throw _connectionError();
+    }
+  }
+
+  static AuthException _resetError(sb.AuthException error) {
+    final code = error.code ?? 'auth_error';
+    final details = '${error.message} ${error.code ?? ''}'.toLowerCase();
+    if (code == 'over_request_rate_limit' ||
+        details.contains('rate limit') ||
+        details.contains('too many')) {
+      return AuthException('too_many_requests',
+          savedLanguageStrings().resetTooManyRequests);
+    }
+    if (details.contains('otp') ||
+        details.contains('token') ||
+        details.contains('expired') ||
+        details.contains('invalid')) {
+      return AuthException(
+          'invalid_code', savedLanguageStrings().resetInvalidCode);
+    }
+    if (details.contains('password') &&
+        (details.contains('weak') ||
+            details.contains('characters') ||
+            details.contains('length'))) {
+      return AuthException('weak_password',
+          savedLanguageStrings().invalidPassword);
+    }
+    return AuthException('reset_error', savedLanguageStrings().resetError);
+  }
+
   static Future<void> logout() async {
     try {
       await client.auth.signOut();

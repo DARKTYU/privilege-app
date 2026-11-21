@@ -3942,7 +3942,65 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get loginUnavailableFeatures =>
-      'ستتوفر إعادة تعيين كلمة المرور وتسجيل الدخول الاجتماعي بعد الإعداد.';
+      'سيتوفر تسجيل الدخول الاجتماعي لاحقاً.';
+
+  @override
+  String get forgotPassword => 'نسيت كلمة المرور؟';
+
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get resetInstructions => 'أدخل بريدك الإلكتروني لطلب الرمز من بريدك.';
+
+  @override
+  String get resetChoosePassword => 'اختر كلمة مرور جديدة';
+
+  @override
+  String get resetCodeInstructions =>
+      'أدخل الرمز من بريدك الإلكتروني وكلمة المرور الجديدة.';
+
+  @override
+  String get resetSendCode => 'إرسال الرمز';
+
+  @override
+  String get resetCode => 'الرمز من بريدك الإلكتروني';
+
+  @override
+  String get resetNewPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get resetUpdatePassword => 'تحديث كلمة المرور';
+
+  @override
+  String get resetResendCode => 'إرسال الرمز مرة أخرى';
+
+  @override
+  String resetResendCountdown(int seconds) {
+    return 'إعادة الإرسال بعد $seconds ثانية';
+  }
+
+  @override
+  String get resetNeutralMessage =>
+      'إذا كان لهذا البريد حساب، فقد أرسلنا رمزاً.';
+
+  @override
+  String get resetCodeFormatError =>
+      'أدخل الرمز من بريدك الإلكتروني باستخدام 6 إلى 10 أرقام.';
+
+  @override
+  String get resetInvalidCode =>
+      'الرمز غير صحيح أو انتهت صلاحيته. اطلب رمزاً جديداً وحاول مرة أخرى.';
+
+  @override
+  String get resetTooManyRequests =>
+      'المحاولات كثيرة. انتظر قليلاً وحاول مرة أخرى.';
+
+  @override
+  String get resetError => 'تعذر إعادة تعيين كلمة المرور. حاول مرة أخرى.';
+
+  @override
+  String get resetSuccess => 'تم تحديث كلمة المرور. يمكنك تسجيل الدخول الآن.';
 
   @override
   String get invalidEmail => 'أدخل بريداً إلكترونياً صالحاً.';

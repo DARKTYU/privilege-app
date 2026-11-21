@@ -5855,8 +5855,110 @@ abstract class AppLocalizations {
   /// No description provided for @loginUnavailableFeatures.
   ///
   /// In en, this message translates to:
-  /// **'Password reset and social sign-in will be available after setup.'**
+  /// **'Social sign-in will be available later.'**
   String get loginUnavailableFeatures;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset password'**
+  String get resetPassword;
+
+  /// No description provided for @resetInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email to request the code from your email.'**
+  String get resetInstructions;
+
+  /// No description provided for @resetChoosePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a new password'**
+  String get resetChoosePassword;
+
+  /// No description provided for @resetCodeInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code from your email and your new password.'**
+  String get resetCodeInstructions;
+
+  /// No description provided for @resetSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get resetSendCode;
+
+  /// No description provided for @resetCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code from your email'**
+  String get resetCode;
+
+  /// No description provided for @resetNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get resetNewPassword;
+
+  /// No description provided for @resetUpdatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Update password'**
+  String get resetUpdatePassword;
+
+  /// No description provided for @resetResendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get resetResendCode;
+
+  /// No description provided for @resetResendCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds} seconds'**
+  String resetResendCountdown(int seconds);
+
+  /// No description provided for @resetNeutralMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'If this email has an account, we sent a code.'**
+  String get resetNeutralMessage;
+
+  /// No description provided for @resetCodeFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code from your email using 6 to 10 digits.'**
+  String get resetCodeFormatError;
+
+  /// No description provided for @resetInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is invalid or has expired. Request a new code and try again.'**
+  String get resetInvalidCode;
+
+  /// No description provided for @resetTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a moment and try again.'**
+  String get resetTooManyRequests;
+
+  /// No description provided for @resetError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reset the password. Please try again.'**
+  String get resetError;
+
+  /// No description provided for @resetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your password was updated. You can now log in.'**
+  String get resetSuccess;
 
   /// No description provided for @invalidEmail.
   ///

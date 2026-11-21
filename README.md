@@ -86,4 +86,4 @@ in the Flutter app.
   phrasing.
 - Group chat is not implemented yet.
 - Recipe photos are not added yet.
-- Password reset and social sign-in are not connected yet.
+- Social sign-in is not connected yet.

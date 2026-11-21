@@ -3724,7 +3724,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginUnavailableFeatures =>
-      'Password reset and social sign-in will be available after setup.';
+      'Social sign-in will be available later.';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get resetPassword => 'Reset password';
+
+  @override
+  String get resetInstructions =>
+      'Enter your email to request the code from your email.';
+
+  @override
+  String get resetChoosePassword => 'Choose a new password';
+
+  @override
+  String get resetCodeInstructions =>
+      'Enter the code from your email and your new password.';
+
+  @override
+  String get resetSendCode => 'Send code';
+
+  @override
+  String get resetCode => 'Code from your email';
+
+  @override
+  String get resetNewPassword => 'New password';
+
+  @override
+  String get resetUpdatePassword => 'Update password';
+
+  @override
+  String get resetResendCode => 'Resend code';
+
+  @override
+  String resetResendCountdown(int seconds) {
+    return 'Resend in $seconds seconds';
+  }
+
+  @override
+  String get resetNeutralMessage =>
+      'If this email has an account, we sent a code.';
+
+  @override
+  String get resetCodeFormatError =>
+      'Enter the code from your email using 6 to 10 digits.';
+
+  @override
+  String get resetInvalidCode =>
+      'The code is invalid or has expired. Request a new code and try again.';
+
+  @override
+  String get resetTooManyRequests =>
+      'Too many attempts. Wait a moment and try again.';
+
+  @override
+  String get resetError => 'Could not reset the password. Please try again.';
+
+  @override
+  String get resetSuccess => 'Your password was updated. You can now log in.';
 
   @override
   String get invalidEmail => 'Enter a valid email address.';
