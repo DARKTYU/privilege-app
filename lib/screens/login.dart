@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
+  final _passwordFocus = FocusNode();
   bool _register = false;
   bool _busy = false;
   bool _hide = true;
@@ -33,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _translated(String value) {
     final l = strings(context);
+    if (value == l.resetSuccess) return l.resetSuccess;
     switch (value) {
       case 'Enter a valid email address.':
         return l.invalidEmail;
@@ -82,6 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _email.dispose();
     _password.dispose();
     _confirm.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -150,6 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextEditingController controller, String hint, String key) =>
       TextField(
         controller: controller,
+        focusNode: key == 'password' ? _passwordFocus : null,
         obscureText: _hide,
         onChanged: (_) => _revalidate(),
         decoration: fieldDecoration(
@@ -207,12 +211,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: kCard2,
+                            color: (_success ? kGreen : kRed).withAlpha(24),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: _success ? kGreen : kRed),
                           ),
-                          child: Text(_translated(_message!),
-                              style: TextStyle(color: kCream)),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                  _success
+                                      ? Icons.check_circle_outline
+                                      : Icons.error_outline,
+                                  size: 20,
+                                  color: _success ? kGreen : kRed),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(_translated(_message!),
+                                    style: TextStyle(color: kCream)),
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -248,13 +265,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: TextButton(
                             onPressed: _busy
                                 ? null
-                                : () => Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
+                                : () async {
+                                    final result = await Navigator.of(context)
+                                        .push<PasswordResetResult>(
+                                      MaterialPageRoute<PasswordResetResult>(
                                         builder: (_) => PasswordResetScreen(
                                           service: widget.passwordResetService,
                                         ),
                                       ),
-                                    ),
+                                    );
+                                    if (!mounted || result == null) return;
+                                    setState(() {
+                                      _register = false;
+                                      _email.text = result.email;
+                                      _password.clear();
+                                      _confirm.clear();
+                                      _errors = {};
+                                      _showErrors = false;
+                                      _success = true;
+                                      _message = result.message;
+                                    });
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      if (mounted) {
+                                        _passwordFocus.requestFocus();
+                                      }
+                                    });
+                                  },
                             child: Text(strings(context).forgotPassword),
                           ),
                         ),

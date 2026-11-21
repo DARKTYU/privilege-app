@@ -8,11 +8,15 @@ import 'package:privilege/ui.dart';
 
 class _FakeResetService implements PasswordResetService {
   bool wrongCode = false;
+  bool networkError = false;
   bool requested = false;
   bool completed = false;
 
   @override
-  Future<void> requestCode(String email) async => requested = true;
+  Future<void> requestCode(String email) async {
+    requested = true;
+    if (networkError) throw AuthException('network', 'unused');
+  }
 
   @override
   Future<void> resetPassword(String email, String code, String password) async {
@@ -33,6 +37,22 @@ Widget _app(Widget home, String language) => MaterialApp(
 
 void main() {
   for (final language in ['en', 'ar']) {
+    testWidgets('reset request shows localized no-internet error in $language',
+        (tester) async {
+      final service = _FakeResetService()..networkError = true;
+      await tester.pumpWidget(_app(
+          PasswordResetScreen(service: service), language));
+      final l = AppLocalizations.of(
+          tester.element(find.byType(PasswordResetScreen)))!;
+      await tester.enterText(
+          find.byType(TextField).first, 'person@example.com');
+      await tester.tap(find.text(l.resetSendCode));
+      await tester.pumpAndSettle();
+      expect(find.text(l.networkError), findsOneWidget);
+      expect(find.text(l.resetNeutralMessage), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('password reset flow fits 360px in $language', (tester) async {
       tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1;
@@ -88,6 +108,11 @@ void main() {
       expect(service.completed, isTrue);
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text(l.resetSuccess), findsOneWidget);
+      expect(find.text(l.enterPassword), findsNothing);
+      expect(
+          tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+          'person@example.com');
+      expect(FocusManager.instance.primaryFocus?.hasFocus, isTrue);
       expect(tester.takeException(), isNull);
     });
   }

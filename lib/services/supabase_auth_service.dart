@@ -13,18 +13,27 @@ class SupabaseAuthService {
 
   static AuthException _authError(sb.AuthException error) {
     final code = error.code ?? 'auth_error';
+    final details = error.message.toLowerCase();
+    if (code == 'network_request_failed' ||
+        details.contains('offline') ||
+        details.contains('failed to fetch') ||
+        details.contains('clientexception') ||
+        details.contains('connection') ||
+        details.contains('timed out') ||
+        details.contains('timeout')) {
+      return _connectionError();
+    }
     if (code == 'invalid_credentials') {
       return AuthException(code, savedLanguageStrings().invalidCredentials);
     }
     if (code == 'email_not_confirmed') {
-      return AuthException(
-          code, savedLanguageStrings().emailNotConfirmed);
+      return AuthException(code, savedLanguageStrings().emailNotConfirmed);
     }
     return AuthException(code, savedLanguageStrings().registrationError);
   }
 
-  static AuthException _connectionError() => AuthException('network',
-      savedLanguageStrings().networkError);
+  static AuthException _connectionError() =>
+      AuthException('network', savedLanguageStrings().networkError);
 
   static Future<String> register(String email, String password) async {
     try {
@@ -106,8 +115,8 @@ class SupabaseAuthService {
           .eq('id', user.id)
           .maybeSingle());
       if (row == null) {
-        throw AuthException('missing_profile',
-            savedLanguageStrings().errorProfileMissing);
+        throw AuthException(
+            'missing_profile', savedLanguageStrings().errorProfileMissing);
       }
       return AccountData(
         userId: user.id,
@@ -127,7 +136,8 @@ class SupabaseAuthService {
   static Future<void> saveProfile(Map<String, dynamic> profile) async {
     final user = client.auth.currentUser;
     if (user == null) {
-      throw AuthException('invalid_session', savedLanguageStrings().sessionExpired);
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
     }
     try {
       final row = await SessionRecovery.forClient(client).request(() => client
@@ -148,8 +158,8 @@ class SupabaseAuthService {
       }
       if (error.code == '23514' &&
           error.message.toLowerCase().contains('username')) {
-        throw AuthException('invalid_username',
-            savedLanguageStrings().invalidUsername);
+        throw AuthException(
+            'invalid_username', savedLanguageStrings().invalidUsername);
       }
       throw AuthException('profile_error', friendlyError(error));
     } on SocketException {
@@ -199,11 +209,20 @@ class SupabaseAuthService {
   static AuthException _resetError(sb.AuthException error) {
     final code = error.code ?? 'auth_error';
     final details = '${error.message} ${error.code ?? ''}'.toLowerCase();
+    if (code == 'network_request_failed' ||
+        details.contains('offline') ||
+        details.contains('failed to fetch') ||
+        details.contains('clientexception') ||
+        details.contains('connection') ||
+        details.contains('timed out') ||
+        details.contains('timeout')) {
+      return _connectionError();
+    }
     if (code == 'over_request_rate_limit' ||
         details.contains('rate limit') ||
         details.contains('too many')) {
-      return AuthException('too_many_requests',
-          savedLanguageStrings().resetTooManyRequests);
+      return AuthException(
+          'too_many_requests', savedLanguageStrings().resetTooManyRequests);
     }
     if (details.contains('otp') ||
         details.contains('token') ||
@@ -216,8 +235,8 @@ class SupabaseAuthService {
         (details.contains('weak') ||
             details.contains('characters') ||
             details.contains('length'))) {
-      return AuthException('weak_password',
-          savedLanguageStrings().invalidPassword);
+      return AuthException(
+          'weak_password', savedLanguageStrings().invalidPassword);
     }
     return AuthException('reset_error', savedLanguageStrings().resetError);
   }

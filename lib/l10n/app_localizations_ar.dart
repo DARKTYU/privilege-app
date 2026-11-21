@@ -4024,7 +4024,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'يرجى تأكيد بريدك الإلكتروني قبل تسجيل الدخول.';
 
   @override
-  String get networkError => 'تعذر الاتصال. تحقق من الإنترنت وحاول مرة أخرى.';
+  String get networkError =>
+      'لا يوجد اتصال بالإنترنت. تحقق من اتصالك وحاول مرة أخرى.';
 
   @override
   String get signInError => 'تعذر تسجيل الدخول الآن. حاول مرة أخرى.';

@@ -33,9 +33,11 @@ void main() {
   var userJwtExpired = false;
   var refreshFails = false;
   var profileSaveFails = false;
+  var networkFails = false;
   Map<String, dynamic>? savedProfile;
   final mock = MockClient((request) async {
     final path = request.url.path;
+    if (networkFails) throw http.ClientException('offline');
     if (path.endsWith('/signup')) {
       return http.Response(jsonEncode(signUpWithSession ? session : user), 200);
     }
@@ -181,6 +183,23 @@ void main() {
     expect(state.calorieTarget.goal, NutritionGoal.lose);
     expect(state.profile.weightKg, 80);
     await SupabaseAuthService.logout();
+  });
+
+  test('login, signup and reset map connection failures to the network text',
+      () async {
+    networkFails = true;
+    addTearDown(() => networkFails = false);
+    for (final call in [
+      () => SupabaseAuthService.login('test@example.com', 'Password1'),
+      () => SupabaseAuthService.register('test@example.com', 'Password1'),
+      () => SupabaseAuthService.requestPasswordReset('test@example.com'),
+    ]) {
+      await expectLater(
+        call(),
+        throwsA(isA<AuthException>()
+            .having((error) => error.code, 'code', 'network')),
+      );
+    }
   });
 
   test('invalid credentials and missing profile are surfaced', () async {

@@ -10,6 +10,11 @@ import '../services/supabase_auth_service.dart';
 import '../ui.dart';
 import '../widgets/auth_language_toggle.dart';
 
+class PasswordResetResult {
+  const PasswordResetResult({required this.email, required this.message});
+  final String email, message;
+}
+
 abstract class PasswordResetService {
   Future<void> requestCode(String email);
   Future<void> resetPassword(String email, String code, String password);
@@ -158,10 +163,10 @@ class _PasswordResetScreenState extends State<PasswordResetScreen> {
         _message = strings(context).resetSuccess;
         _success = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(strings(context).resetSuccess)),
-      );
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(PasswordResetResult(
+        email: _email.text.trim(),
+        message: strings(context).resetSuccess,
+      ));
     } on AuthException catch (error) {
       if (mounted) {
         setState(() {

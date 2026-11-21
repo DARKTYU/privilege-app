@@ -3807,7 +3807,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get networkError =>
-      'Could not connect. Check your internet connection and try again.';
+      'No internet connection. Check your connection and try again.';
 
   @override
   String get signInError => 'Could not sign in right now. Please try again.';

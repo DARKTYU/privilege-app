@@ -5999,7 +5999,7 @@ abstract class AppLocalizations {
   /// No description provided for @networkError.
   ///
   /// In en, this message translates to:
-  /// **'Could not connect. Check your internet connection and try again.'**
+  /// **'No internet connection. Check your connection and try again.'**
   String get networkError;
 
   /// No description provided for @signInError.

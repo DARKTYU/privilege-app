@@ -1169,7 +1169,7 @@
   "passwordMismatch": "Passwords do not match.",
   "invalidCredentials": "Incorrect email or password.",
   "emailNotConfirmed": "Please confirm your email before logging in.",
-  "networkError": "Could not connect. Check your internet connection and try again.",
+  "networkError": "No internet connection. Check your connection and try again.",
   "signInError": "Could not sign in right now. Please try again.",
   "registrationError": "Could not sign in. Please try again.",
   "registrationCreated": "Account created. Log in to continue.",
