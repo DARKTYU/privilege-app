@@ -326,11 +326,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800)),
-                                Text(l.profileHandle(p.username),
+                                LeftToRightValue(l.profileHandle(p.username),
                                     style:
                                         TextStyle(fontSize: 12, color: kMuted)),
                                 if (appState.email.isNotEmpty)
-                                  Text(appState.email,
+                                  LeftToRightValue(appState.email,
                                       style: TextStyle(
                                           fontSize: 11, color: kMuted)),
                               ]),
@@ -344,7 +344,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                           style: TextStyle(
                               fontSize: 12,
                               color: kMuted,
-                              fontStyle: FontStyle.italic)),
+                              fontStyle:
+                                  Localizations.localeOf(context).languageCode ==
+                                          'ar'
+                                      ? FontStyle.normal
+                                      : FontStyle.italic)),
                       const SizedBox(height: 12),
                       LayoutBuilder(
                         builder: (context, constraints) {

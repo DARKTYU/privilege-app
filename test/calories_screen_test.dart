@@ -384,8 +384,8 @@ void main() {
         ));
         await tester.pumpAndSettle();
         expect(find.textContaining('Daily burn goal'), findsOneWidget);
-        expect(
-            find.text('Each ring uses the daily burn goal.'), findsOneWidget);
+        expect(find.text('Each ring uses the daily burn goal as its target.'),
+            findsOneWidget);
         expect(find.text('Strength burn (150 kcal)'), findsOneWidget);
         expect(find.textContaining('Food Intake'), findsNothing);
         expect(find.textContaining('Balance vs BMR'), findsNothing);

@@ -1553,7 +1553,7 @@ abstract class AppLocalizations {
   /// No description provided for @arenaWorkoutsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} workouts} other{{count} workouts}}'**
+  /// **'{count, plural, one{{count} workout} other{{count} workouts}}'**
   String arenaWorkoutsCount(int count);
 
   /// No description provided for @arenaNoPrizesRule.
@@ -1763,7 +1763,7 @@ abstract class AppLocalizations {
   /// No description provided for @arenaParticipants.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} participants} other{{count} participants}}'**
+  /// **'{count, plural, one{{count} participant} other{{count} participants}}'**
   String arenaParticipants(int count);
 
   /// No description provided for @arenaScore.
@@ -3551,19 +3551,19 @@ abstract class AppLocalizations {
   /// No description provided for @burnTarget.
   ///
   /// In en, this message translates to:
-  /// **'/ {amount, plural, one{{amount} kcal target} other{{amount} kcal target}}'**
-  String burnTarget(int amount);
+  /// **'Goal: {amount} kcal'**
+  String burnTarget(String amount);
 
   /// No description provided for @burnGoalNote.
   ///
   /// In en, this message translates to:
-  /// **'Daily burn goal • total includes mobility'**
+  /// **'Daily burn goal • the total includes mobility workouts.'**
   String get burnGoalNote;
 
   /// No description provided for @burnRingNote.
   ///
   /// In en, this message translates to:
-  /// **'Each ring uses the daily burn goal.'**
+  /// **'Each ring uses the daily burn goal as its target.'**
   String get burnRingNote;
 
   /// No description provided for @totalBurn.
@@ -5099,13 +5099,13 @@ abstract class AppLocalizations {
   /// No description provided for @progressFreeze.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Freeze tokens: {count}} other{Freeze tokens: {count}}}'**
+  /// **'{count, plural, one{Freeze token: {count}} other{Freeze tokens: {count}}}'**
   String progressFreeze(int count);
 
   /// No description provided for @progressPoints.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} store points} other{{count} store points}}'**
+  /// **'{count, plural, one{{count} store point} other{{count} store points}}'**
   String progressPoints(int count);
 
   /// No description provided for @rewardConfirm.

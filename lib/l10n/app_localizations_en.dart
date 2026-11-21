@@ -938,7 +938,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count workouts',
-      one: '$count workouts',
+      one: '$count workout',
     );
     return '$_temp0';
   }
@@ -1066,7 +1066,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count participants',
-      one: '$count participants',
+      one: '$count participant',
     );
     return '$_temp0';
   }
@@ -2227,21 +2227,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get burned => 'Burned';
 
   @override
-  String burnTarget(int amount) {
-    String _temp0 = intl.Intl.pluralLogic(
-      amount,
-      locale: localeName,
-      other: '$amount kcal target',
-      one: '$amount kcal target',
-    );
-    return '/ $_temp0';
+  String burnTarget(String amount) {
+    return 'Goal: $amount kcal';
   }
 
   @override
-  String get burnGoalNote => 'Daily burn goal • total includes mobility';
+  String get burnGoalNote =>
+      'Daily burn goal • the total includes mobility workouts.';
 
   @override
-  String get burnRingNote => 'Each ring uses the daily burn goal.';
+  String get burnRingNote =>
+      'Each ring uses the daily burn goal as its target.';
 
   @override
   String totalBurn(int amount) {
@@ -3254,7 +3250,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Freeze tokens: $count',
-      one: 'Freeze tokens: $count',
+      one: 'Freeze token: $count',
     );
     return '$_temp0';
   }
@@ -3265,7 +3261,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count store points',
-      one: '$count store points',
+      one: '$count store point',
     );
     return '$_temp0';
   }

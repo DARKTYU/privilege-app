@@ -311,6 +311,27 @@ Widget toastBanner(String? msg) => msg == null
         ]),
       );
 
+class LeftToRightValue extends StatelessWidget {
+  const LeftToRightValue(this.text,
+      {super.key, this.style, this.maxLines, this.overflow, this.textAlign});
+
+  final String text;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.ltr,
+        child: Text(text,
+            style: style,
+            maxLines: maxLines,
+            overflow: overflow,
+            textAlign: textAlign),
+      );
+}
+
 Widget imagePlaceholder(BuildContext context,
         {required double height,
         double? width,

@@ -495,7 +495,7 @@ class ActivityTab extends StatelessWidget {
                               color: p.text,
                               fontSize: 28,
                               fontWeight: FontWeight.w800)),
-                      Text(l.burnTarget(t.burnTarget),
+                      Text(l.burnTarget(fmt(t.burnTarget)),
                           style: TextStyle(fontSize: 10, color: p.muted)),
                     ]),
                   ]),

@@ -2355,25 +2355,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get burned => 'المحروق';
 
   @override
-  String burnTarget(int amount) {
-    String _temp0 = intl.Intl.pluralLogic(
-      amount,
-      locale: localeName,
-      other: '$amount سعرة',
-      many: '$amount سعرة',
-      few: '$amount سعرات',
-      two: 'سعرتين',
-      one: 'سعرة واحدة',
-      zero: '0 سعرة',
-    );
-    return '/ هدف $_temp0';
+  String burnTarget(String amount) {
+    return 'الهدف: $amount سعرة';
   }
 
   @override
-  String get burnGoalNote => 'هدف الحرق اليومي • يشمل الإجمالي تمارين الحركة';
+  String get burnGoalNote =>
+      'هدف الحرق اليومي • يشمل الإجمالي تمارين اللياقة والحركة.';
 
   @override
-  String get burnRingNote => 'تستخدم كل حلقة هدف الحرق اليومي.';
+  String get burnRingNote => 'تستخدم كل حلقة هدف الحرق اليومي كهدف لها.';
 
   @override
   String totalBurn(int amount) {

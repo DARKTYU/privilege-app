@@ -499,7 +499,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     children: [
                       Text(title,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
-                      Text(
+                      LeftToRightValue(
                           strings(context).communityPostTime(post.username,
                               _relativeTime(context, post.createdAt)),
                           style: Theme.of(context).textTheme.bodySmall),
@@ -742,7 +742,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   children: [
                     Text(name,
                         style: const TextStyle(fontWeight: FontWeight.w700)),
-                    Text(strings(context).communityUsername(person.username),
+                    LeftToRightValue(strings(context).communityUsername(person.username),
                         style: Theme.of(context).textTheme.bodySmall),
                   ]),
             ),
@@ -1203,7 +1203,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       title: Text(person.fullName?.trim().isNotEmpty == true
                           ? person.fullName!
                           : person.username),
-                      subtitle: Text(
+                      subtitle: LeftToRightValue(
                           strings(context).communityUsername(person.username)),
                     ),
                 ],
@@ -1493,7 +1493,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                 ),
                 const SizedBox(height: 10),
                 Text(name, style: Theme.of(context).textTheme.titleLarge),
-                Text(strings(context).communityUsername(profile.username),
+                LeftToRightValue(strings(context).communityUsername(profile.username),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (profile.levelName != null)
                   Padding(

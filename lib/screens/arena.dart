@@ -155,7 +155,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _invitationError = friendlyError(error, localizations: strings(context));
+        _invitationError =
+            friendlyError(error, localizations: strings(context));
         _invitationsLoading = false;
       });
     }
@@ -181,7 +182,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _leaderboardError = friendlyError(error, localizations: strings(context));
+        _leaderboardError =
+            friendlyError(error, localizations: strings(context));
         _leaderboardLoading = false;
       });
     }
@@ -302,7 +304,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       if (mounted) _message(strings(context).arenaCreated);
       await _loadChallenges();
     } catch (error) {
-      if (mounted) _message(friendlyError(error, localizations: strings(context)));
+      if (mounted) {
+        _message(friendlyError(error, localizations: strings(context)));
+      }
     } finally {
       if (mounted) setState(() => _creating = false);
     }
@@ -335,7 +339,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       setState(() => _challengeScope = 'mine');
       await _loadChallenges();
     } catch (error) {
-      if (mounted) _message(friendlyError(error, localizations: strings(context)));
+      if (mounted) {
+        _message(friendlyError(error, localizations: strings(context)));
+      }
     } finally {
       if (mounted) setState(() => _creating = false);
     }
@@ -354,7 +360,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       if (mounted) _message(strings(context).arenaJoined);
       await _loadChallenges();
     } catch (error) {
-      if (mounted) _message(friendlyError(error, localizations: strings(context)));
+      if (mounted) {
+        _message(friendlyError(error, localizations: strings(context)));
+      }
     } finally {
       _busyIds.remove(challenge.id);
       if (mounted) setState(() {});
@@ -373,7 +381,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       }
       await Future.wait([_loadInvitations(), _loadChallenges()]);
     } catch (error) {
-      if (mounted) _message(friendlyError(error, localizations: strings(context)));
+      if (mounted) {
+        _message(friendlyError(error, localizations: strings(context)));
+      }
     } finally {
       _busyIds.remove(invitation.id);
       if (mounted) setState(() {});
@@ -458,7 +468,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       Panel(
         child: Column(children: [
           if (state.activityError != null) ...[
-            Text(friendlyError(state.activityError!, localizations: strings(context)),
+            Text(
+                friendlyError(state.activityError!,
+                    localizations: strings(context)),
                 textAlign: TextAlign.center),
             TextButton.icon(
               onPressed: state.loadActivity,
@@ -675,8 +687,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
               const SizedBox(height: 5),
               Wrap(spacing: 16, runSpacing: 4, children: [
                 Text(
-                    strings(context).arenaParticipants(
-                        challenge.participantCount),
+                    strings(context)
+                        .arenaParticipants(challenge.participantCount),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (challenge.joined)
                   Text(
@@ -723,7 +735,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
         if (snapshot.hasError) {
           return Padding(
             padding: const EdgeInsets.all(14),
-            child: Text(friendlyError(snapshot.error!, localizations: strings(context))),
+            child: Text(friendlyError(snapshot.error!,
+                localizations: strings(context))),
           );
         }
         if (!snapshot.hasData) {
@@ -748,9 +761,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 backgroundColor: row.isMe ? kGold : kCard2,
                 child: Text(row.rank?.toString() ?? '-'),
               ),
-              title: Text(row.fullName?.isNotEmpty == true
-                  ? row.fullName!
-                  : '@${row.username}'),
+              title: row.fullName?.isNotEmpty == true
+                  ? Text(row.fullName!)
+                  : LeftToRightValue('@${row.username}'),
               trailing: Text(_scoreLabel(challenge.type, row.score)),
             ),
         ]);
@@ -828,12 +841,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
                   backgroundColor: row.isMe ? kGold : kCard2,
                   child: Text(row.place.toString()),
                 ),
-                title: Text(row.fullName?.isNotEmpty == true
-                    ? row.fullName!
-                    : '@${row.username}'),
+                title: row.fullName?.isNotEmpty == true
+                    ? Text(row.fullName!)
+                    : LeftToRightValue('@${row.username}'),
                 subtitle: Text(row.levelName == null
-                    ? strings(context)
-                        .arenaCurrentStreak(row.currentStreak)
+                    ? strings(context).arenaCurrentStreak(row.currentStreak)
                     : strings(context).arenaLevelStreak(
                         localizedLevelName(context, row.levelName!),
                         strings(context)
@@ -933,9 +945,9 @@ class _FriendChallengeDialogState extends State<_FriendChallengeDialog> {
                 for (final friend in widget.friends)
                   DropdownMenuItem(
                     value: friend.id,
-                    child: Text(friend.fullName?.isNotEmpty == true
-                        ? friend.fullName!
-                        : '@${friend.username}'),
+                    child: friend.fullName?.isNotEmpty == true
+                        ? Text(friend.fullName!)
+                        : LeftToRightValue('@${friend.username}'),
                   ),
               ],
               onChanged: (value) {

@@ -11,6 +11,7 @@ import '../services/groups_repository.dart';
 import '../services/community_repository.dart';
 import '../services/storage_image.dart';
 import '../models/community_models.dart';
+import '../ui.dart';
 import '../widgets/post_image.dart';
 
 const groupCategories = [
@@ -1207,7 +1208,7 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
                 ListTile(
                   leading: _personAvatar(context, member),
                   title: Text(_profileName(context, member)),
-                  subtitle: Text([
+                  subtitle: LeftToRightValue([
                     if (_profileUsername(member).isNotEmpty)
                       _profileUsername(member),
                     if (member['banned_at'] != null &&
@@ -1319,7 +1320,7 @@ class _InvitePageState extends State<_InvitePage> {
                               title: Text(person.fullName?.isNotEmpty == true
                                   ? person.fullName!
                                   : person.username),
-                              subtitle: Text(strings(context)
+                              subtitle: LeftToRightValue(strings(context)
                                   .communityUsername(person.username)),
                               trailing: TextButton(
                                   onPressed: busy
@@ -1494,7 +1495,7 @@ class _MemberTile extends StatelessWidget {
           ]),
           subtitle: _profileUsername(p).isEmpty
               ? null
-              : Text(
+              : LeftToRightValue(
                   _profileUsername(p),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1590,7 +1591,7 @@ class _GroupPostState extends State<_GroupPost> {
                       : _profileName(context, snapshot.data)),
                   subtitle: _profileUsername(snapshot.data).isEmpty
                       ? null
-                      : Text(_profileUsername(snapshot.data)),
+                      : LeftToRightValue(_profileUsername(snapshot.data)),
                   trailing: PopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'report') {

@@ -1,8 +1,26 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/l10n/app_localizations_ar.dart';
 import 'package:privilege/l10n/app_localizations_en.dart';
+import 'package:privilege/ui.dart';
 
 void main() {
+  testWidgets('left-to-right handles stay ordered on an RTL screen',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: LeftToRightValue('@Jackson_12'),
+      ),
+    ));
+    final directionality = tester.widget<Directionality>(find
+        .ancestor(
+            of: find.text('@Jackson_12'), matching: find.byType(Directionality))
+        .first);
+    expect(directionality.textDirection, TextDirection.ltr);
+    expect(find.text('@Jackson_12'), findsOneWidget);
+  });
+
   test('minutes and days follow English and Arabic plural rules', () {
     final ar = AppLocalizationsAr();
     final en = AppLocalizationsEn();
@@ -56,17 +74,28 @@ void main() {
     expect(ar.progressHighest(3), '3 نقاط خبرة · أعلى مستوى');
   });
 
-  test('calories and remaining requests use Arabic plurals with western digits', () {
+  test('calories and remaining requests use Arabic plurals with western digits',
+      () {
     final ar = AppLocalizationsAr();
     const calories = {
-      0: '0 سعرة', 1: 'سعرة واحدة', 2: 'سعرتان', 3: '3 سعرات',
-      5: '5 سعرات', 10: '10 سعرات', 11: '11 سعرة', 20: '20 سعرة',
+      0: '0 سعرة',
+      1: 'سعرة واحدة',
+      2: 'سعرتان',
+      3: '3 سعرات',
+      5: '5 سعرات',
+      10: '10 سعرات',
+      11: '11 سعرة',
+      20: '20 سعرة',
     };
     const requests = {
-      0: 'المتبقي اليوم: 0 طلب', 1: 'المتبقي اليوم: طلب واحد',
-      2: 'المتبقي اليوم: طلبان', 3: 'المتبقي اليوم: 3 طلبات',
-      5: 'المتبقي اليوم: 5 طلبات', 10: 'المتبقي اليوم: 10 طلبات',
-      11: 'المتبقي اليوم: 11 طلبًا', 20: 'المتبقي اليوم: 20 طلبًا',
+      0: 'المتبقي اليوم: 0 طلب',
+      1: 'المتبقي اليوم: طلب واحد',
+      2: 'المتبقي اليوم: طلبان',
+      3: 'المتبقي اليوم: 3 طلبات',
+      5: 'المتبقي اليوم: 5 طلبات',
+      10: 'المتبقي اليوم: 10 طلبات',
+      11: 'المتبقي اليوم: 11 طلبًا',
+      20: 'المتبقي اليوم: 20 طلبًا',
     };
     for (final n in calories.keys) {
       expect(ar.recipeKcal(n), calories[n]);
