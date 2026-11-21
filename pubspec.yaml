@@ -21,8 +21,25 @@ dependencies:
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.8
   flutter_test:
     sdk: flutter
+
+flutter_native_splash:
+  color: "#0B0D12"
+  color_dark: "#0B0D12"
+  image: assets/images/logo_launcher_1024.png
+  image_dark: assets/images/logo_launcher_1024.png
+  android: true
+  ios: true
+  web: false
+  android_12:
+    color: "#0B0D12"
+    color_dark: "#0B0D12"
+    image: assets/images/logo_launcher_foreground_1024.png
+    image_dark: assets/images/logo_launcher_foreground_1024.png
+    icon_background_color: "#0B0D12"
+    icon_background_color_dark: "#0B0D12"
 
 flutter_launcher_icons:
   android: true
