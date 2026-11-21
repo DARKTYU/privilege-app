@@ -28,8 +28,33 @@ class HomeShell extends StatefulWidget {
   State<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<HomeShell>
+    with WidgetsBindingObserver {
   int _i = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      return;
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   // Shortcut strip from the React app's bottom navigation.
   List<(String, IconData, String)> get _shortcuts {
@@ -93,6 +118,7 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     return ThemeAwareBuilder(
       builder: () => Scaffold(
         body: SafeArea(
@@ -116,23 +142,28 @@ class _HomeShellState extends State<HomeShell> {
                 ],
               ),
             ),
-            SizedBox(
-              height: 80,
-              child: Column(children: [
-                _shortcutList(caloriesTab: true),
-                const SizedBox(height: 28),
-              ]),
-            ),
+            keyboardOpen
+                ? const SizedBox.shrink()
+                : SizedBox(
+                    height: 80,
+                    child: Column(children: [
+                      _shortcutList(caloriesTab: true),
+                      const SizedBox(height: 28),
+                    ]),
+                  ),
           ]),
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: kMaroon,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          shape: const CircleBorder(),
-          tooltip: strings(context).botTooltip,
-          onPressed: () => showCoachSheet(context, client: widget.coachClient),
-          child: const Icon(Icons.smart_toy_rounded),
-        ),
+        floatingActionButton: keyboardOpen
+            ? null
+            : FloatingActionButton(
+                backgroundColor: kMaroon,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: const CircleBorder(),
+                tooltip: strings(context).botTooltip,
+                onPressed: () =>
+                    showCoachSheet(context, client: widget.coachClient),
+                child: const Icon(Icons.smart_toy_rounded),
+              ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: BottomAppBar(
           color: kCard,

@@ -63,6 +63,26 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('chat input loses focus when the app pauses', (tester) async {
+    final client = FakeCoach();
+    await start(tester, client);
+    final field = find.byType(TextField);
+    await tester.tap(field);
+    await tester.pump();
+    final focus = FocusManager.instance.primaryFocus;
+    expect(focus?.hasFocus, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    expect(focus?.hasFocus, isFalse);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+  });
+
   test('chat has no hardcoded UI strings or Arabic', () {
     final source = File('lib/screens/chat.dart').readAsStringSync();
     final labels = RegExp(
