@@ -304,12 +304,12 @@ dynamic upload policy and moderation **should-have L**.
 
 ## 12. Release readiness and privacy
 
-* **Identity:** Android launcher label is `flutter_application_1` and
-  application ID/namespace is `com.example.flutter_application_1`; iOS display
-  name is `Flutter Application 1` and bundle ID is
-  `com.example.flutterApplication1`. Web manifest still has the Flutter
-  template name/description. Android and iOS launcher icons are the default
-  Flutter logo, not the bundled Privilege logo. See
+* **Identity:** Android, iOS, macOS, Linux, Windows and web are configured with
+  the `Privilege` app name and the supported mobile/desktop bundle or
+  application ID `com.privilegefitness.app`. The web manifest and metadata now
+  use the Privilege name, though their description remains template text.
+  Android and iOS launcher icons are still the default Flutter logo, not the
+  bundled Privilege logo. See
   [`build.gradle.kts`](../android/app/build.gradle.kts),
   [`AndroidManifest.xml`](../android/app/src/main/AndroidManifest.xml),
   [`Info.plist`](../ios/Runner/Info.plist) and
