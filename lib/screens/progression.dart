@@ -224,7 +224,7 @@ class FreezeTokenCount extends StatelessWidget {
         repository: repository,
         load: repository.freezeTokens,
         builder: (context, count) =>
-            Text(strings(context).progressFreeze(count)),
+            Text(strings(context).progressFreeze(count, fmt(count))),
       );
 }
 
@@ -236,7 +236,7 @@ class StorePointsCount extends StatelessWidget {
         repository: repository,
         load: repository.points,
         builder: (context, count) => Text(
-            strings(context).progressPoints(count),
+            strings(context).progressPoints(count, fmt(count)),
             style: TextStyle(
                 color: kGold, fontSize: 13, fontWeight: FontWeight.w800)),
       );
@@ -333,7 +333,7 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
                 Panel(
                     child: Column(children: [
                   Text(
-                      strings(context).progressPoints(store.balance),
+                      strings(context).progressPoints(store.balance, fmt(store.balance)),
                       style: const TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 18)),
                   Text(strings(context)
@@ -472,8 +472,8 @@ class _BadgesAchievementsScreenState extends State<BadgesAchievementsScreen> {
                                 color: kGold,
                                 backgroundColor: kLine),
                             Text(strings(context).progressAchievementValue(
-                                item.progress.toString(),
-                                item.threshold.toString(),
+                                fmt(item.progress),
+                                fmt(item.threshold),
                                 item.xp)),
                             if (item.progress >= item.threshold)
                               Text(strings(context).progressCompleted),

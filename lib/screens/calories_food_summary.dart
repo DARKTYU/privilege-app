@@ -162,8 +162,10 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(
               content: Text(duplicate
-                  ? strings(context).foodDuplicateError(friendlyError(error, localizations: strings(context)))
-                  : strings(context).foodDeleteError(friendlyError(error, localizations: strings(context))))));
+                  ? strings(context).foodDuplicateError(
+                      friendlyError(error, localizations: strings(context)))
+                  : strings(context).foodDeleteError(
+                      friendlyError(error, localizations: strings(context))))));
       }
     } finally {
       busy.remove(meal.id);
@@ -177,7 +179,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(strings(context).foodUpdateError(friendlyError(error, localizations: strings(context))))));
+            content: Text(strings(context).foodUpdateError(
+                friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -366,10 +369,12 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                     palette,
                                     CaloriesPalette.sodium,
                                     l.foodSodium,
-                                    l.foodMilligrams(consumed
+                                    l.foodMilligrams(fmt(consumed
                                         .fold<double>(
-                                            0, (v, m) => v + (m.sodiumMg ?? 0))
-                                        .toStringAsFixed(0))),
+                                            0,
+                                            (v, m) =>
+                                                v + (m.sodiumMg ?? 0))
+                                        .round()))),
                               ]),
                         ]),
                       )),
@@ -439,7 +444,8 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                 const Center(child: CircularProgressIndicator())
                               else if (state.activityError != null)
                                 Column(children: [
-                                  Text(friendlyError(state.activityError!,
+                                  Text(
+                                      friendlyError(state.activityError!,
                                           localizations: strings(context)),
                                       style: TextStyle(color: palette.text)),
                                   TextButton(
@@ -533,8 +539,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                       fontWeight: FontWeight.bold)),
             ),
           ]),
-          Text(
-              strings(context).foodMacroGoal(eaten.toString(), goal.toString()),
+          Text(strings(context).foodMacroGoal(fmt(eaten), fmt(goal)),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -609,8 +614,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                         fontSize: 11)),
                 Text(
                     strings(context).foodGroupTotals(
-                        active
-                            .fold<int>(0, (v, m) => v + m.calories),
+                        active.fold<int>(0, (v, m) => v + m.calories),
                         active
                             .fold<int>(0, (v, m) => v + m.proteinGrams)
                             .toString()),
@@ -720,15 +724,18 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                 _macroValue(
                                     p,
                                     CaloriesPalette.protein,
-                                    l.foodProteinShort(
-                                        meal.proteinGrams.toString())),
+                                    l.foodProteinShort(formatCaloriesGrams(
+                                        meal.proteinGrams.toDouble()))),
                                 _macroValue(
                                     p,
                                     CaloriesPalette.carbs,
-                                    l.foodCarbsShort(
-                                        meal.carbsGrams.toString())),
-                                _macroValue(p, CaloriesPalette.fat,
-                                    l.foodFatsShort(meal.fatGrams.toString())),
+                                    l.foodCarbsShort(formatCaloriesGrams(
+                                        meal.carbsGrams.toDouble()))),
+                                _macroValue(
+                                    p,
+                                    CaloriesPalette.fat,
+                                    l.foodFatsShort(formatCaloriesGrams(
+                                        meal.fatGrams.toDouble()))),
                               ]),
                             ]))),
               ]);

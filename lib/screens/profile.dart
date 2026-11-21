@@ -57,9 +57,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     _name = TextEditingController(text: p.name);
     _username = TextEditingController(text: p.username);
     _weight = TextEditingController(
-        text: p.hasWeight ? p.weightKg.round().toString() : '');
+        text: p.hasWeight ? fmt(p.weightKg) : '');
     _height = TextEditingController(
-        text: p.hasHeight ? p.heightCm.round().toString() : '');
+        text: p.hasHeight ? fmt(p.heightCm) : '');
     _bio = TextEditingController(text: p.bio);
     _goal = p.targetGoal;
   }
@@ -326,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w800)),
-                                LeftToRightValue(l.profileHandle(p.username),
+                                AccountHandle(p.username,
                                     style:
                                         TextStyle(fontSize: 12, color: kMuted)),
                                 if (appState.email.isNotEmpty)
@@ -361,7 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     l.profileCurrentWeight,
                                     p.hasWeight
                                         ? l.profileKg(
-                                            p.weightKg.round().toString())
+                                            fmt(p.weightKg))
                                         : l.profileNotSet,
                                     kRed)),
                             SizedBox(
@@ -371,7 +371,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     l.profileHeightLabel,
                                     p.hasHeight
                                         ? l.profileCm(
-                                            p.heightCm.round().toString())
+                                            fmt(p.heightCm))
                                         : l.profileNotSet,
                                     kCyan)),
                             SizedBox(

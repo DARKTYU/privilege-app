@@ -120,13 +120,12 @@ void main() {
       expect(find.text(l.mergeSavedName('Custom name')), findsOneWidget);
       await tester.tap(find.text(l.mergeSavedName(l.plannerPush)));
       await tester.pumpAndSettle();
-      await visible(
-          tester, find.text(l.mergeEstimatedCalories(l.mergeCalories(920, '920'))));
+      await visible(tester,
+          find.text(l.mergeEstimatedCalories(l.mergeCalories(920, '920'))));
       expect(find.text(l.mergeCombinedDuration(l.mergeMinutes(120))),
           findsOneWidget);
       expect(
-          find.text(
-              l.mergeNamedValue(l.plannerPush, l.mergeShortMinutes(60))),
+          find.text(l.mergeNamedValue(l.plannerPush, l.mergeShortMinutes(60))),
           findsOneWidget);
       expect(find.text(l.mergeEstimateNote), findsOneWidget);
       await tap(tester, find.text(l.mergePlanDate));
@@ -274,9 +273,9 @@ void main() {
     ]) {
       await choose(tester, 'Sport', name);
       await visible(
-          tester, find.text('Estimated calories burned: $total kcal'));
-      expect(
-          find.text('Estimated calories burned: $total kcal'), findsOneWidget);
+          tester, find.text('Estimated calories burned: ${fmt(total)} kcal'));
+      expect(find.text('Estimated calories burned: ${fmt(total)} kcal'),
+          findsOneWidget);
     }
   });
 

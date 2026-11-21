@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'theme_settings.dart';
+import 'l10n_strings.dart';
 
 Color get kBg => themeSettings.selected.background;
 Color get kCard => themeSettings.selected.surface;
@@ -157,15 +158,21 @@ ThemeData buildTheme([AppThemePreset preset = AppThemePreset.privilege]) {
   );
 }
 
-/// 1,234 style number formatting (JS toLocaleString equivalent).
+/// Locale-independent display formatting with Western digits.
 String fmt(num n) {
-  final s = n.round().abs().toString();
-  final b = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
-    b.write(s[i]);
+  final sign = n < 0 ? '-' : '';
+  final rounded = n.toDouble().abs();
+  final fixed = rounded == rounded.roundToDouble()
+      ? rounded.toInt().toString()
+      : rounded.toStringAsFixed(1);
+  final parts = fixed.split('.');
+  final whole = parts.first;
+  final buffer = StringBuffer();
+  for (var i = 0; i < whole.length; i++) {
+    if (i > 0 && (whole.length - i) % 3 == 0) buffer.write(',');
+    buffer.write(whole[i]);
   }
-  return (n < 0 ? '-' : '') + b.toString();
+  return '$sign$buffer${parts.length == 2 ? '.${parts[1]}' : ''}';
 }
 
 /// The Privilege logo (burger dumbbell).
@@ -310,6 +317,42 @@ Widget toastBanner(String? msg) => msg == null
           Expanded(child: Text(msg, style: const TextStyle(fontSize: 12))),
         ]),
       );
+
+String ltrValue(String value) => '\u2066$value\u2069';
+
+String friendlyUsername(BuildContext context, String username) {
+  final match = RegExp(r'^user_(.+)$').firstMatch(username.trim());
+  final id = match?.group(1);
+  if (id != null && id.length >= 12) {
+    return strings(context).memberHandle(id.substring(0, 4));
+  }
+  return username.trim();
+}
+
+String friendlyHandle(BuildContext context, String username) {
+  final display = friendlyUsername(context, username);
+  return display == username.trim()
+      ? strings(context).communityUsername(display)
+      : display;
+}
+
+class AccountHandle extends StatelessWidget {
+  const AccountHandle(this.username,
+      {super.key, this.style, this.maxLines, this.overflow});
+
+  final String username;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+
+  @override
+  Widget build(BuildContext context) => LeftToRightValue(
+        friendlyHandle(context, username),
+        style: style,
+        maxLines: maxLines,
+        overflow: overflow,
+      );
+}
 
 class LeftToRightValue extends StatelessWidget {
   const LeftToRightValue(this.text,

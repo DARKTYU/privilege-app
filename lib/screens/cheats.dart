@@ -270,7 +270,7 @@ class _CheatsScreenState extends State<CheatsScreen> {
                 ]));
     }
     final current = month!;
-    final lead = current.weekday - 1;
+    final lead = leadingDaysForWeek(current);
     final count = DateTime.utc(current.year, current.month + 1, 0).day;
     final available = !loading && error == null;
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -310,13 +310,13 @@ class _CheatsScreenState extends State<CheatsScreen> {
         childAspectRatio: 0.7,
         children: [
           for (final day in [
+            l.cravingSunday,
             l.cravingMonday,
             l.cravingTuesday,
             l.cravingWednesday,
             l.cravingThursday,
             l.cravingFriday,
-            l.cravingSaturday,
-            l.cravingSunday
+            l.cravingSaturday
           ])
             Center(child: Text(day, style: TextStyle(color: kMuted))),
           for (var i = 0; i < lead; i++) const SizedBox(),

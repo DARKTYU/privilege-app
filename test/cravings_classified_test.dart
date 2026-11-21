@@ -83,19 +83,19 @@ void main() {
     addTearDown(state.dispose);
     await mount(tester, CheatsScreen(state: state));
     expect(find.text('November 2026'), findsOneWidget);
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(find.text('Enter 1 to 200 characters.'), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Pizza');
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(find.text('1 of 2 used this month'), findsOneWidget);
     expect(find.byKey(const ValueKey('craving-marker-20')), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'Cake');
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(find.text('2 of 2 used this month'), findsOneWidget);
     expect(
         tester
             .widget<FilledButton>(
-                find.widgetWithText(FilledButton, 'Add craving'))
+                find.widgetWithText(FilledButton, 'Add Cheat Meal'))
             .onPressed,
         isNull);
     await tapVisible(tester, find.text('Edit').first);
@@ -127,7 +127,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('craving-day-7')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Lunch');
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(meals.current.single.date, '2026-11-07');
     await tester.drag(find.byType(ListView), const Offset(0, 900));
     await tester.pumpAndSettle();
@@ -142,9 +142,9 @@ void main() {
     await mount(tester, CheatsScreen(state: state));
     await tester.enterText(find.byType(TextField), 'Tea');
     repo.gate = Completer<void>();
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(repo.writes, 1);
-    await tester.tap(find.text('Add craving'), warnIfMissed: false);
+    await tester.tap(find.text('Add Cheat Meal'), warnIfMissed: false);
     expect(repo.writes, 1);
     repo.gate!.complete();
     repo.gate = null;
@@ -153,8 +153,8 @@ void main() {
       const Craving(id: 'external1', date: '2026-11-02', notes: 'External'),
     ]);
     await tester.enterText(find.byType(TextField), 'More');
-    await tapVisible(tester, find.text('Add craving'));
-    expect(find.textContaining('The selected month already has 2 cravings.'),
+    await tapVisible(tester, find.text('Add Cheat Meal'));
+    expect(find.textContaining('The selected month already has 2 Cheat Meals.'),
         findsOneWidget);
     expect(find.text('2 of 2 used this month'), findsOneWidget);
     expect(repo.current, hasLength(2));
@@ -181,7 +181,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('The selected month already has 2 cravings.'),
+    expect(find.textContaining('The selected month already has 2 Cheat Meals.'),
         findsOneWidget);
     expect(repo.current.first.date, '2026-11-20');
     expect(find.text('Original'), findsOneWidget);
@@ -245,7 +245,7 @@ void main() {
     await mount(tester, CheatsScreen(state: state));
     await tester.enterText(find.byType(TextField), 'Cake');
     meals.error = 'network unavailable';
-    await tapVisible(tester, find.text('Add craving'));
+    await tapVisible(tester, find.text('Add Cheat Meal'));
     expect(find.textContaining('Something went wrong. Please try again.'),
         findsOneWidget);
     expect(meals.current, isEmpty);
@@ -336,7 +336,7 @@ void main() {
       final state = create(FakeCravings(), FakeClassifiedChecks());
       addTearDown(state.dispose);
       await mount(tester, CheatsScreen(state: state), scale: scale);
-      await tapVisible(tester, find.text('Add craving'));
+      await tapVisible(tester, find.text('Add Cheat Meal'));
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
       await mount(

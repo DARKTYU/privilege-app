@@ -5,20 +5,30 @@ import 'package:privilege/l10n/app_localizations_en.dart';
 import 'package:privilege/ui.dart';
 
 void main() {
+  test('display number formatting is grouped in every locale', () {
+    expect(fmt(2660), '2,660');
+    expect(fmt(170.0), '170');
+    expect(fmt(108.5), '108.5');
+    final arabic = AppLocalizationsAr();
+    expect(arabic.burnTarget(fmt(2660)), 'الهدف: 2,660 سعرة');
+  });
+
   testWidgets('left-to-right handles stay ordered on an RTL screen',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(
       home: Directionality(
         textDirection: TextDirection.rtl,
-        child: LeftToRightValue('@Jackson_12'),
+        child: AccountHandle('user_abcdefghijklmnop'),
       ),
     ));
-    final directionality = tester.widget<Directionality>(find
-        .ancestor(
-            of: find.text('@Jackson_12'), matching: find.byType(Directionality))
-        .first);
-    expect(directionality.textDirection, TextDirection.ltr);
-    expect(find.text('@Jackson_12'), findsOneWidget);
+    expect(
+        find.descendant(
+            of: find.byWidgetPredicate((widget) =>
+                widget is Directionality &&
+                widget.textDirection == TextDirection.ltr),
+            matching: find.text('Member abcd')),
+        findsOneWidget);
+    expect(find.text('Member abcd'), findsOneWidget);
   });
 
   test('minutes and days follow English and Arabic plural rules', () {
@@ -65,7 +75,7 @@ void main() {
     expect(ar.communityHoursAgo(3), 'منذ 3 ساعات');
     expect(ar.groupsMemberCount(2), 'عضوان');
     expect(ar.groupsMemberCount(5), '5 أعضاء');
-    expect(ar.arenaParticipants(11), '11 مشاركًا');
+    expect(ar.arenaParticipants(11, '11'), '11 مشاركًا');
     expect(ar.communityLikeCount(2), 'إعجابان');
     expect(ar.communityCommentCount(5), '5 تعليقات');
     expect(ar.communityPostCountLabel(3), 'منشورات');

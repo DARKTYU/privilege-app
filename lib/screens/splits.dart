@@ -489,7 +489,7 @@ class _SplitsScreenState extends State<SplitsScreen>
                       Text(l.mergeEstimatedCalories(
                           strengthKcal != null && sportKcal != null
                               ? l.mergeCalories(
-                                  strengthKcal + sportKcal, (strengthKcal + sportKcal).toString())
+                                  strengthKcal + sportKcal, fmt(strengthKcal + sportKcal))
                               : l.mergeUnavailable)),
                       Text(l.mergeNamedValue(
                           savedSplit == null
@@ -497,12 +497,12 @@ class _SplitsScreenState extends State<SplitsScreen>
                               : _displayStoredName(savedSplit!.name),
                           strengthKcal == null
                               ? l.mergeUnavailable
-                              : l.mergeCalories(strengthKcal, strengthKcal.toString()))),
+                              : l.mergeCalories(strengthKcal, fmt(strengthKcal)))),
                       Text(l.mergeNamedValue(
                           _builtInName(sport),
                           sportKcal == null
                               ? l.mergeUnavailable
-                              : l.mergeCalories(sportKcal, sportKcal.toString()))),
+                              : l.mergeCalories(sportKcal, fmt(sportKcal)))),
                     ],
                     const SizedBox(height: 8),
                     Text(l.mergeEstimateNote),

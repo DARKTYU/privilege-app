@@ -688,7 +688,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
               Wrap(spacing: 16, runSpacing: 4, children: [
                 Text(
                     strings(context)
-                        .arenaParticipants(challenge.participantCount),
+                        .arenaParticipants(challenge.participantCount,
+                            fmt(challenge.participantCount)),
                     style: Theme.of(context).textTheme.bodySmall),
                 if (challenge.joined)
                   Text(
@@ -763,7 +764,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
               ),
               title: row.fullName?.isNotEmpty == true
                   ? Text(row.fullName!)
-                  : LeftToRightValue('@${row.username}'),
+                  : AccountHandle(row.username),
               trailing: Text(_scoreLabel(challenge.type, row.score)),
             ),
         ]);
@@ -843,7 +844,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                 ),
                 title: row.fullName?.isNotEmpty == true
                     ? Text(row.fullName!)
-                    : LeftToRightValue('@${row.username}'),
+                    : AccountHandle(row.username),
                 subtitle: Text(row.levelName == null
                     ? strings(context).arenaCurrentStreak(row.currentStreak)
                     : strings(context).arenaLevelStreak(
@@ -872,8 +873,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
             PopupMenuItem(value: entry.value, child: Text(entry.key)),
         ],
         child: Chip(
-          avatar: const Icon(Icons.tune, size: 16),
-          label: Text(label),
+          avatar: Icon(Icons.tune,
+              size: 16, color: Theme.of(context).colorScheme.onPrimaryContainer),
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          side: BorderSide.none,
+          label: Text(label,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700)),
         ),
       );
 
@@ -894,10 +901,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
       : strings(context).arenaActiveDays;
 
   String _scoreLabel(String type, num? score) {
-    final value = (score ?? 0).toStringAsFixed(0);
+    final value = (score ?? 0).round();
     return type == 'workout_count'
-        ? strings(context).arenaWorkoutsCount(int.parse(value))
-        : strings(context).arenaDays(int.parse(value));
+        ? strings(context).arenaWorkoutsCount(value, fmt(value))
+        : strings(context).arenaDays(value);
   }
 
   String _dateLabel(DateTime date) {
@@ -947,7 +954,7 @@ class _FriendChallengeDialogState extends State<_FriendChallengeDialog> {
                     value: friend.id,
                     child: friend.fullName?.isNotEmpty == true
                         ? Text(friend.fullName!)
-                        : LeftToRightValue('@${friend.username}'),
+                        : AccountHandle(friend.username),
                   ),
               ],
               onChanged: (value) {

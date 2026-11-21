@@ -249,7 +249,7 @@ void main() {
       ..meals.add(foodMeal.copyWith(sodiumMg: 3600));
     addTearDown(state.dispose);
     await showSummary(tester, state);
-    expect(find.text('Sodium 3600 mg'), findsOneWidget);
+    expect(find.text('Sodium 3,600 mg'), findsOneWidget);
     expect(find.text('Sodium 3600.0 mg'), findsNothing);
   });
 

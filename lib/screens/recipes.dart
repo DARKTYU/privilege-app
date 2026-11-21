@@ -277,7 +277,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                   else ...[
                     Text(l.recipeRemaining(
                         remaining! > 0 ? remaining : 0,
-                        (protein! > 0 ? protein : 0).toString())),
+                        fmt(protein! > 0 ? protein : 0))),
                     if (remaining <= 0) Text(l.recipeTargetReached),
                   ],
                   const SizedBox(height: 8),
@@ -396,7 +396,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     const SizedBox(height: 8),
                     if (p != null)
                       Wrap(spacing: 6, runSpacing: 6, children: [
-                        _recipePill(context, l.recipeKcal(p.kcal),
+                        _recipePill(context, l.mergeCalories(p.kcal, fmt(p.kcal)),
                             Theme.of(context).colorScheme.secondary),
                         _recipePill(
                             context,
@@ -645,10 +645,10 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
           if (p == null)
             Text(l.recipeNutritionUnavailable)
           else ...[
-            Text(l.recipeKcal(p.kcal)),
+            Text(l.mergeCalories(p.kcal, fmt(p.kcal))),
             Text(l.recipeMacroLine(g(p.proteinG), g(p.carbsG), g(p.fatG))),
             Text(l.recipeMicroLine(
-                g(p.fiberG), g(p.sugarG), p.sodiumMg.toStringAsFixed(0))),
+                g(p.fiberG), g(p.sugarG), fmt(p.sodiumMg))),
           ],
           const SizedBox(height: 16),
           Text(l.recipeIngredients,

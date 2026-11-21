@@ -172,7 +172,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
                   repository: _progression,
                   load: _progression.activityCounts,
                   builder: (context, counts) =>
-                      _tracked(l.pathWorkouts, counts.workouts.toString()),
+                      _tracked(l.pathWorkouts, fmt(counts.workouts)),
                 ),
                 _selfReported('novice_routine', l.pathRoutine),
                 _outside(l.pathCoach),
@@ -182,7 +182,7 @@ class _ChampionScreenState extends State<ChampionScreen> {
                   repository: _progression,
                   load: _progression.activityCounts,
                   builder: (context, counts) =>
-                      _tracked(l.pathMeals, counts.meals.toString()),
+                      _tracked(l.pathMeals, fmt(counts.meals)),
                 ),
                 _selfReported('competitor_skills', l.pathSkills),
                 _outside(l.pathRequirements),

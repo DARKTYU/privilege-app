@@ -1,6 +1,6 @@
-String formatCaloriesGrams(double value) => value == value.roundToDouble()
-    ? value.toStringAsFixed(0)
-    : value.toStringAsFixed(1);
+import '../ui.dart';
+
+String formatCaloriesGrams(double value) => fmt(value);
 
 String formatCaloriesServingLabel(String label) => label.replaceAllMapped(
       RegExp(r'(\d+(?:\.\d+)?)\s*g\b'),

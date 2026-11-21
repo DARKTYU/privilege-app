@@ -170,7 +170,7 @@ void main() {
     expect(find.textContaining('Allowed'), findsNothing);
     expect(find.textContaining('budgeted'), findsNothing);
     await tester.enterText(find.byType(TextField), 'Pizza');
-    await tester.tap(find.text('Add craving'));
+    await tester.tap(find.text('Add Cheat Meal'));
     await tester.pumpAndSettle();
     expect(find.text('Pizza'), findsOneWidget);
   });

@@ -66,7 +66,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorCravingMissing =>
-      'The craving was not found or was already deleted.';
+      'The Cheat Meal was not found or was already deleted.';
 
   @override
   String get errorProfileInvalid =>
@@ -933,12 +933,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String arenaWorkoutsCount(int count) {
+  String arenaWorkoutsCount(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count workouts',
-      one: '$count workout',
+      other: '$countText workouts',
+      one: '$countText workout',
     );
     return '$_temp0';
   }
@@ -1061,12 +1061,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String arenaParticipants(int count) {
+  String arenaParticipants(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count participants',
-      one: '$count participant',
+      other: '$countText participants',
+      one: '$countText participant',
     );
     return '$_temp0';
   }
@@ -1565,12 +1565,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cravingLoadError(String error) {
-    return 'Could not load cravings: $error';
+    return 'Could not load Cheat Meals: $error';
   }
 
   @override
   String cravingLimitError(String error) {
-    return 'The selected month already has 2 cravings. $error';
+    return 'The selected month already has 2 Cheat Meals. $error';
   }
 
   @override
@@ -1582,7 +1582,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cravingValidate => 'Enter 1 to 200 characters.';
 
   @override
-  String get cravingDeleteTitle => 'Delete craving?';
+  String get cravingDeleteTitle => 'Delete Cheat Meal?';
 
   @override
   String get cravingPreviousMonth => 'Previous month';
@@ -1628,14 +1628,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cravingDay(String day) {
-    return 'Craving for day $day';
+    return 'Cheat Meal for day $day';
   }
 
   @override
   String get cravingCharacters => '1 to 200 characters';
 
   @override
-  String get cravingAdd => 'Add craving';
+  String get cravingAdd => 'Add Cheat Meal';
 
   @override
   String get cravingEmpty => 'No meals added yet.';
@@ -1644,7 +1644,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cravingEdit => 'Edit';
 
   @override
-  String get cravingEditTitle => 'Edit craving';
+  String get cravingEditTitle => 'Edit Cheat Meal';
 
   @override
   String get cravingNotes => 'Notes';
@@ -2989,6 +2989,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String memberHandle(String id) {
+    return 'Member $id';
+  }
+
+  @override
   String get profileSaveChanges => 'Save Changes';
 
   @override
@@ -3245,23 +3250,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String progressFreeze(int count) {
+  String progressFreeze(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Freeze tokens: $count',
-      one: 'Freeze token: $count',
+      other: 'Freeze tokens: $countText',
+      one: 'Freeze token: $countText',
     );
     return '$_temp0';
   }
 
   @override
-  String progressPoints(int count) {
+  String progressPoints(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count store points',
-      one: '$count store point',
+      other: '$countText store points',
+      one: '$countText store point',
     );
     return '$_temp0';
   }
@@ -3660,7 +3665,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cheatMeals => 'Cheat Meals';
 
   @override
-  String get cravingsTitle => 'Cravings & Treats';
+  String get cravingsTitle => 'Cheat Meals';
 
   @override
   String get classified => 'Classified Level';

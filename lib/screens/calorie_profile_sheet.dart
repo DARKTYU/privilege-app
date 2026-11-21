@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../l10n_strings.dart';
 import '../logic/calorie_target.dart';
 import '../state.dart';
+import '../ui.dart';
 import 'calories_food_summary.dart';
 
 class _ArabicWesternDates extends LocalizationsDelegate<MaterialLocalizations> {
@@ -257,24 +258,26 @@ class _CalorieProfileSheetState extends State<CalorieProfileSheet> {
                                   result.target == null
                                       ? l.mergeUnavailable.toLowerCase()
                                       : l.mergeCalories(
-                                          result.target!, result.target.toString()),
+                                          result.target!, fmt(result.target!)),
                                   result.isEstimate ? l.foodEstimated : ''),
                               style: TextStyle(
                                   color: p.accentText,
                                   fontWeight: FontWeight.bold)),
                           Text(
                               l.profileBmr(
-                                  result.bmr?.toString() ??
-                                      l.mergeUnavailable.toLowerCase(),
-                                  result.maintenance?.toString() ??
-                                      l.mergeUnavailable.toLowerCase()),
+                                  result.bmr == null
+                                      ? l.mergeUnavailable.toLowerCase()
+                                      : fmt(result.bmr!),
+                                  result.maintenance == null
+                                      ? l.mergeUnavailable.toLowerCase()
+                                      : fmt(result.maintenance!)),
                               style: TextStyle(color: p.muted)),
                           Text(
                               result.isEstimate
                                   ? l.profileCompleteFields
                                   : l.profileAdjustment(
                                       (result.target! - result.maintenance!).abs(),
-                                      '${result.target! - result.maintenance! >= 0 ? '+' : ''}${result.target! - result.maintenance!}',
+                                      '${result.target! - result.maintenance! >= 0 ? '+' : ''}${fmt(result.target! - result.maintenance!)}',
                                       result.age! < 18 ? l.profileMinor : ''),
                               style: TextStyle(color: p.muted)),
                           const SizedBox(height: 4),

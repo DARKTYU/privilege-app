@@ -6,6 +6,7 @@ import '../logic/food_nutrition.dart';
 import '../models/food_item.dart';
 import '../services/food_database.dart';
 import '../state.dart';
+import '../ui.dart';
 import 'calories_display_format.dart';
 import 'calories_food_summary.dart';
 
@@ -141,8 +142,8 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
                 child: Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: Text(
-                        l.explorerShowing(results.length,
-                            database.foods.length.toString()),
+                        l.explorerShowing(
+                            results.length, fmt(database.foods.length)),
                         style: TextStyle(color: p.muted))),
               ),
               Expanded(
@@ -256,7 +257,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
             SizedBox(
                 width: 100,
                 child: Column(children: [
-                  Text(l.mergeCalories(portion.kcal, portion.kcal.toString()),
+                  Text(l.mergeCalories(portion.kcal, fmt(portion.kcal)),
                       style: TextStyle(
                           color: p.accentText, fontWeight: FontWeight.bold)),
                   Text(
@@ -503,7 +504,8 @@ class _PortionSheetState extends State<_PortionSheet> {
                       ]),
                   const SizedBox(height: 16),
                   Wrap(spacing: 8, runSpacing: 8, children: [
-                    _preview(p, l.calories, portion?.kcal.toString() ?? '—',
+                    _preview(p, l.calories,
+                        portion == null ? '—' : fmt(portion.kcal),
                         p.accent),
                     _preview(
                         p,
@@ -543,7 +545,7 @@ class _PortionSheetState extends State<_PortionSheet> {
                     Text(l.explorerNutrient(
                         l.foodSodium,
                         l.foodMilligrams(
-                            portion?.sodiumMg.toStringAsFixed(0) ?? '—'))),
+                            portion == null ? '—' : fmt(portion.sodiumMg)))),
                   ]),
                   const SizedBox(height: 16),
                   Text(l.explorerMeal),

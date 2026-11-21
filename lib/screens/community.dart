@@ -482,7 +482,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     final self = _client.auth.currentUser?.id == post.authorId;
     final title = (post.fullName?.trim().isNotEmpty ?? false)
         ? post.fullName!.trim()
-        : post.username;
+        : friendlyUsername(context, post.username);
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -500,8 +500,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       Text(title,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
                       LeftToRightValue(
-                          strings(context).communityPostTime(post.username,
-                              _relativeTime(context, post.createdAt)),
+                          '${friendlyHandle(context, post.username)} · ${_relativeTime(context, post.createdAt)}',
                           style: Theme.of(context).textTheme.bodySmall),
                     ]),
               ),
@@ -723,7 +722,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       {bool request = false, bool friend = false}) {
     final name = (person.fullName?.trim().isNotEmpty ?? false)
         ? person.fullName!.trim()
-        : person.username;
+        : friendlyUsername(context, person.username);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -742,7 +741,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   children: [
                     Text(name,
                         style: const TextStyle(fontWeight: FontWeight.w700)),
-                    LeftToRightValue(strings(context).communityUsername(person.username),
+                    AccountHandle(person.username,
                         style: Theme.of(context).textTheme.bodySmall),
                   ]),
             ),
@@ -1202,9 +1201,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                       ),
                       title: Text(person.fullName?.trim().isNotEmpty == true
                           ? person.fullName!
-                          : person.username),
-                      subtitle: LeftToRightValue(
-                          strings(context).communityUsername(person.username)),
+                          : friendlyUsername(context, person.username)),
+                      subtitle: AccountHandle(person.username),
                     ),
                 ],
               );
@@ -1300,7 +1298,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 final name =
                                     comment.fullName?.isNotEmpty == true
                                         ? comment.fullName!
-                                        : comment.username;
+                                        : friendlyUsername(
+                                            context, comment.username);
                                 return ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   leading: CircleAvatar(
@@ -1480,7 +1479,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
               }
               final name = profile.fullName?.isNotEmpty == true
                   ? profile.fullName!
-                  : profile.username;
+                  : friendlyUsername(context, profile.username);
               final self = profile.relationship == 'self';
               return SingleChildScrollView(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -1493,7 +1492,7 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                 ),
                 const SizedBox(height: 10),
                 Text(name, style: Theme.of(context).textTheme.titleLarge),
-                LeftToRightValue(strings(context).communityUsername(profile.username),
+                AccountHandle(profile.username,
                     style: Theme.of(context).textTheme.bodySmall),
                 if (profile.levelName != null)
                   Padding(
@@ -1515,11 +1514,11 @@ class _PublicProfileSheetState extends State<_PublicProfileSheet> {
                     _stat(strings(context).communityBest,
                         strings(context).arenaDays(profile.longestStreak)),
                     _stat(strings(context).communityPostCountLabel(profile.postCount),
-                        profile.postCount.toString()),
+                        fmt(profile.postCount)),
                     _stat(strings(context).communityFriendCountLabel(profile.friendCount),
-                        profile.friendCount.toString()),
+                        fmt(profile.friendCount)),
                     _stat(strings(context).communityFollowerCountLabel(profile.followerCount),
-                        profile.followerCount.toString()),
+                        fmt(profile.followerCount)),
                   ],
                 ),
                 const SizedBox(height: 12),

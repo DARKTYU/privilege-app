@@ -1,5 +1,10 @@
 import 'package:intl/intl.dart';
 
+DateTime startOfWeek(DateTime date) =>
+    date.subtract(Duration(days: date.weekday % 7));
+
+int leadingDaysForWeek(DateTime date) => date.weekday % 7;
+
 String westernDigits(String text) => text.replaceAllMapped(
       RegExp('[\u0660-\u0669\u06f0-\u06f9]'),
       (match) {

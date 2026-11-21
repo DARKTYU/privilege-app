@@ -987,13 +987,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String arenaWorkoutsCount(int count) {
+  String arenaWorkoutsCount(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count تمرين',
-      many: '$count تمرينًا',
-      few: '$count تمارين',
+      other: '$countText تمرين',
+      many: '$countText تمرينًا',
+      few: '$countText تمارين',
       two: 'تمرينان',
       one: 'تمرين واحد',
       zero: '0 تمرين',
@@ -1117,13 +1117,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String arenaParticipants(int count) {
+  String arenaParticipants(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count مشارك',
-      many: '$count مشاركًا',
-      few: '$count مشاركين',
+      other: '$countText مشارك',
+      many: '$countText مشاركًا',
+      few: '$countText مشاركين',
       two: 'مشاركان',
       one: 'مشارك واحد',
       zero: '0 مشارك',
@@ -1662,12 +1662,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String cravingLoadError(String error) {
-    return 'تعذر تحميل الرغبات: $error';
+    return 'تعذر تحميل وجبات المكافأة: $error';
   }
 
   @override
   String cravingLimitError(String error) {
-    return 'يحتوي الشهر المحدد بالفعل على رغبتين. $error';
+    return 'يحتوي الشهر المحدد بالفعل على وجبتي مكافأة. $error';
   }
 
   @override
@@ -1679,7 +1679,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cravingValidate => 'أدخل من 1 إلى 200 حرف.';
 
   @override
-  String get cravingDeleteTitle => 'حذف الرغبة؟';
+  String get cravingDeleteTitle => 'حذف وجبة المكافأة؟';
 
   @override
   String get cravingPreviousMonth => 'الشهر السابق';
@@ -1729,14 +1729,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String cravingDay(String day) {
-    return 'رغبة يوم $day';
+    return 'وجبة مكافأة ليوم $day';
   }
 
   @override
   String get cravingCharacters => 'من 1 إلى 200 حرف';
 
   @override
-  String get cravingAdd => 'إضافة رغبة';
+  String get cravingAdd => 'إضافة وجبة مكافأة';
 
   @override
   String get cravingEmpty => 'لم تضف أي وجبات بعد.';
@@ -1745,7 +1745,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cravingEdit => 'تعديل';
 
   @override
-  String get cravingEditTitle => 'تعديل الرغبة';
+  String get cravingEditTitle => 'تعديل وجبة المكافأة';
 
   @override
   String get cravingNotes => 'ملاحظات';
@@ -3161,6 +3161,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String memberHandle(String id) {
+    return 'عضو $id';
+  }
+
+  @override
   String get profileSaveChanges => 'حفظ التغييرات';
 
   @override
@@ -3428,13 +3433,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String progressFreeze(int count) {
+  String progressFreeze(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count رمز تجميد',
-      many: '$count رمز تجميد',
-      few: '$count رموز تجميد',
+      other: '$countText رمز تجميد',
+      many: '$countText رمز تجميد',
+      few: '$countText رموز تجميد',
       two: 'رمزا تجميد',
       one: 'رمز تجميد واحد',
       zero: '0 رمز تجميد',
@@ -3443,13 +3448,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String progressPoints(int count) {
+  String progressPoints(int count, String countText) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count نقطة في المتجر',
-      many: '$count نقطة في المتجر',
-      few: '$count نقاط في المتجر',
+      other: '$countText نقطة في المتجر',
+      many: '$countText نقطة في المتجر',
+      few: '$countText نقاط في المتجر',
       two: 'نقطتان في المتجر',
       one: 'نقطة واحدة في المتجر',
       zero: '0 نقطة في المتجر',
@@ -3874,7 +3879,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cheatMeals => 'وجبات المكافأة';
 
   @override
-  String get cravingsTitle => 'الرغبات والمكافآت';
+  String get cravingsTitle => 'وجبات المكافأة';
 
   @override
   String get classified => 'المستوى المصنف';

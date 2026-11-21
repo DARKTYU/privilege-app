@@ -203,7 +203,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorCravingMissing.
   ///
   /// In en, this message translates to:
-  /// **'The craving was not found or was already deleted.'**
+  /// **'The Cheat Meal was not found or was already deleted.'**
   String get errorCravingMissing;
 
   /// No description provided for @errorProfileInvalid.
@@ -1553,8 +1553,8 @@ abstract class AppLocalizations {
   /// No description provided for @arenaWorkoutsCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} workout} other{{count} workouts}}'**
-  String arenaWorkoutsCount(int count);
+  /// **'{count, plural, one{{countText} workout} other{{countText} workouts}}'**
+  String arenaWorkoutsCount(int count, String countText);
 
   /// No description provided for @arenaNoPrizesRule.
   ///
@@ -1763,8 +1763,8 @@ abstract class AppLocalizations {
   /// No description provided for @arenaParticipants.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} participant} other{{count} participants}}'**
-  String arenaParticipants(int count);
+  /// **'{count, plural, one{{countText} participant} other{{countText} participants}}'**
+  String arenaParticipants(int count, String countText);
 
   /// No description provided for @arenaScore.
   ///
@@ -2501,13 +2501,13 @@ abstract class AppLocalizations {
   /// No description provided for @cravingLoadError.
   ///
   /// In en, this message translates to:
-  /// **'Could not load cravings: {error}'**
+  /// **'Could not load Cheat Meals: {error}'**
   String cravingLoadError(String error);
 
   /// No description provided for @cravingLimitError.
   ///
   /// In en, this message translates to:
-  /// **'The selected month already has 2 cravings. {error}'**
+  /// **'The selected month already has 2 Cheat Meals. {error}'**
   String cravingLimitError(String error);
 
   /// No description provided for @cravingSaveError.
@@ -2525,7 +2525,7 @@ abstract class AppLocalizations {
   /// No description provided for @cravingDeleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete craving?'**
+  /// **'Delete Cheat Meal?'**
   String get cravingDeleteTitle;
 
   /// No description provided for @cravingPreviousMonth.
@@ -2597,7 +2597,7 @@ abstract class AppLocalizations {
   /// No description provided for @cravingDay.
   ///
   /// In en, this message translates to:
-  /// **'Craving for day {day}'**
+  /// **'Cheat Meal for day {day}'**
   String cravingDay(String day);
 
   /// No description provided for @cravingCharacters.
@@ -2609,7 +2609,7 @@ abstract class AppLocalizations {
   /// No description provided for @cravingAdd.
   ///
   /// In en, this message translates to:
-  /// **'Add craving'**
+  /// **'Add Cheat Meal'**
   String get cravingAdd;
 
   /// No description provided for @cravingEmpty.
@@ -2627,7 +2627,7 @@ abstract class AppLocalizations {
   /// No description provided for @cravingEditTitle.
   ///
   /// In en, this message translates to:
-  /// **'Edit craving'**
+  /// **'Edit Cheat Meal'**
   String get cravingEditTitle;
 
   /// No description provided for @cravingNotes.
@@ -4706,6 +4706,12 @@ abstract class AppLocalizations {
   /// **'@{username}'**
   String profileHandle(String username);
 
+  /// No description provided for @memberHandle.
+  ///
+  /// In en, this message translates to:
+  /// **'Member {id}'**
+  String memberHandle(String id);
+
   /// No description provided for @profileSaveChanges.
   ///
   /// In en, this message translates to:
@@ -5099,14 +5105,14 @@ abstract class AppLocalizations {
   /// No description provided for @progressFreeze.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Freeze token: {count}} other{Freeze tokens: {count}}}'**
-  String progressFreeze(int count);
+  /// **'{count, plural, one{Freeze token: {countText}} other{Freeze tokens: {countText}}}'**
+  String progressFreeze(int count, String countText);
 
   /// No description provided for @progressPoints.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} store point} other{{count} store points}}'**
-  String progressPoints(int count);
+  /// **'{count, plural, one{{countText} store point} other{{countText} store points}}'**
+  String progressPoints(int count, String countText);
 
   /// No description provided for @rewardConfirm.
   ///
@@ -5741,7 +5747,7 @@ abstract class AppLocalizations {
   /// No description provided for @cravingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Cravings & Treats'**
+  /// **'Cheat Meals'**
   String get cravingsTitle;
 
   /// No description provided for @classified.

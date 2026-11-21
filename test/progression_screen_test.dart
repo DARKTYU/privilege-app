@@ -45,11 +45,11 @@ void main() {
       final l =
           AppLocalizations.of(tester.element(find.byType(LevelProgressPanel)))!;
       expect(find.text(l.progressLevel(l.levelBronze)), findsOneWidget);
-      expect(find.text(l.progressNext(100, 400, l.levelSilver)),
-          findsOneWidget);
+      expect(
+          find.text(l.progressNext(100, 400, l.levelSilver)), findsOneWidget);
       await tester.pumpWidget(app(RewardsStoreScreen(repository: repo)));
       await tester.pumpAndSettle();
-      expect(find.text(l.progressPoints(200)), findsOneWidget);
+      expect(find.text(l.progressPoints(200, fmt(200))), findsOneWidget);
       await tester.tap(find.text(l.rewardRedeem));
       await tester.pumpAndSettle();
       expect(find.text(l.rewardSpend(50)), findsOneWidget);

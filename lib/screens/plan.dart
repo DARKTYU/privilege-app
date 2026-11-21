@@ -113,7 +113,7 @@ class _PlanScreenState extends State<PlanScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         selected = today;
-        week = today.subtract(Duration(days: today.weekday % 7));
+        week = startOfWeek(today);
         initialError = null;
       });
       await _loadWeek();

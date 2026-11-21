@@ -543,9 +543,9 @@ class ActivityTab extends StatelessWidget {
               p,
               Column(children: [
                 _stat(p, l.strengthBurnLabel,
-                    l.mergeCalories(t.strengthBurnCalories, t.strengthBurnCalories.toString()), kGold),
+                    l.mergeCalories(t.strengthBurnCalories, fmt(t.strengthBurnCalories)), kGold),
                 _stat(p, l.cardioBurnLabel,
-                    l.mergeCalories(t.cardioBurnCalories, t.cardioBurnCalories.toString()), kCyan),
+                    l.mergeCalories(t.cardioBurnCalories, fmt(t.cardioBurnCalories)), kCyan),
               ]),
             ),
             _title(p, l.workoutLogs(s.burns.length)),

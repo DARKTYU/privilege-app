@@ -171,8 +171,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Save profile'));
     await tester.pumpAndSettle();
-    expect(find.text('Your daily target: 2760 kcal'), findsOneWidget);
-    expect(find.textContaining('BMR: 1780'), findsOneWidget);
+    expect(find.text('Your daily target: 2,760 kcal'), findsOneWidget);
+    expect(find.textContaining('BMR: 1,780'), findsOneWidget);
     expect(find.text('Estimates are not medical advice.'), findsOneWidget);
     await tester.tap(find.text('Save profile'));
     await tester.pumpAndSettle();

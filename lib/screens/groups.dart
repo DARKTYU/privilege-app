@@ -417,7 +417,7 @@ String _profileName(BuildContext context, Map<String, dynamic>? profile) {
   return name?.isNotEmpty == true
       ? name!
       : username?.isNotEmpty == true
-          ? username!
+          ? friendlyUsername(context, username!)
           : strings(context).groupsMember;
 }
 
@@ -1208,9 +1208,10 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
                 ListTile(
                   leading: _personAvatar(context, member),
                   title: Text(_profileName(context, member)),
-                  subtitle: LeftToRightValue([
+                  subtitle: Text([
                     if (_profileUsername(member).isNotEmpty)
-                      _profileUsername(member),
+                      ltrValue(friendlyHandle(context,
+                          (member['username'] as String).trim())),
                     if (member['banned_at'] != null &&
                         DateTime.tryParse(member['banned_at'] as String) !=
                             null)
@@ -1229,9 +1230,9 @@ class _BannedMembersPageState extends State<_BannedMembersPage> {
                             ?.trim()
                             .isNotEmpty ==
                         true)
-                      strings(context).groupBannedBy(strings(context)
-                          .communityUsername(
-                              (member['banned_by_username'] as String).trim())),
+                      strings(context).groupBannedBy(ltrValue(friendlyHandle(
+                          context,
+                          (member['banned_by_username'] as String).trim()))),
                   ].join(' · ')),
                   trailing: TextButton(
                       onPressed: busy ? null : () => unban(member),
@@ -1319,9 +1320,8 @@ class _InvitePageState extends State<_InvitePage> {
                               }),
                               title: Text(person.fullName?.isNotEmpty == true
                                   ? person.fullName!
-                                  : person.username),
-                              subtitle: LeftToRightValue(strings(context)
-                                  .communityUsername(person.username)),
+                                  : friendlyUsername(context, person.username)),
+                              subtitle: AccountHandle(person.username),
                               trailing: TextButton(
                                   onPressed: busy
                                       ? null
@@ -1495,8 +1495,8 @@ class _MemberTile extends StatelessWidget {
           ]),
           subtitle: _profileUsername(p).isEmpty
               ? null
-              : LeftToRightValue(
-                  _profileUsername(p),
+              : AccountHandle(
+                  (p?['username'] as String?) ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1591,7 +1591,8 @@ class _GroupPostState extends State<_GroupPost> {
                       : _profileName(context, snapshot.data)),
                   subtitle: _profileUsername(snapshot.data).isEmpty
                       ? null
-                      : LeftToRightValue(_profileUsername(snapshot.data)),
+                      : AccountHandle(
+                          (snapshot.data?['username'] as String?) ?? ''),
                   trailing: PopupMenuButton<String>(
                       onSelected: (value) async {
                         if (value == 'report') {
