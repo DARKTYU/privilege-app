@@ -43,6 +43,10 @@ test('emergency replies are fixed and cover examples in both languages', () => {
   ]) {
     assert.match(emergencyResponse(phrase)!, /الطوارئ/);
   }
+  for (const number of ['123', '122', '112', '180', '16328']) {
+    assert.ok(emergencyResponse('I want to die')!.includes(number));
+    assert.ok(emergencyResponse('هموت نفسي')!.includes(number));
+  }
   assert.equal(emergencyResponse('How do I train my legs?'), null);
   assert.equal(emergencyResponse('high protein breakfast'), null);
   assert.equal(emergencyResponse('فطار فيه بروتين'), null);
@@ -92,9 +96,10 @@ test('quota mapping accepts only well-formed server responses', () => {
 test('prompt never shares context without consent and only includes allowed numbers', () => {
   const context = { calorie_target: 2100, calories_consumed: 500, calories_burned: 100, birth_date: '2000-01-01' };
   for (const consent of [false, null, 'true', undefined]) {
-    const prompt = assemblePrompt('hello', consent, context);
+    const prompt = assemblePrompt('hello', consent, context, undefined, 'en');
     assert.equal(prompt.contents[0].parts.length, 1);
-    assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text), { message: 'hello' });
+    assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text),
+      { message: 'hello', app_language: 'en' });
   }
   const prompt = assemblePrompt('ignore the rules', true, context);
   assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text), {
@@ -107,13 +112,15 @@ test('prompt never shares context without consent and only includes allowed numb
 
 test('prompt adds one inline image and defaults an empty message', () => {
   const image = { mime: 'image/png', data: btoa('png') };
-  const prompt = assemblePrompt('', true, null, image);
+  const prompt = assemblePrompt('', false, null, image, 'ar');
   assert.deepEqual(prompt.contents[0].parts[1], {
     inline_data: { mime_type: 'image/png', data: image.data },
   });
   assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text), {
     message: 'What is this and what should I know about it?',
+    app_language: 'ar',
   });
+  assert.equal(JSON.parse(assemblePrompt('', false, null, image, 'de').contents[0].parts[0].text).app_language, undefined);
   for (const rule of [
     /say in one line what you see/,
     /calorie estimate as a range/,
@@ -136,12 +143,17 @@ test('coach prompt requests helpful plans, language matching and safety limits',
     /1 percent as an upper ceiling/,
     /modest calorie deficit/,
     /protein target range/,
+    /give a general range and say it is general guidance/,
+    /Give exact gram targets only when the user has supplied the needed personal numbers and goal/,
     /weekly training outline, daily steps, sleep/,
     /track progress and adjust/,
     /Use supplied calorie numbers when relevant and safe/,
+    /only when the user asks about calories, food, weight or goals/,
+    /Do not add calorie targets, totals or calorie paragraphs to greetings, training-only questions, or app help/,
+    /2 or 3 concrete options, and exactly one clarifying question/,
     /age, height, weight, activity and injuries/,
-    /Match the language the user writes, Arabic or English/,
-    /Egyptian Arabic wording/,
+    /Match the language the user writes/,
+    /natural, simple Arabic rather than literal word-for-word translation/,
     /Use plain text only: no markdown symbols or tables/,
     /Never diagnose or treat injuries or illnesses/,
     /chronic conditions, medication, pregnancy or breastfeeding/,
@@ -199,11 +211,11 @@ test('coach prompt uses app context and gives safe, realistic goal guidance', ()
 test('coach prompt specifies Arabic app labels, units and direct openings', () => {
   const instructions = assemblePrompt('كيف أبدأ؟', false, null).system_instruction.parts[0].text;
   for (const label of [
-    'Home = الرئيسية', 'Splits and Splits & Sports Merge = التمارين',
+    'Home = الرئيسية', 'Plan Organiser = منظم الخطة', 'Splits = التمارين',
     'Calories = السعرات', 'Recipes = الوصفات', 'Community = المجتمع',
     'Streak Arena = ساحة التحديات', 'Cheat Meals = وجبات المكافأة',
     'Classified Level = المستوى المصنف', 'Academy = الأكاديمية',
-    'Profile = الملف الشخصي', 'VIP Plans = خطط VIP',
+    'Profile = الملف الشخصي', 'Settings = الإعدادات', 'Alerts = الإشعارات', 'VIP Plans = خطط VIP',
     'Food Log = سجل الطعام', 'Activity = النشاط',
   ]) {
     assert.ok(instructions.includes(label), `Missing app label: ${label}`);
@@ -211,7 +223,7 @@ test('coach prompt specifies Arabic app labels, units and direct openings', () =
   for (const rule of [
     /Never put English screen names inside an Arabic sentence; the exact app label خطط VIP is the exception/,
     /In English replies use the English names/,
-    /no Arabic name specified here, refer generally to the app instead of guessing/,
+    /Never invent screens or features/,
     /call calories "سعرة" or "سعرات", never "سعر حراري"/,
     /use "جم" for grams and "كجم" for kilograms/,
     /Start answers directly with the content, without "Welcome!" or similar openings/,

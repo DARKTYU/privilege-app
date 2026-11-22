@@ -359,6 +359,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         text.runes.length > 2000) {
       return;
     }
+    final appLanguage = Localizations.localeOf(context).languageCode;
     _preparingSend = true;
     if (selectedPhoto != null && !_noticeAccepted) {
       final accepted = await showDialog<bool>(
@@ -444,6 +445,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final reply = await _client.send({
         'message': text,
         'consent': share,
+        'app_language': appLanguage,
         if (selectedPhoto != null) 'photo_consent': true,
         if (selectedPhoto != null)
           'image': {
@@ -512,7 +514,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                   ],
                 ),
-              ) ?? false;
+              ) ??
+              false;
           if (accepted) {
             await saveCoachPhotoNoticeAccepted();
             if (mounted) setState(() => _noticeAccepted = true);
@@ -696,11 +699,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: message.bot
-            ? Row(mainAxisSize: MainAxisSize.min, children: [
-                const _CoachAvatar(size: 32),
-                const SizedBox(width: 8),
-                Flexible(child: bubble),
-              ])
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                    const _CoachAvatar(size: 32),
+                    const SizedBox(width: 8),
+                    Flexible(child: bubble),
+                  ])
             : bubble,
       ),
     );

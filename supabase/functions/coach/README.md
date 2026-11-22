@@ -23,11 +23,14 @@ When ready to deploy manually:
 5. Test using a registered adult test user's access token, not a service key.
    The mobile client must send `Authorization: Bearer <user access token>`.
 
-Request body: `{"message":"Hello","consent":false}` or, for one optional photo,
+Request body: `{"message":"Hello","consent":false,"app_language":"en"}` or, for one optional photo,
 `{"message":"What is this?","consent":false,"photo_consent":true,"image":{"mime":"image/jpeg","data":"<base64>"}}`.
 The message may be empty only when a photo is present; that is treated as asking
 "what is this and what should I know about it?". A photo requires explicit `photo_consent: true`. This is independent from the
-existing `consent` flag, which only controls calorie context. If `consent` is
+existing `consent` flag, which only controls calorie context. `app_language` accepts only
+`en` or `ar`; other values are ignored. Text language wins when clear, while the
+app language is the fallback for empty or unclear text, including photo-only
+requests. If `consent` is
 `true`, an optional `context` object can contain
 numeric `calorie_target`, `calories_consumed`, and `calories_burned`. Other
 context fields are ignored. Allowed image MIME types are `image/jpeg`,
@@ -88,14 +91,22 @@ than exact estimates for food calories, safety guidance for equipment and form,
 non-diagnostic responses for body/medical photos, no facial identification, and
 warnings not to share IDs or private documents. It also redirects unrelated
 photos briefly and uses Western digits in Arabic replies.
+The prompt uses calorie context only for questions about calories, food, weight
+or goals, and gives exact macro targets only with needed user-supplied details.
 The prompt identifies supplied numbers as app context and treats today's
 food and activity totals as a partial day. For weight goals it describes
 calorie adjustments only when safe and based on an appropriate maintenance
 target, and recommends reviewing weight trends after 2 to 3 weeks. Estimated
 timelines depend on the individual. It avoids inventing screen locations for
 editing personal details.
-Arabic replies use the specified Arabic screen names and calorie and weight
-units; answers start directly without a greeting. The prompt does not assume
+Arabic replies use natural simple Arabic, the specified Arabic screen names,
+and Western digits; very short or vague messages receive a short greeting,
+2-3 options, and one clarifying question. Emergency replies include the verified
+Egypt numbers for ambulance 123, police 122 (112 from mobile), fire/civil defense
+180, and mental health support 16328.
+
+Arabic replies use the specified calorie and weight units; answers start directly
+without a greeting. The prompt does not assume
 whether an app calorie target represents maintenance or an existing adjustment;
 it asks users to check their goal setting when that distinction matters.
 

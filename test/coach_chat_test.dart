@@ -139,6 +139,7 @@ void main() {
     expect(body['message'], '');
     expect(body['consent'], isFalse);
     expect(body['photo_consent'], isTrue);
+    expect(body['app_language'], 'en');
     expect(body['image'], {
       'mime': 'image/png',
       'data':
@@ -415,7 +416,8 @@ void main() {
     expect(tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
         isFalse);
     await send(tester, 'Hello');
-    expect(client.requests.single, {'message': 'Hello', 'consent': false});
+    expect(client.requests.single,
+        {'message': 'Hello', 'consent': false, 'app_language': 'en'});
     expect(find.text('Hello from the coach'), findsOneWidget);
     expect(find.text('Requests left today: 29'), findsOneWidget);
     await tester.tap(find.byTooltip('New chat'));
@@ -606,6 +608,30 @@ void main() {
     });
   }
 
+  for (final language in ['en', 'ar']) {
+    testWidgets('coach avatar stays top-aligned for long reply in $language',
+        (tester) async {
+      final client = FakeCoach()
+        ..reply = CoachReply(
+            List.filled(20, 'A long coach reply line.').join('\n'), 29, null);
+      await start(tester, client,
+          language: language, size: const Size(360, 640));
+      await tester.enterText(find.byType(TextField), 'Hello');
+      await tester.pump();
+      final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+      await tester.tap(find.byTooltip(l.coachSend));
+      await tester.pumpAndSettle();
+      final row = tester.widget<Row>(find
+          .ancestor(
+              of: find.textContaining('A long coach reply line.'),
+              matching: find.byWidgetPredicate((widget) =>
+                  widget is Row && widget.mainAxisSize == MainAxisSize.min))
+          .first);
+      expect(row.crossAxisAlignment, CrossAxisAlignment.start);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('coach bold spans are selectable and lists stay readable',
       (tester) async {
     final client = FakeCoach()
@@ -663,6 +689,7 @@ void main() {
     expect(client.requests.single, {
       'message': 'Hello',
       'consent': true,
+      'app_language': 'en',
       'context': {
         'calorie_target': 2200,
         'calories_consumed': 0,
