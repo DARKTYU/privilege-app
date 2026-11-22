@@ -971,7 +971,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    CircleAvatar(
+                    PressFeedback(
+                      haptic: true,
+                      child: CircleAvatar(
                       backgroundColor: kMaroon,
                       child: IconButton(
                         tooltip: strings(context).coachSend,
@@ -984,6 +986,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                                     _selectedPhoto == null)
                             ? null
                             : _send,
+                      ),
                       ),
                     ),
                   ]),

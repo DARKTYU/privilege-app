@@ -200,16 +200,17 @@ class LevelProgressPanel extends StatelessWidget {
                     backgroundColor: kLine,
                   ),
                   const SizedBox(height: 6),
-                  Text(level.nextMinimum == null
-                      ? strings(context).progressHighest(level.xp)
-                      : strings(context).progressNext(
-                          level.xp,
-                          level.nextMinimum! - level.xp < 0
-                              ? 0
-                              : level.nextMinimum! - level.xp,
-                          level.nextName == null
-                              ? strings(context).pathNotAvailable
-                              : localizedLevelName(context, level.nextName!))),
+                  AnimatedNumberText(level.xp,
+                      labelBuilder: (xp) => level.nextMinimum == null
+                          ? strings(context).progressHighest(xp)
+                          : strings(context).progressNext(
+                              xp,
+                              level.nextMinimum! - xp < 0
+                                  ? 0
+                                  : level.nextMinimum! - xp,
+                              level.nextName == null
+                                  ? strings(context).pathNotAvailable
+                                  : localizedLevelName(context, level.nextName!))),
                 ]);
           },
         ),
@@ -223,8 +224,9 @@ class FreezeTokenCount extends StatelessWidget {
   Widget build(BuildContext context) => LiveProgress<int>(
         repository: repository,
         load: repository.freezeTokens,
-        builder: (context, count) =>
-            Text(strings(context).progressFreeze(count, fmt(count))),
+        builder: (context, count) => AnimatedNumberText(count,
+            labelBuilder: (value) =>
+                strings(context).progressFreeze(value, fmt(value))),
       );
 }
 
@@ -235,8 +237,9 @@ class StorePointsCount extends StatelessWidget {
   Widget build(BuildContext context) => LiveProgress<int>(
         repository: repository,
         load: repository.points,
-        builder: (context, count) => Text(
-            strings(context).progressPoints(count, fmt(count)),
+        builder: (context, count) => AnimatedNumberText(count,
+            labelBuilder: (value) =>
+                strings(context).progressPoints(value, fmt(value)),
             style: TextStyle(
                 color: kGold, fontSize: 13, fontWeight: FontWeight.w800)),
       );
@@ -269,9 +272,12 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, false),
               child: Text(strings(context).plannerCancel)),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(strings(context).rewardRedeem)),
+          PressFeedback(
+            haptic: true,
+            child: FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(strings(context).rewardRedeem)),
+          ),
         ],
       ),
     );
@@ -332,8 +338,9 @@ class _RewardsStoreScreenState extends State<RewardsStoreScreen> {
               children: [
                 Panel(
                     child: Column(children: [
-                  Text(
-                      strings(context).progressPoints(store.balance, fmt(store.balance)),
+                  AnimatedNumberText(store.balance,
+                      labelBuilder: (value) => strings(context)
+                          .progressPoints(value, fmt(value)),
                       style: const TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 18)),
                   Text(strings(context)

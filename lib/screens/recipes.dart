@@ -338,7 +338,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
     return Panel(
       padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 16),
-      child: Material(
+      child: PressFeedback(
+        child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -435,6 +436,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                     PrimaryButton(
                       loggingId == recipe.id ? l.recipeLogging : l.recipeLog,
                       icon: Icons.add,
+                      haptic: true,
                       onPressed: nutrition == null || loggingId != null
                           ? null
                           : () => _log(recipe, nutrition, context),
@@ -445,6 +447,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -680,6 +683,7 @@ class _RecipeDetailPageState extends State<_RecipeDetailPage> {
           const SizedBox(height: 16),
           PrimaryButton(logging ? l.recipeLogging : l.recipeLog,
               icon: Icons.add,
+              haptic: true,
               onPressed: nutrition == null || logging ? null : _log),
         ]),
       ),

@@ -57,6 +57,16 @@ void main() {
     }
   });
 
+  testWidgets('animated numbers respect disabled animations', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: MediaQuery(
+        data: MediaQueryData(disableAnimations: true),
+        child: AnimatedNumberText(2660),
+      ),
+    ));
+    expect(find.text('2,660'), findsOneWidget);
+  });
+
   testWidgets('theme-aware content rebuilds immediately after selection',
       (tester) async {
     SharedPreferences.setMockInitialValues({});

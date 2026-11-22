@@ -491,13 +491,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                      strings(context).arenaYourStreak(
-                          strings(context).arenaDays(state.streak)),
+                  AnimatedNumberText(state.streak,
+                      labelBuilder: (value) => strings(context).arenaYourStreak(
+                          strings(context).arenaDays(value)),
                       style: const TextStyle(fontWeight: FontWeight.w800)),
-                  Text(
-                      strings(context).arenaLongestStreak(
-                          strings(context).arenaDays(state.longestStreak)),
+                  AnimatedNumberText(state.longestStreak,
+                      labelBuilder: (value) => strings(context)
+                          .arenaLongestStreak(strings(context).arenaDays(value)),
                       style: TextStyle(fontSize: 12, color: kMuted)),
                 ],
               ),

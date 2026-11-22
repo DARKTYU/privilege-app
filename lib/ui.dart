@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'theme_settings.dart';
 import 'l10n_strings.dart';
@@ -156,6 +157,16 @@ ThemeData buildTheme([AppThemePreset preset = AppThemePreset.privilege]) {
     snackBarTheme: const SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
     ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: PrivilegePageTransitionsBuilder(),
+        TargetPlatform.iOS: PrivilegePageTransitionsBuilder(),
+        TargetPlatform.macOS: PrivilegePageTransitionsBuilder(),
+        TargetPlatform.windows: PrivilegePageTransitionsBuilder(),
+        TargetPlatform.linux: PrivilegePageTransitionsBuilder(),
+        TargetPlatform.fuchsia: PrivilegePageTransitionsBuilder(),
+      },
+    ),
   );
 }
 
@@ -211,17 +222,111 @@ class Panel extends StatelessWidget {
       );
 }
 
+class PrivilegePageTransitionsBuilder extends PageTransitionsBuilder {
+  const PrivilegePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+    return FadeTransition(
+      opacity: curved,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: Offset(rtl ? -0.04 : 0.04, 0),
+          end: Offset.zero,
+        ).animate(curved),
+        child: child,
+      ),
+    );
+  }
+}
+
+class AnimatedNumberText extends StatelessWidget {
+  const AnimatedNumberText(this.value,
+      {super.key,
+      this.formatter,
+      this.labelBuilder,
+      this.style,
+      this.textAlign});
+  final num value;
+  final String Function(num)? formatter;
+  final String Function(int)? labelBuilder;
+  final TextStyle? style;
+  final TextAlign? textAlign;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value.toDouble()),
+      duration: disabled ? Duration.zero : const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+      builder: (context, current, _) {
+        final text = labelBuilder?.call(current.round()) ??
+            formatter?.call(current) ??
+            fmt(current);
+        return Text(text, style: style, textAlign: textAlign);
+      },
+    );
+  }
+}
+
+class PressFeedback extends StatefulWidget {
+  const PressFeedback({super.key, required this.child, this.haptic = false});
+  final Widget child;
+  final bool haptic;
+
+  @override
+  State<PressFeedback> createState() => _PressFeedbackState();
+}
+
+class _PressFeedbackState extends State<PressFeedback> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (!mounted || _pressed == value) return;
+    setState(() => _pressed = value);
+    if (value && widget.haptic) HapticFeedback.selectionClick();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = MediaQuery.disableAnimationsOf(context);
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _setPressed(true),
+      onPointerUp: (_) => _setPressed(false),
+      onPointerCancel: (_) => _setPressed(false),
+      child: AnimatedScale(
+        scale: _pressed && !disabled ? 0.97 : 1,
+        duration: disabled ? Duration.zero : const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton(this.label,
       {super.key,
       required this.onPressed,
       this.icon,
       this.gold = false,
-      this.expand = true});
+      this.expand = true,
+      this.haptic = false});
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
-  final bool gold, expand;
+  final bool gold, expand, haptic;
 
   @override
   Widget build(BuildContext context) {
@@ -232,16 +337,16 @@ class PrimaryButton extends StatelessWidget {
       minimumSize: expand ? const Size.fromHeight(46) : const Size(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     );
-    if (icon == null) {
-      return ElevatedButton(
-          style: style, onPressed: onPressed, child: Text(label));
-    }
-    return ElevatedButton.icon(
-      style: style,
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-    );
+    final button = icon == null
+        ? ElevatedButton(
+            style: style, onPressed: onPressed, child: Text(label))
+        : ElevatedButton.icon(
+            style: style,
+            onPressed: onPressed,
+            icon: Icon(icon, size: 18),
+            label: Text(label),
+          );
+    return PressFeedback(haptic: haptic && onPressed != null, child: button);
   }
 }
 

@@ -287,8 +287,8 @@ void main() {
       ..meals.add(manual());
     addTearDown(state.dispose);
     await showSummary(tester, state);
-    final remaining =
-        tester.widget<Text>(find.byKey(const ValueKey('calories-remaining')));
+    final remaining = tester.widget<AnimatedNumberText>(
+        find.byKey(const ValueKey('calories-remaining')));
     expect(remaining.style!.color, CaloriesPalette.over);
     expect(find.text('kcal over'), findsOneWidget);
     final ring = tester

@@ -415,7 +415,10 @@ class _AddFormState extends State<_AddForm> {
           const SizedBox(width: 8),
           Expanded(
             child: PrimaryButton(l.saveActivity,
-                gold: true, expand: false, onPressed: _saving ? null : _submit),
+                gold: true,
+                expand: false,
+                haptic: true,
+                onPressed: _saving ? null : _submit),
           ),
         ]),
       ]),
@@ -484,13 +487,38 @@ class ActivityTab extends StatelessWidget {
                   width: 200,
                   height: 200,
                   child: Stack(alignment: Alignment.center, children: [
-                    CustomPaint(
-                        size: const Size(200, 200),
-                        painter: RingsPainter(outer, middle, inner)),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: outer),
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 500),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, outerValue, _) =>
+                          TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: middle),
+                        duration: MediaQuery.disableAnimationsOf(context)
+                            ? Duration.zero
+                            : const Duration(milliseconds: 500),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, middleValue, _) =>
+                            TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 0, end: inner),
+                          duration: MediaQuery.disableAnimationsOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 500),
+                          curve: Curves.easeOutCubic,
+                          builder: (context, innerValue, _) => CustomPaint(
+                              size: const Size(200, 200),
+                              painter: RingsPainter(
+                                  outerValue, middleValue, innerValue)),
+                        ),
+                      ),
+                    ),
                     Column(mainAxisSize: MainAxisSize.min, children: [
                       Text(l.burned,
                           style: TextStyle(fontSize: 11, color: p.muted)),
-                      Text(fmt(t.totalBurnedCalories),
+                      AnimatedNumberText(t.totalBurnedCalories,
+                          formatter: fmt,
                           style: TextStyle(
                               color: p.text,
                               fontSize: 28,

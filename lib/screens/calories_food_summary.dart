@@ -8,7 +8,7 @@ import '../logic/calorie_target.dart';
 import '../models/food_item.dart';
 import '../services/food_database.dart';
 import '../state.dart';
-import '../ui.dart' show fmt;
+import '../ui.dart' show AnimatedNumberText, fmt;
 import 'calories_display_format.dart';
 
 class CaloriesPalette {
@@ -236,7 +236,9 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                 child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(fmt(totals.totalMealCalories),
+                                      AnimatedNumberText(
+                                          totals.totalMealCalories,
+                                          formatter: fmt,
                                           style: TextStyle(
                                               color: palette.text,
                                               fontSize: 20,
@@ -276,15 +278,17 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                             WrapCrossAlignment.center,
                                         spacing: 5,
                                         children: [
-                                          Text(
+                                          AnimatedNumberText(
                                               goal <= 0
-                                                  ? '—'
-                                                  : fmt((goal -
+                                                  ? 0
+                                                  : (goal -
                                                           totals
                                                               .totalMealCalories)
-                                                      .abs()),
+                                                      .abs(),
                                               key: const ValueKey(
                                                   'calories-remaining'),
+                                              labelBuilder: (value) =>
+                                                  goal <= 0 ? '—' : fmt(value),
                                               style: TextStyle(
                                                   color: over
                                                       ? CaloriesPalette.over
@@ -371,9 +375,7 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                     l.foodSodium,
                                     l.foodMilligrams(fmt(consumed
                                         .fold<double>(
-                                            0,
-                                            (v, m) =>
-                                                v + (m.sodiumMg ?? 0))
+                                            0, (v, m) => v + (m.sodiumMg ?? 0))
                                         .round()))),
                               ]),
                         ]),
