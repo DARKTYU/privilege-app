@@ -1,5 +1,6 @@
 type JsonObject = Record<string, unknown>;
 type Quota = { allowed: boolean; remaining: number; reset_at: string };
+type CoachImage = { mime: string; data: string };
 type CoachContext = {
   calorie_target?: number;
   calories_consumed?: number;
@@ -11,7 +12,8 @@ Answer fitness, nutrition, health habit and app questions directly, helpfully an
 For a goal such as losing weight in three months, provide a concrete but flexible plan: explain that about 0.25 to 1 percent of body weight per week is a general range, with 1 percent as an upper ceiling rather than a goal for everyone; suggest a modest calorie deficit, a suitable protein target range, a weekly training outline, daily steps, sleep, and how to track progress and adjust. Do not promise a result or imply everyone can safely reach a deadline. Use supplied calorie numbers when relevant and safe; otherwise give a general plan and say that age, height, weight, activity and injuries would help make it more precise.
 For weight loss or gain, do not guess whether the app calorie target represents maintenance or already includes a deficit or surplus, and never say it suggests maintenance is higher or lower. When it matters, explain: "your target in the app is X kcal; if your goal is fat loss, a deficit of about 300 to 500 kcal below your maintenance is a common starting point, so check what your goal setting is in the app." For muscle gain, about 200 to 300 kcal above maintenance can be a starting point. Only give a concrete daily calorie suggestion if maintenance and the information needed to judge safety are known; never apply an adjustment to the app target without clarifying what it represents, and never suggest a target below a safe minimum. Suggest reviewing weight trends and adjusting after 2 to 3 weeks. If no target is supplied, give a general approach and ask for height, weight, age and activity level.
 For a goal such as losing 10 kg, explain a realistic timeline: approximately 0.5 to 1 kg per week can mean roughly 3 to 5 months where appropriate, but the safe rate and timeline depend on the person and may be slower. Respect the 1 percent of body weight per week ceiling, and ask for the user's weight to give a more precise weekly rate. If they propose a shorter timeline, kindly explain why faster loss is not recommended; do not promise a deadline.
-Match the language the user writes, Arabic or English, including natural Egyptian Arabic wording when they write that way. Start answers directly with the content, without "Welcome!" or similar openings. Use plain text only: no markdown symbols or tables; organize answers in short paragraphs and simple numbered lines. In Arabic, call calories "سعرة" or "سعرات", never "سعر حراري"; use "جم" for grams and "كجم" for kilograms.
+Match the language the user writes, Arabic or English, including natural Egyptian Arabic wording when they write that way. Answer in the user's language and use Western digits 0-9. Start answers directly with the content, without "Welcome!" or similar openings. Use plain text only: no markdown symbols or tables; organize answers in short paragraphs and simple numbered lines. In Arabic, call calories "سعرة" or "سعرات", never "سعر حراري"; use "جم" for grams and "كجم" for kilograms.
+When a photo is supplied, say in one line what you see. For food, give a calorie estimate as a range with a short per-item breakdown, say clearly that it is an estimate, and ask about hidden oil, sauces and portion size when relevant; never claim it is exact. For gym equipment or exercises, explain what it is and how to use it safely. For exercise form, say that a still photo cannot judge movement and only comment on the posture visible in that frame. Do not diagnose body, injury, skin or medical photos; suggest a doctor or physiotherapist. Never identify a person from their face. If a photo shows an ID or private document, tell the user not to share it. If a photo is unrelated to fitness or food, answer in one short line and steer back to fitness or nutrition. If a photo is supplied without user text, treat the request as: "what is this and what should I know about it?".
 If you are not sure, say so. Never invent facts, numbers, app features or screens.
 Never diagnose or treat injuries or illnesses. For pain, injury, symptoms, chronic conditions, medication, pregnancy or breastfeeding, give only general safe guidance and recommend checking with a doctor; do not give individualized calorie or training targets for pregnancy or breastfeeding. If there are signs of an eating disorder, respond supportively, recommend professional help, and give no numbers or plans for food, weight or exercise.
 Do not advise on steroids or other performance-enhancing drugs, extreme diets such as very low calorie diets, starvation or purging, or dangerous dehydration. Never recommend a calorie target below a safe minimum. There is no single safe minimum for everyone: do not propose a numeric target without enough information to judge safety, and do not recommend less than 1,200 kcal per day for adult women or 1,500 kcal per day for adult men; these are absolute lower bounds, not suggested targets, and many people need more. If sex or the information needed for a safe target is unknown, avoid a numeric calorie target and suggest professional guidance. Do not endorse a supplied target that is unsafe.
@@ -104,7 +106,33 @@ export function quotaDenial(quota: Quota): JsonObject | null {
   };
 }
 
-export function assemblePrompt(message: string, consent: unknown, value: unknown) {
+export function validateImage(value: unknown): CoachImage | null | { error: string } {
+  if (value === undefined) return null;
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return { error: 'invalid_image' };
+  }
+  const image = value as JsonObject;
+  const mime = image.mime;
+  const data = image.data;
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime as string)) {
+    return { error: 'invalid_image_mime' };
+  }
+  if (typeof data !== 'string' || data.length === 0 || data.length % 4 !== 0 ||
+      !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data)) {
+    return { error: 'invalid_image_data' };
+  }
+  let decoded: string;
+  try {
+    decoded = atob(data);
+  } catch {
+    return { error: 'invalid_image_data' };
+  }
+  if (decoded.length > 600 * 1024) return { error: 'image_too_large' };
+  return { mime: mime as string, data };
+}
+
+export function assemblePrompt(message: string, consent: unknown, value: unknown,
+  image?: CoachImage) {
   const context: CoachContext = {};
   if (consent === true && value !== null && typeof value === 'object' && !Array.isArray(value)) {
     const source = value as JsonObject;
@@ -115,11 +143,17 @@ export function assemblePrompt(message: string, consent: unknown, value: unknown
       }
     }
   }
+  const textPart = {
+    text: JSON.stringify({ message: message || 'What is this and what should I know about it?',
+      ...(Object.keys(context).length ? { context } : {}) }),
+  };
   return {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [{
       role: 'user',
-      parts: [{ text: JSON.stringify({ message, ...(Object.keys(context).length ? { context } : {}) }) }],
+      parts: image
+        ? [textPart, { inline_data: { mime_type: image.mime, data: image.data } }]
+        : [textPart],
     }],
     generationConfig: { maxOutputTokens: 1400 },
   };
@@ -142,7 +176,7 @@ async function readBody(request: Request): Promise<unknown> {
     const { done, value } = await reader.read();
     if (done) break;
     length += value.length;
-    if (length > 16384) {
+    if (length > 900 * 1024) {
       await reader.cancel();
       throw new Error('invalid_body');
     }
@@ -196,13 +230,13 @@ export async function handler(request: Request): Promise<Response> {
       return json(400, { error: 'invalid_request_body' });
     }
     const input = body as JsonObject;
-    const message = validateMessage(input.message);
+    const hasImagesField = Object.hasOwn(input, 'images');
+    const hasImageField = Object.hasOwn(input, 'image');
+    const rawMessage = typeof input.message === 'string' ? input.message :
+      (hasImageField || hasImagesField) ? '' : input.message;
+    const message = validateMessage(rawMessage) ??
+      ((hasImageField || hasImagesField) && typeof rawMessage === 'string' && rawMessage.trim() === '' ? '' : null);
     if (message === null) return json(400, { error: 'invalid_message' });
-
-    const safetyReply = emergencyResponse(message);
-    if (safetyReply) {
-      return json(200, { reply: safetyReply, remaining: null, reset_at: null });
-    }
 
     const profile = await fetch(`${url}/rest/v1/profiles?id=eq.${user.id}&select=birth_date`, {
       headers, signal: AbortSignal.timeout(10000),
@@ -212,6 +246,26 @@ export async function handler(request: Request): Promise<Response> {
     if (!Array.isArray(profiles) || profiles.length !== 1) return json(403, { error: 'birth_date_required' });
     const age = ageError(profiles[0]?.birth_date, new Date());
     if (age) return json(403, { error: age });
+
+    const safetyReply = emergencyResponse(message);
+    if (safetyReply) {
+      return json(200, { reply: safetyReply, remaining: null, reset_at: null });
+    }
+
+    if ((hasImageField || hasImagesField) && input.consent !== true) {
+      return json(403, { error: 'image_consent_required' });
+    }
+
+    let image: CoachImage | undefined;
+    if (hasImagesField) return json(400, { error: 'multiple_images' });
+    if (hasImageField) {
+      if (Array.isArray(input.image)) {
+        return json(400, { error: input.image.length > 1 ? 'multiple_images' : 'invalid_image' });
+      }
+      const validated = validateImage(input.image);
+      if (validated && 'error' in validated) return json(400, validated);
+      image = validated ?? undefined;
+    }
 
     const key = Deno.env.get('GEMINI_API_KEY')?.trim();
     const model = Deno.env.get('COACH_MODEL')?.trim();
@@ -236,7 +290,11 @@ export async function handler(request: Request): Promise<Response> {
     const quotaResult = await fetch(`${url}/rest/v1/rpc/coach_consume_quota`, {
       method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ p_user: user.id, p_limit: Number(rawLimit) }),
+      body: JSON.stringify({
+        p_user: user.id,
+        p_limit: Number(rawLimit),
+        ...(image ? { p_cost: 3 } : {}),
+      }),
       signal: AbortSignal.timeout(10000),
     });
     if (!quotaResult.ok) return json(503, { error: 'quota_unavailable' });
@@ -256,7 +314,7 @@ export async function handler(request: Request): Promise<Response> {
       fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(assemblePrompt(message, input.consent, input.context)),
+        body: JSON.stringify(assemblePrompt(message, input.consent, input.context, image)),
         signal: AbortSignal.timeout(timeout),
       });
     for (let attempt = 1; attempt <= 3; attempt++) {

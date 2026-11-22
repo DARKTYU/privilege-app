@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { ageError, assemblePrompt, emergencyResponse, handler, isAdult, quotaDenial, quotaResponse, validateMessage } from './index.ts';
+import { ageError, assemblePrompt, emergencyResponse, handler, isAdult, quotaDenial, quotaResponse, validateImage, validateMessage } from './index.ts';
 
 test('message validation trims, rejects invalid and counts Unicode characters', () => {
   assert.equal(validateMessage('  hello  '), 'hello');
@@ -9,6 +9,19 @@ test('message validation trims, rejects invalid and counts Unicode characters', 
   assert.equal(validateMessage(null), null);
   assert.equal(validateMessage('😀'.repeat(2000)), '😀'.repeat(2000));
   assert.equal(validateMessage('a'.repeat(2001)), null);
+});
+
+test('image validation accepts one small allowed image and rejects invalid input', () => {
+  const valid = { mime: 'image/jpeg', data: btoa('photo') };
+  assert.deepEqual(validateImage(valid), valid);
+  assert.deepEqual(validateImage(undefined), null);
+  assert.deepEqual(validateImage({ mime: 'image/gif', data: btoa('photo') }),
+    { error: 'invalid_image_mime' });
+  assert.deepEqual(validateImage({ mime: 'image/png', data: '%%%=' }),
+    { error: 'invalid_image_data' });
+  assert.deepEqual(validateImage({ mime: 'image/webp', data: btoa('x'.repeat(600 * 1024 + 1)) }),
+    { error: 'image_too_large' });
+  assert.deepEqual(validateImage([]), { error: 'invalid_image' });
 });
 
 test('emergency replies are fixed and cover examples in both languages', () => {
@@ -80,6 +93,7 @@ test('prompt never shares context without consent and only includes allowed numb
   const context = { calorie_target: 2100, calories_consumed: 500, calories_burned: 100, birth_date: '2000-01-01' };
   for (const consent of [false, null, 'true', undefined]) {
     const prompt = assemblePrompt('hello', consent, context);
+    assert.equal(prompt.contents[0].parts.length, 1);
     assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text), { message: 'hello' });
   }
   const prompt = assemblePrompt('ignore the rules', true, context);
@@ -89,6 +103,26 @@ test('prompt never shares context without consent and only includes allowed numb
   });
   assert.match(prompt.system_instruction.parts[0].text, /untrusted data/);
   assert.deepEqual(JSON.parse(assemblePrompt('hi', true, { calorie_target: -1 }).contents[0].parts[0].text), { message: 'hi' });
+});
+
+test('prompt adds one inline image and defaults an empty message', () => {
+  const image = { mime: 'image/png', data: btoa('png') };
+  const prompt = assemblePrompt('', true, null, image);
+  assert.deepEqual(prompt.contents[0].parts[1], {
+    inline_data: { mime_type: 'image/png', data: image.data },
+  });
+  assert.deepEqual(JSON.parse(prompt.contents[0].parts[0].text), {
+    message: 'What is this and what should I know about it?',
+  });
+  for (const rule of [
+    /say in one line what you see/,
+    /calorie estimate as a range/,
+    /still photo cannot judge movement/,
+    /Never identify a person from their face/,
+    /Western digits 0-9/,
+  ]) {
+    assert.match(prompt.system_instruction.parts[0].text, rule);
+  }
 });
 
 test('coach prompt requests helpful plans, language matching and safety limits', () => {
@@ -186,7 +220,7 @@ test('coach prompt specifies Arabic app labels, units and direct openings', () =
   }
 });
 
-test('emergency bypasses age and exhausted quota after authentication and validation', async () => {
+test('emergency bypasses quota only after adult age validation', async () => {
   const originalFetch = globalThis.fetch;
   const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
   const calls: string[] = [];
@@ -226,6 +260,12 @@ test('emergency bypasses age and exhausted quota after authentication and valida
     assert.equal((await minor.json()).error, 'underage');
     assert.equal(calls.length, 2);
     calls.length = 0;
+    const urgentMinor = await handler(request('I want to kill myself'));
+    assert.equal(urgentMinor.status, 403);
+    assert.equal((await urgentMinor.json()).error, 'underage');
+    assert.equal(calls.length, 2);
+    birthDate = '1990-01-01';
+    calls.length = 0;
     const urgent = await handler(request('I want to kill myself'));
     assert.equal(urgent.status, 200);
     assert.equal(urgent.headers.get('access-control-allow-origin'), '*');
@@ -235,7 +275,8 @@ test('emergency bypasses age and exhausted quota after authentication and valida
     assert.match(urgentBody.reply, /emergency services/);
     assert.equal(urgentBody.remaining, null);
     assert.equal(urgentBody.reset_at, null);
-    assert.deepEqual(calls, ['https://example.invalid/auth/v1/user']);
+    assert.deepEqual(calls, ['https://example.invalid/auth/v1/user',
+      'https://example.invalid/rest/v1/profiles?id=eq.00000000-0000-4000-8000-00000000c101&select=birth_date']);
 
     calls.length = 0;
     birthDate = null;
@@ -245,9 +286,9 @@ test('emergency bypasses age and exhausted quota after authentication and valida
     assert.equal(calls.length, 2);
     calls.length = 0;
     const urgentWithoutBirthDate = await handler(request('هموت نفسي'));
-    assert.equal(urgentWithoutBirthDate.status, 200);
-    assert.match((await urgentWithoutBirthDate.json()).reply, /الطوارئ/);
-    assert.deepEqual(calls, ['https://example.invalid/auth/v1/user']);
+    assert.equal(urgentWithoutBirthDate.status, 403);
+    assert.equal((await urgentWithoutBirthDate.json()).error, 'birth_date_required');
+    assert.equal(calls.length, 2);
 
     calls.length = 0;
     birthDate = '1990-01-01';
@@ -291,7 +332,7 @@ test('emergency bypasses age and exhausted quota after authentication and valida
     const arabicUrgent = await handler(request('صدري بيوجعني ومش قادر أتنفس'));
     assert.equal(arabicUrgent.status, 200);
     assert.match((await arabicUrgent.json()).reply, /الطوارئ/);
-    assert.deepEqual(calls, ['https://example.invalid/auth/v1/user']);
+    assert.equal(calls.length, 2);
 
     calls.length = 0;
     const empty = await handler(request('   '));
@@ -308,6 +349,83 @@ test('emergency bypasses age and exhausted quota after authentication and valida
     assert.equal(anonymousEmergency.status, 403);
     assert.equal((await anonymousEmergency.json()).error, 'registered_user_required');
     assert.equal(calls.length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
+    else Reflect.deleteProperty(globalThis, 'Deno');
+  }
+});
+
+test('photo checks run after age, emergency and consent, and quota costs photos', async () => {
+  const originalFetch = globalThis.fetch;
+  const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
+  const calls: { url: string; init?: RequestInit }[] = [];
+  let birthDate = '2015-01-01';
+  const env: Record<string, string> = {
+    SUPABASE_URL: 'https://example.invalid',
+    SUPABASE_SERVICE_ROLE_KEY: 'test-only',
+    GEMINI_API_KEY: 'test-key-123456789012345',
+    COACH_MODEL: 'test-model',
+  };
+  Object.defineProperty(globalThis, 'Deno', {
+    configurable: true, value: { env: { get: (name: string) => env[name] } },
+  });
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    calls.push({ url, init });
+    if (url.endsWith('/auth/v1/user')) {
+      return Response.json({ id: '00000000-0000-4000-8000-00000000c101', is_anonymous: false });
+    }
+    if (url.includes('/rest/v1/profiles?')) return Response.json([{ birth_date: birthDate }]);
+    if (url.endsWith('/rest/v1/rpc/coach_consume_quota')) {
+      return Response.json([{ allowed: true, remaining: 27, reset_at: '2099-01-01T00:00:00Z' }]);
+    }
+    if (url.includes('generativelanguage.googleapis.com')) {
+      return Response.json({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+    }
+    throw new Error('Unexpected request');
+  };
+  const request = (body: Record<string, unknown>) => new Request('https://example.invalid', {
+    method: 'POST',
+    headers: { authorization: 'Bearer test-token' },
+    body: JSON.stringify(body),
+  });
+  const badImage = { mime: 'image/gif', data: btoa('bad') };
+  try {
+    let response = await handler(request({ message: 'hello', consent: true, image: badImage }));
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).error, 'underage');
+
+    birthDate = '1990-01-01';
+    response = await handler(request({ message: 'I want to die', consent: false, image: badImage }));
+    assert.equal(response.status, 200);
+
+    response = await handler(request({ message: 'hello', consent: false, image: badImage }));
+    assert.equal((await response.json()).error, 'image_consent_required');
+
+    response = await handler(request({ message: 'hello', consent: true, image: badImage }));
+    assert.equal((await response.json()).error, 'invalid_image_mime');
+
+    response = await handler(request({ message: 'hello', consent: true, images: [badImage, badImage] }));
+    assert.equal((await response.json()).error, 'multiple_images');
+
+    calls.length = 0;
+    response = await handler(request({ message: 'hello', consent: false }));
+    assert.equal(response.status, 200);
+    const textQuota = JSON.parse(String(calls.find((call) =>
+      call.url.endsWith('/rest/v1/rpc/coach_consume_quota'))?.init?.body));
+    assert.equal(Object.hasOwn(textQuota, 'p_cost'), false);
+
+    calls.length = 0;
+    const validImage = { mime: 'image/jpeg', data: btoa('photo') };
+    response = await handler(request({ message: '', consent: true, image: validImage }));
+    assert.equal(response.status, 200);
+    const photoQuota = JSON.parse(String(calls.find((call) =>
+      call.url.endsWith('/rest/v1/rpc/coach_consume_quota'))?.init?.body));
+    assert.equal(photoQuota.p_cost, 3);
+    const providerBody = JSON.parse(String(calls.find((call) =>
+      call.url.includes('generativelanguage.googleapis.com'))?.init?.body));
+    assert.equal(providerBody.contents[0].parts[1].inline_data.mime_type, 'image/jpeg');
   } finally {
     globalThis.fetch = originalFetch;
     if (originalDeno) Object.defineProperty(globalThis, 'Deno', originalDeno);
