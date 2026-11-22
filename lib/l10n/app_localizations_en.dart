@@ -1281,6 +1281,51 @@ class AppLocalizationsEn extends AppLocalizations {
       'Share my calorie target and today’s totals with the coach';
 
   @override
+  String get coachAttachPhoto => 'Attach photo';
+
+  @override
+  String get coachTakePhoto => 'Take photo';
+
+  @override
+  String get coachChooseGallery => 'Choose from gallery';
+
+  @override
+  String get coachRemovePhoto => 'Remove photo';
+
+  @override
+  String get coachPhotoTooLarge =>
+      'The photo is too large. Choose one under 600 KB.';
+
+  @override
+  String get coachPhotoNotAllowed =>
+      'This photo type is not allowed. Choose a JPEG, PNG, or WebP image.';
+
+  @override
+  String get coachPhotoUnavailable =>
+      'Could not open the selected photo. Please try again.';
+
+  @override
+  String get coachPhotoConsentRequired =>
+      'Turn on the coach consent switch before sending a photo.';
+
+  @override
+  String get coachPhotoQuotaError =>
+      'The daily photo limit has been reached. Photo requests use more of your daily allowance.';
+
+  @override
+  String get coachPhotoNoticeTitle => 'Before sending a photo';
+
+  @override
+  String get coachPhotoNoticeBody =>
+      'The photo is sent to the AI provider to answer you. The provider\'s free tier may use data to improve its services. Do not include faces, ID cards, or private documents. Privilege does not store the photo.';
+
+  @override
+  String get coachContinue => 'Continue';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
   String get coachWelcome => 'Hi! How can I help today?';
 
   @override

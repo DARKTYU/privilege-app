@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,8 +9,19 @@ import 'package:privilege/logic/fitness_logic.dart';
 import 'package:privilege/logic/coach_safety.dart';
 import 'package:privilege/screens/chat.dart';
 import 'package:privilege/services/coach_client.dart';
+import 'package:privilege/coach_preferences.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:privilege/state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+final _photoBytes = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z9ZQAAAAASUVORK5CYII=');
+
+class FakeCoachImagePicker implements CoachImagePicker {
+  CoachPhoto? photo;
+  @override
+  Future<CoachPhoto?> pick(ImageSource source) async => photo;
+}
 
 class FakeCoach implements CoachClient {
   @override
@@ -34,6 +46,7 @@ void main() {
   Future<void> start(WidgetTester tester, FakeCoach client,
       {AppState? state,
       Future<void> Function()? refresh,
+      CoachImagePicker? imagePicker,
       Size size = const Size(800, 900),
       double scale = 1,
       String language = 'en'}) async {
@@ -50,6 +63,7 @@ void main() {
         child: ChatScreen(
             client: client,
             state: state,
+            imagePicker: imagePicker,
             refreshActivity: refresh ?? () async {}),
       ),
     ));
@@ -61,6 +75,101 @@ void main() {
     await tester.pump();
     await tester.tap(find.byTooltip('Send'));
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('photo attachment can be selected, shown and removed',
+      (tester) async {
+    final picker = FakeCoachImagePicker()
+      ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/jpeg');
+    await start(tester, FakeCoach(), imagePicker: picker);
+    final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+    await tester.tap(find.byTooltip(l.coachAttachPhoto));
+    await tester.pumpAndSettle();
+    expect(find.text(l.coachTakePhoto), findsOneWidget);
+    expect(find.text(l.coachChooseGallery), findsOneWidget);
+    await tester.tap(find.text(l.coachChooseGallery));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip(l.coachRemovePhoto), findsOneWidget);
+    expect(find.byType(Image), findsWidgets);
+    await tester.tap(find.byTooltip(l.coachRemovePhoto));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip(l.coachRemovePhoto), findsNothing);
+  });
+
+  testWidgets('photo-only send uses image body and notice is one time',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({coachConsentPreferenceKey: true});
+    final picker = FakeCoachImagePicker()
+      ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/png');
+    final client = FakeCoach();
+    final state = AppState()
+      ..targetCalories = 2200
+      ..loggedIn = true;
+    addTearDown(state.dispose);
+    await start(tester, client,
+        state: state, imagePicker: picker, refresh: () async {});
+    final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+    await tester.tap(find.byTooltip(l.coachAttachPhoto));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.coachChooseGallery));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l.coachSend));
+    await tester.pumpAndSettle();
+    expect(find.text(l.coachPhotoNoticeTitle), findsOneWidget);
+    await tester.tap(find.text(l.coachContinue));
+    await tester.pumpAndSettle();
+    final body = client.requests.single;
+    expect(body['message'], '');
+    expect(body['consent'], isTrue);
+    expect(body['image'], {
+      'mime': 'image/png',
+      'data':
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9Z9ZQAAAAASUVORK5CYII=',
+    });
+    expect(find.byType(Image), findsWidgets);
+
+    await tester.tap(find.byTooltip(l.coachAttachPhoto));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.coachChooseGallery));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l.coachSend));
+    await tester.pumpAndSettle();
+    expect(find.text(l.coachPhotoNoticeTitle), findsNothing);
+    expect(client.requests.length, 2);
+  });
+
+  for (final entry in <String, String Function(AppLocalizations)>{
+    'image_too_large': (l) => l.coachPhotoTooLarge,
+    'invalid_image': (l) => l.coachPhotoNotAllowed,
+    'invalid_image_mime': (l) => l.coachPhotoNotAllowed,
+    'invalid_image_data': (l) => l.coachPhotoNotAllowed,
+    'multiple_images': (l) => l.coachPhotoNotAllowed,
+    'image_consent_required': (l) => l.coachPhotoConsentRequired,
+    'quota_exceeded': (l) => l.coachPhotoQuotaError,
+  }.entries) {
+    testWidgets('photo error ${entry.key} is localized', (tester) async {
+      final picker = FakeCoachImagePicker()
+        ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/jpeg');
+      SharedPreferences.setMockInitialValues({
+        coachConsentPreferenceKey: true,
+        coachPhotoNoticePreferenceKey: true,
+      });
+      final client = FakeCoach()..error = CoachException(entry.key);
+      final state = AppState()
+        ..targetCalories = 2200
+        ..loggedIn = true;
+      addTearDown(state.dispose);
+      await start(tester, client,
+          state: state, imagePicker: picker, refresh: () async {});
+      final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+      await tester.tap(find.byTooltip(l.coachAttachPhoto));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l.coachChooseGallery));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(l.coachSend));
+      await tester.pumpAndSettle();
+      expect(find.text(entry.value(l)), findsOneWidget);
+    });
   }
 
   testWidgets('chat input loses focus when the app pauses', (tester) async {

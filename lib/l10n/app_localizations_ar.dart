@@ -1354,6 +1354,50 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coachConsent => 'مشاركة هدف السعرات وإجمالي اليوم مع المدرب';
 
   @override
+  String get coachAttachPhoto => 'إرفاق صورة';
+
+  @override
+  String get coachTakePhoto => 'التقاط صورة';
+
+  @override
+  String get coachChooseGallery => 'الاختيار من المعرض';
+
+  @override
+  String get coachRemovePhoto => 'إزالة الصورة';
+
+  @override
+  String get coachPhotoTooLarge =>
+      'الصورة كبيرة جداً. اختر صورة أصغر من 600 كيلوبايت.';
+
+  @override
+  String get coachPhotoNotAllowed =>
+      'نوع الصورة غير مسموح. اختر صورة JPEG أو PNG أو WebP.';
+
+  @override
+  String get coachPhotoUnavailable =>
+      'تعذر فتح الصورة المختارة. حاول مرة أخرى.';
+
+  @override
+  String get coachPhotoConsentRequired => 'فعّل موافقة المدرب قبل إرسال صورة.';
+
+  @override
+  String get coachPhotoQuotaError =>
+      'وصلت إلى حد الصور اليومي. تستخدم طلبات الصور جزءاً أكبر من حدك اليومي.';
+
+  @override
+  String get coachPhotoNoticeTitle => 'قبل إرسال الصورة';
+
+  @override
+  String get coachPhotoNoticeBody =>
+      'تُرسل الصورة إلى مزود الذكاء الاصطناعي للرد عليك. قد تستخدم الخطة المجانية للمزود البيانات لتحسين خدماته. لا تُدرج وجوهاً أو بطاقات هوية أو مستندات خاصة. لا يخزن Privilege الصورة.';
+
+  @override
+  String get coachContinue => 'متابعة';
+
+  @override
+  String get cancel => 'إلغاء';
+
+  @override
   String get coachWelcome => 'أهلاً! كيف أقدر أساعدك اليوم؟';
 
   @override

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../l10n_strings.dart';
 import '../coach_preferences.dart';
@@ -64,11 +67,65 @@ class _CoachAvatar extends StatelessWidget {
       );
 }
 
+class CoachPhoto {
+  const CoachPhoto({required this.bytes, required this.mime});
+  final Uint8List bytes;
+  final String mime;
+}
+
+abstract class CoachImagePicker {
+  Future<CoachPhoto?> pick(ImageSource source);
+}
+
+class ImagePickerCoachImagePicker implements CoachImagePicker {
+  const ImagePickerCoachImagePicker();
+
+  @override
+  Future<CoachPhoto?> pick(ImageSource source) async {
+    final file = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 75,
+    );
+    if (file == null) return null;
+    final mime = file.mimeType ??
+        switch (file.name.toLowerCase().split('.').last) {
+          'png' => 'image/png',
+          'webp' => 'image/webp',
+          _ => 'image/jpeg',
+        };
+    return CoachPhoto(bytes: await file.readAsBytes(), mime: mime);
+  }
+}
+
+class ChatMessage {
+  const ChatMessage(
+      {required this.bot,
+      required this.text,
+      this.retry,
+      this.error,
+      this.photo,
+      this.photoMime});
+  final bool bot;
+  final String text;
+  final String? retry;
+  final CoachException? error;
+  final Uint8List? photo;
+  final String? photoMime;
+}
+
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key, this.client, this.state, this.refreshActivity});
+  const ChatScreen(
+      {super.key,
+      this.client,
+      this.state,
+      this.refreshActivity,
+      this.imagePicker});
   final CoachClient? client;
   final AppState? state;
   final Future<void> Function()? refreshActivity;
+  final CoachImagePicker? imagePicker;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -87,9 +144,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
   final _input = TextEditingController();
   final _scroll = ScrollController();
-  final List<({bool bot, String text, String? retry, CoachException? error})>
-      _messages = [];
+  final List<ChatMessage> _messages = [];
   late final CoachClient _client = widget.client ?? SupabaseCoachClient();
+  late final CoachImagePicker _imagePicker =
+      widget.imagePicker ?? const ImagePickerCoachImagePicker();
+  CoachPhoto? _selectedPhoto;
+  bool _noticeAccepted = false;
+  bool _lastRequestHadPhoto = false;
   late final AppState _state = widget.state ?? appState;
   bool _consent = false;
   bool _consentReady = false;
@@ -107,6 +168,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     _state.addListener(_accountChanged);
     _input.addListener(_inputChanged);
     _restoreConsent();
+    _restorePhotoNotice();
   }
 
   void _inputChanged() {
@@ -122,7 +184,16 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         _messages.clear();
         _remaining = null;
         _input.clear();
+        _selectedPhoto = null;
       });
+    }
+  }
+
+  Future<void> _restorePhotoNotice() async {
+    try {
+      _noticeAccepted = await loadCoachPhotoNoticeAccepted();
+    } catch (_) {
+      _noticeAccepted = false;
     }
   }
 
@@ -203,7 +274,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return l.coachBirthDateError;
       case 'underage':
         return l.coachAgeError;
+      case 'invalid_image':
+      case 'invalid_image_mime':
+      case 'invalid_image_data':
+      case 'multiple_images':
+        return l.coachPhotoNotAllowed;
+      case 'image_too_large':
+        return l.coachPhotoTooLarge;
+      case 'image_consent_required':
+        return l.coachPhotoConsentRequired;
       case 'quota_exceeded':
+        if (_lastRequestHadPhoto) return l.coachPhotoQuotaError;
         final reset = error.resetAt?.toLocal();
         if (reset == null) return l.coachQuotaError;
         final material = MaterialLocalizations.of(context);
@@ -215,31 +296,126 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _pickPhoto(ImageSource source) async {
+    try {
+      final photo = await _imagePicker.pick(source);
+      if (photo == null || !mounted) return;
+      if (photo.bytes.lengthInBytes > 600 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(strings(context).coachPhotoTooLarge),
+        ));
+        return;
+      }
+      if (!const {'image/jpeg', 'image/png', 'image/webp'}
+          .contains(photo.mime)) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(strings(context).coachPhotoNotAllowed),
+        ));
+        return;
+      }
+      setState(() => _selectedPhoto = photo);
+    } on PlatformException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(strings(context).coachPhotoUnavailable),
+        ));
+      }
+    }
+  }
+
+  Future<void> _choosePhoto() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: kCard,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: Text(strings(context).coachTakePhoto),
+            onTap: () => Navigator.pop(context, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(strings(context).coachChooseGallery),
+            onTap: () => Navigator.pop(context, ImageSource.gallery),
+          ),
+        ]),
+      ),
+    );
+    if (source != null) await _pickPhoto(source);
+  }
+
   Future<void> _send([String? preset, bool isRetry = false]) async {
     final text = (preset ?? _input.text).trim();
+    final selectedPhoto = isRetry ? null : _selectedPhoto;
     if (_sending ||
         _savingConsent ||
         !_consentReady ||
-        text.isEmpty ||
+        (text.isEmpty && selectedPhoto == null) ||
         text.runes.length > 2000) {
+      return;
+    }
+    if (selectedPhoto != null && !_noticeAccepted) {
+      final accepted = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(strings(context).coachPhotoNoticeTitle),
+              content: Text(strings(context).coachPhotoNoticeBody),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(strings(context).cancel),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(strings(context).coachContinue),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+      if (!accepted || !mounted) return;
+      if (!await saveCoachPhotoNoticeAccepted()) return;
+      _noticeAccepted = true;
+    }
+    if (selectedPhoto != null && !_consent) {
+      setState(() {
+        _messages.add(const ChatMessage(
+          bot: true,
+          text: '',
+          error: CoachException('image_consent_required'),
+        ));
+        _lastRequestHadPhoto = true;
+      });
+      _scrollToEnd();
       return;
     }
     final generation = _chatGeneration;
     final account = _client.accountId;
     final shareRequested = _consent;
-    if (!isRetry) _input.clear();
+    _lastRequestHadPhoto = selectedPhoto != null;
+    if (!isRetry) {
+      _input.clear();
+      _selectedPhoto = null;
+    }
     setState(() {
       if (!isRetry) {
-        _messages.add((bot: false, text: text, retry: null, error: null));
+        _messages.add(ChatMessage(
+          bot: false,
+          text: text.isEmpty ? '[photo]' : text,
+          photo: selectedPhoto?.bytes,
+          photoMime: selectedPhoto?.mime,
+        ));
       }
       _sending = true;
       _remaining = null;
     });
     _scrollToEnd();
-    final emergency = coachEmergencyReply(text);
+    final emergency = selectedPhoto == null ? coachEmergencyReply(text) : null;
     if (emergency != null) {
       setState(() {
-        _messages.add((bot: true, text: emergency, retry: null, error: null));
+        _messages.add(ChatMessage(bot: true, text: emergency));
         _sending = false;
       });
       _scrollToEnd();
@@ -269,6 +445,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final reply = await _client.send({
         'message': text,
         'consent': share,
+        if (selectedPhoto != null)
+          'image': {
+            'mime': selectedPhoto.mime,
+            'data': base64Encode(selectedPhoto.bytes),
+          },
         if (share)
           'context': {
             'calorie_target': _state.targetCalories,
@@ -282,7 +463,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return;
       }
       setState(() {
-        _messages.add((bot: true, text: reply.text, retry: null, error: null));
+        _messages.add(ChatMessage(bot: true, text: reply.text));
         _remaining = reply.remaining;
       });
     } on CoachException catch (error) {
@@ -291,26 +472,33 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           account != _client.accountId) {
         return;
       }
-      final retryable = !{
-        'authentication_required',
-        'registered_user_required',
-        'birth_date_required',
-        'underage',
-        'quota_exceeded',
-      }.contains(error.code);
-      setState(() => _messages.add(
-          (bot: true, text: '', retry: retryable ? text : null, error: error)));
+      final retryable = selectedPhoto == null &&
+          !{
+            'authentication_required',
+            'registered_user_required',
+            'birth_date_required',
+            'underage',
+            'quota_exceeded',
+            'image_consent_required',
+            'image_too_large',
+            'invalid_image',
+            'invalid_image_mime',
+            'invalid_image_data',
+            'multiple_images',
+          }.contains(error.code);
+      setState(() => _messages.add(ChatMessage(
+          bot: true, text: '', retry: retryable ? text : null, error: error)));
     } catch (_) {
       if (!mounted ||
           generation != _chatGeneration ||
           account != _client.accountId) {
         return;
       }
-      setState(() => _messages.add((
+      setState(() => _messages.add(ChatMessage(
             bot: true,
             text: '',
-            retry: text,
-            error: const CoachException('unavailable')
+            retry: selectedPhoto == null ? text : null,
+            error: const CoachException('unavailable'),
           )));
     } finally {
       if (mounted) {
@@ -326,6 +514,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       _messages.clear();
       _remaining = null;
       _input.clear();
+      _selectedPhoto = null;
     });
   }
 
@@ -419,8 +608,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _bubble(
-      ({bool bot, String text, String? retry, CoachException? error}) message) {
+  Widget _bubble(ChatMessage message) {
     final text =
         message.error == null ? message.text : _errorText(message.error!);
     final bubble = Container(
@@ -447,15 +635,30 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                 ),
               ],
             )
-          : message.bot && text.contains('**')
-              ? SelectableText.rich(_coachText(text),
-                  textDirection: containsArabic(text)
-                      ? TextDirection.rtl
-                      : TextDirection.ltr)
-              : SelectableText(text,
-                  textDirection: containsArabic(text)
-                      ? TextDirection.rtl
-                      : TextDirection.ltr),
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (message.photo != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(message.photo!,
+                        width: 180, height: 120, fit: BoxFit.cover),
+                  ),
+                  if (text != '[photo]') const SizedBox(height: 8),
+                ],
+                if (text != '[photo]')
+                  message.bot && text.contains('**')
+                      ? SelectableText.rich(_coachText(text),
+                          textDirection: containsArabic(text)
+                              ? TextDirection.rtl
+                              : TextDirection.ltr)
+                      : SelectableText(text,
+                          textDirection: containsArabic(text)
+                              ? TextDirection.rtl
+                              : TextDirection.ltr),
+              ],
+            ),
     );
     return Align(
       alignment: message.bot ? Alignment.centerLeft : Alignment.centerRight,
@@ -659,50 +862,86 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
-              child:
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_selectedPhoto != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Stack(children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.memory(_selectedPhoto!.bytes,
+                              width: 96, height: 72, fit: BoxFit.cover),
+                        ),
+                        PositionedDirectional(
+                          top: 0,
+                          end: 0,
+                          child: IconButton(
+                            tooltip: strings(context).coachRemovePhoto,
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () =>
+                                setState(() => _selectedPhoto = null),
+                            icon: const Icon(Icons.close, size: 18),
+                          ),
+                        ),
+                      ]),
+                    ),
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Expanded(
-                  child: TextField(
-                    controller: _input,
-                    maxLength: 2000,
-                    inputFormatters: [
-                      TextInputFormatter.withFunction((oldValue, newValue) =>
-                          newValue.text.runes.length <= 2000
-                              ? newValue
-                              : oldValue),
-                    ],
-                    buildCounter: (context,
-                            {required currentLength,
-                            required isFocused,
-                            required maxLength}) =>
-                        Text(strings(context)
-                            .coachCounter(_input.text.runes.length.toString())),
-                    minLines: 1,
-                    maxLines: 3,
-                    onSubmitted: (_) => _send(),
-                    decoration: fieldDecoration(strings(context).coachInputHint)
-                        .copyWith(
-                            hintMaxLines: 1,
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24))),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                CircleAvatar(
-                  backgroundColor: kMaroon,
-                  child: IconButton(
-                    tooltip: strings(context).coachSend,
-                    icon: const Icon(Icons.send_rounded, size: 20),
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    onPressed: _sending ||
-                            _savingConsent ||
-                            !_consentReady ||
-                            _input.text.trim().isEmpty
-                        ? null
-                        : _send,
-                  ),
-                ),
-              ]),
+                    IconButton(
+                      tooltip: strings(context).coachAttachPhoto,
+                      onPressed: _sending ? null : _choosePhoto,
+                      icon: const Icon(Icons.add),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: TextField(
+                        controller: _input,
+                        maxLength: 2000,
+                        inputFormatters: [
+                          TextInputFormatter.withFunction(
+                              (oldValue, newValue) =>
+                                  newValue.text.runes.length <= 2000
+                                      ? newValue
+                                      : oldValue),
+                        ],
+                        buildCounter: (context,
+                                {required currentLength,
+                                required isFocused,
+                                required maxLength}) =>
+                            Text(strings(context).coachCounter(
+                                _input.text.runes.length.toString())),
+                        minLines: 1,
+                        maxLines: 3,
+                        onSubmitted: (_) => _send(),
+                        decoration:
+                            fieldDecoration(strings(context).coachInputHint)
+                                .copyWith(
+                                    hintMaxLines: 1,
+                                    border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(24))),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    CircleAvatar(
+                      backgroundColor: kMaroon,
+                      child: IconButton(
+                        tooltip: strings(context).coachSend,
+                        icon: const Icon(Icons.send_rounded, size: 20),
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        onPressed: _sending ||
+                                _savingConsent ||
+                                !_consentReady ||
+                                (_input.text.trim().isEmpty &&
+                                    _selectedPhoto == null)
+                            ? null
+                            : _send,
+                      ),
+                    ),
+                  ]),
+                ],
+              ),
             ),
           ]),
         ),

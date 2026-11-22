@@ -2084,6 +2084,84 @@ abstract class AppLocalizations {
   /// **'Share my calorie target and today’s totals with the coach'**
   String get coachConsent;
 
+  /// No description provided for @coachAttachPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach photo'**
+  String get coachAttachPhoto;
+
+  /// No description provided for @coachTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get coachTakePhoto;
+
+  /// No description provided for @coachChooseGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get coachChooseGallery;
+
+  /// No description provided for @coachRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get coachRemovePhoto;
+
+  /// No description provided for @coachPhotoTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is too large. Choose one under 600 KB.'**
+  String get coachPhotoTooLarge;
+
+  /// No description provided for @coachPhotoNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'This photo type is not allowed. Choose a JPEG, PNG, or WebP image.'**
+  String get coachPhotoNotAllowed;
+
+  /// No description provided for @coachPhotoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the selected photo. Please try again.'**
+  String get coachPhotoUnavailable;
+
+  /// No description provided for @coachPhotoConsentRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the coach consent switch before sending a photo.'**
+  String get coachPhotoConsentRequired;
+
+  /// No description provided for @coachPhotoQuotaError.
+  ///
+  /// In en, this message translates to:
+  /// **'The daily photo limit has been reached. Photo requests use more of your daily allowance.'**
+  String get coachPhotoQuotaError;
+
+  /// No description provided for @coachPhotoNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Before sending a photo'**
+  String get coachPhotoNoticeTitle;
+
+  /// No description provided for @coachPhotoNoticeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is sent to the AI provider to answer you. The provider\'s free tier may use data to improve its services. Do not include faces, ID cards, or private documents. Privilege does not store the photo.'**
+  String get coachPhotoNoticeBody;
+
+  /// No description provided for @coachContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get coachContinue;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
   /// No description provided for @coachWelcome.
   ///
   /// In en, this message translates to:

@@ -25,9 +25,9 @@
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Privilege uses the camera when you choose to take a profile photo.</string>
+		<string>Privilege uses the camera to take a profile photo or a photo for the AI coach.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Privilege lets you choose a photo for your profile.</string>
+		<string>Privilege lets you choose a profile photo or a photo for the AI coach.</string>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>UIApplicationSceneManifest</key>
