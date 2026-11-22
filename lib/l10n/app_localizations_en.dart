@@ -1391,6 +1391,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coachUnavailable => 'The coach is unavailable right now.';
 
   @override
+  String get coachBusy =>
+      'The coach is busy right now. Please try again in a moment.';
+
+  @override
   String get coachLocalHelp =>
       'Local help (not AI): ask about your calories, weekly plan or streak in the app.';
 

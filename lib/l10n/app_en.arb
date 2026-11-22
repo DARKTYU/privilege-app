@@ -409,6 +409,7 @@
   "coachQuotaResetError": "Daily limit reached. Resets: {date}",
   "@coachQuotaResetError": {"placeholders": {"date": {"type": "String"}}},
   "coachUnavailable": "The coach is unavailable right now.",
+  "coachBusy": "The coach is busy right now. Please try again in a moment.",
   "coachLocalHelp": "Local help (not AI): ask about your calories, weekly plan or streak in the app.",
   "coachUnavailableHelp": "{error}\n\n{help}",
   "@coachUnavailableHelp": {"placeholders": {"error": {"type": "String"}, "help": {"type": "String"}}},

@@ -1467,6 +1467,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coachUnavailable => 'المدرب غير متاح حالياً.';
 
   @override
+  String get coachBusy => 'المدرب مشغول الآن. حاول مرة أخرى بعد قليل.';
+
+  @override
   String get coachLocalHelp =>
       'مساعدة محلية (ليست ذكاءً اصطناعياً): راجع السعرات والخطة الأسبوعية وسلسلة التقدم في التطبيق.';
 

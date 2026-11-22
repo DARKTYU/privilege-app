@@ -2264,6 +2264,12 @@ abstract class AppLocalizations {
   /// **'The coach is unavailable right now.'**
   String get coachUnavailable;
 
+  /// No description provided for @coachBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The coach is busy right now. Please try again in a moment.'**
+  String get coachBusy;
+
   /// No description provided for @coachLocalHelp.
   ///
   /// In en, this message translates to:

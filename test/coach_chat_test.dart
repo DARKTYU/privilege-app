@@ -758,13 +758,38 @@ void main() {
         findsOneWidget);
   });
 
+  testWidgets('provider error restores photo and text for resend',
+      (tester) async {
+    final picker = FakeCoachImagePicker()
+      ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/jpeg');
+    final client = FakeCoach()
+      ..error = const CoachException('provider_unavailable');
+    SharedPreferences.setMockInitialValues({
+      coachPhotoNoticePreferenceKey: true,
+    });
+    await start(tester, client, imagePicker: picker);
+    final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+    await tester.enterText(find.byType(TextField), 'What is this?');
+    await tester.tap(find.byTooltip(l.coachAttachPhoto));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(l.coachChooseGallery));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip(l.coachSend));
+    await tester.pumpAndSettle();
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'What is this?');
+    expect(find.byTooltip(l.coachRemovePhoto), findsOneWidget);
+    expect(find.text(l.coachBusy), findsOneWidget);
+  });
+
   for (final entry in {
     'authentication_required': 'Sign in with an account to use the coach',
     'registered_user_required': 'Sign in with an account to use the coach',
     'birth_date_required': 'Add your birth date in Profile',
     'underage': 'The AI coach is for users 18 and over',
     'quota_exceeded': 'Daily limit reached',
-    'provider_unavailable': 'The coach is unavailable right now',
+    'provider_unavailable':
+        'The coach is busy right now. Please try again in a moment.',
   }.entries) {
     testWidgets('shows ${entry.key} without pretending success',
         (tester) async {
@@ -781,7 +806,7 @@ void main() {
         expect(find.textContaining('Resets:'), findsOneWidget);
       }
       if (entry.key == 'provider_unavailable') {
-        expect(find.textContaining('not AI'), findsOneWidget);
+        expect(find.textContaining('not AI'), findsNothing);
       }
     });
   }

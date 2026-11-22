@@ -293,6 +293,9 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         final date = westernDigits('${material.formatFullDate(reset)} '
             '${material.formatTimeOfDay(TimeOfDay.fromDateTime(reset), alwaysUse24HourFormat: true)}');
         return l.coachQuotaResetError(date);
+      case 'provider_unavailable':
+      case 'provider_timeout':
+        return l.coachBusy;
       default:
         return l.coachUnavailableHelp(l.coachUnavailable, l.coachLocalHelp);
     }
@@ -477,6 +480,13 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (error.code == 'photo_consent_required') {
         _noticeAccepted = false;
         await saveCoachPhotoNoticeAccepted(false);
+      }
+      if (error.code == 'provider_unavailable' ||
+          error.code == 'provider_timeout') {
+        setState(() {
+          if (_input.text.isEmpty) _input.text = text;
+          _selectedPhoto ??= selectedPhoto;
+        });
       }
       final retryable = selectedPhoto == null &&
           !{

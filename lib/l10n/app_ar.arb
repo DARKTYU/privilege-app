@@ -361,6 +361,7 @@
   "coachQuotaError": "تم الوصول إلى الحد اليومي.",
   "coachQuotaResetError": "تم الوصول إلى الحد اليومي. موعد التجديد: {date}",
   "coachUnavailable": "المدرب غير متاح حالياً.",
+  "coachBusy": "المدرب مشغول الآن. حاول مرة أخرى بعد قليل.",
   "coachLocalHelp": "مساعدة محلية (ليست ذكاءً اصطناعياً): راجع السعرات والخطة الأسبوعية وسلسلة التقدم في التطبيق.",
   "coachUnavailableHelp": "{error}\n\n{help}",
   "coachTryAgain": "حاول مرة أخرى",
