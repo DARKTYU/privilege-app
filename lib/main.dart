@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -34,28 +36,116 @@ Future<void> main() async {
   runApp(const PrivilegeApp());
 }
 
-class _Splash extends StatelessWidget {
-  const _Splash();
+class _AppStartup extends StatefulWidget {
+  const _AppStartup({required this.state, this.loginBuilder, this.homeBuilder});
+  final AppState state;
+  final WidgetBuilder? loginBuilder, homeBuilder;
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
-        body: _SplashContent(),
+  State<_AppStartup> createState() => _AppStartupState();
+}
+
+class _AppStartupState extends State<_AppStartup> {
+  Timer? _minimumTimer;
+  Timer? _slowRestoreTimer;
+  bool _minimumElapsed = false;
+  bool _slowRestore = false;
+  bool _done = false;
+  bool _scheduled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.state.addListener(_sessionChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_scheduled) return;
+    _scheduled = true;
+    final disabled = MediaQuery.disableAnimationsOf(context);
+    _minimumTimer = Timer(
+      Duration(milliseconds: disabled ? 500 : 1600),
+      () => setState(() {
+        _minimumElapsed = true;
+        _finishIfReady();
+      }),
+    );
+    _slowRestoreTimer = Timer(const Duration(milliseconds: 2000), () {
+      if (mounted && widget.state.restoring) {
+        setState(() => _slowRestore = true);
+      }
+    });
+  }
+
+  void _sessionChanged() {
+    if (!mounted) return;
+    setState(() => _finishIfReady());
+  }
+
+  void _finishIfReady() {
+    if (!_done && _minimumElapsed && !widget.state.restoring) {
+      _done = true;
+      _slowRestoreTimer?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.state.removeListener(_sessionChanged);
+    _minimumTimer?.cancel();
+    _slowRestoreTimer?.cancel();
+    super.dispose();
+  }
+
+  Widget _destination() {
+    if (!widget.state.loggedIn) {
+      return widget.loginBuilder?.call(context) ?? const LoginScreen();
+    }
+    if (!widget.state.onboardingDone) return const OnboardingScreen();
+    return widget.homeBuilder?.call(context) ?? HomeShell();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedSwitcher(
+        duration: Duration(
+            milliseconds: MediaQuery.disableAnimationsOf(context) ? 0 : 300),
+        child: _done
+            ? KeyedSubtree(
+                key: const ValueKey('destination'), child: _destination())
+            : _IntroScreen(
+                key: const ValueKey('intro'), showProgress: _slowRestore),
       );
 }
 
-class _SplashContent extends StatefulWidget {
-  const _SplashContent();
+class _IntroScreen extends StatefulWidget {
+  const _IntroScreen({super.key, required this.showProgress});
+  final bool showProgress;
 
   @override
-  State<_SplashContent> createState() => _SplashContentState();
+  State<_IntroScreen> createState() => _IntroScreenState();
 }
 
-class _SplashContentState extends State<_SplashContent>
+class _IntroScreenState extends State<_IntroScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  )..forward();
+    duration: const Duration(milliseconds: 1000),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _controller.value = 1;
+      } else {
+        _controller.forward();
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -64,52 +154,65 @@ class _SplashContentState extends State<_SplashContent>
   }
 
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.15),
-            radius: 0.9,
-            colors: [kCard2, kBg],
-          ),
-        ),
-        child: Center(
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF0B0D12),
+        body: Center(
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, _) {
-              final progress = Curves.easeOutCubic.transform(_controller.value);
-              return Opacity(
-                opacity: progress,
-                child: Transform.translate(
-                  offset: Offset(0, 18 * (1 - progress)),
+              final logoProgress = Curves.easeOutCubic
+                  .transform((_controller.value / 0.6).clamp(0.0, 1.0));
+              final taglineProgress = CurvedAnimation(
+                parent: _controller,
+                curve: const Interval(0.6, 1, curve: Curves.easeOut),
+              ).value;
+              return Column(mainAxisSize: MainAxisSize.min, children: [
+                Opacity(
+                  opacity: logoProgress,
                   child: Transform.scale(
-                    scale: 0.88 + 0.12 * progress,
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const PrivilegeLogo(width: 190),
-                      const SizedBox(height: 18),
-                      Text(
-                        strings(context).splashSlogan,
-                        style: TextStyle(
-                          color: kCream,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2.4,
+                    scale: 0.88 + (0.12 * logoProgress),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFB91C46).withAlpha(35),
+                          blurRadius: 40,
+                          spreadRadius: 2,
                         ),
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: 120,
-                        child: LinearProgressIndicator(
-                          value: _controller.value,
-                          minHeight: 2,
-                          backgroundColor: kLine,
-                          color: kGold,
-                          borderRadius: BorderRadius.circular(4),
+                        BoxShadow(
+                          color: const Color(0xFFF5B942).withAlpha(18),
+                          blurRadius: 56,
+                          spreadRadius: 6,
                         ),
-                      ),
-                    ]),
+                      ]),
+                      child: const PrivilegeLogo(width: 190),
+                    ),
                   ),
                 ),
-              );
+                const SizedBox(height: 16),
+                Opacity(
+                  opacity: taglineProgress,
+                  child: Text(
+                    strings(context).splashSlogan,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFFF3F5F8),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.8,
+                    ),
+                  ),
+                ),
+                SizedBox(height: widget.showProgress ? 24 : 0),
+                if (widget.showProgress)
+                  const SizedBox(
+                    width: 96,
+                    child: LinearProgressIndicator(
+                      minHeight: 2,
+                      backgroundColor: Color(0xFF30394A),
+                      color: Color(0xFFF5B942),
+                    ),
+                  ),
+              ]);
             },
           ),
         ),
@@ -117,7 +220,8 @@ class _SplashContentState extends State<_SplashContent>
 }
 
 class PrivilegeApp extends StatelessWidget {
-  const PrivilegeApp({super.key});
+  const PrivilegeApp({super.key, this.loginBuilder, this.homeBuilder});
+  final WidgetBuilder? loginBuilder, homeBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +230,6 @@ class PrivilegeApp extends StatelessWidget {
       builder: (context, _) => ListenableBuilder(
           listenable: appState,
           builder: (context, _) => MaterialApp(
-                key: ValueKey(appState.loggedIn),
                 initialRoute: '/',
                 title: 'Privilege',
                 debugShowCheckedModeBanner: false,
@@ -177,45 +280,10 @@ class PrivilegeApp extends StatelessWidget {
                       )),
                 },
                 home: ThemeAwareBuilder(
-                  builder: () => ListenableBuilder(
-                    listenable: appState,
-                    builder: (_, __) {
-                      final Widget screen;
-                      final String stage;
-                      if (appState.restoring) {
-                        screen = _Splash();
-                        stage = 'splash';
-                      } else if (!appState.loggedIn) {
-                        screen = LoginScreen();
-                        stage = 'login';
-                      } else if (!appState.onboardingDone) {
-                        screen = OnboardingScreen();
-                        stage = 'onboarding';
-                      } else {
-                        screen = HomeShell();
-                        stage = 'home';
-                      }
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 650),
-                        reverseDuration: const Duration(milliseconds: 350),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          final slide = Tween<Offset>(
-                            begin: const Offset(0, 0.035),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                              parent: animation, curve: Curves.easeOutCubic));
-                          return FadeTransition(
-                            opacity: animation,
-                            child:
-                                SlideTransition(position: slide, child: child),
-                          );
-                        },
-                        child:
-                            KeyedSubtree(key: ValueKey(stage), child: screen),
-                      );
-                    },
+                  builder: () => _AppStartup(
+                    state: appState,
+                    loginBuilder: loginBuilder,
+                    homeBuilder: homeBuilder,
                   ),
                 ),
               )),
@@ -223,7 +291,7 @@ class PrivilegeApp extends StatelessWidget {
   }
 
   Widget _protected(Widget page) {
-    if (appState.restoring) return const _Splash();
+    if (appState.restoring) return const SizedBox.shrink();
     if (!appState.loggedIn) return const LoginScreen();
     if (!appState.onboardingDone) return const OnboardingScreen();
     return page;

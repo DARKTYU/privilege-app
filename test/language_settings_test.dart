@@ -124,6 +124,8 @@ void main() {
       appState.loggedIn = loggedIn;
     });
     await tester.pumpWidget(const PrivilegeApp());
+    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).first, 'person@example.com');
     await languageSettings.select('ar');
