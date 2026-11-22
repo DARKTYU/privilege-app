@@ -156,6 +156,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   bool _consentReady = false;
   bool _savingConsent = false;
   bool _sending = false;
+  bool _preparingSend = false;
   int? _remaining;
   int _chatGeneration = 0;
   String? _account;
@@ -281,6 +282,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         return l.coachPhotoNotAllowed;
       case 'image_too_large':
         return l.coachPhotoTooLarge;
+      case 'photo_consent_required':
       case 'image_consent_required':
         return l.coachPhotoConsentRequired;
       case 'quota_exceeded':
@@ -350,12 +352,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final text = (preset ?? _input.text).trim();
     final selectedPhoto = isRetry ? null : _selectedPhoto;
     if (_sending ||
+        _preparingSend ||
         _savingConsent ||
         !_consentReady ||
         (text.isEmpty && selectedPhoto == null) ||
         text.runes.length > 2000) {
       return;
     }
+    _preparingSend = true;
     if (selectedPhoto != null && !_noticeAccepted) {
       final accepted = await showDialog<bool>(
             context: context,
@@ -375,22 +379,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             ),
           ) ??
           false;
-      if (!accepted || !mounted) return;
-      if (!await saveCoachPhotoNoticeAccepted()) return;
+      if (!accepted || !mounted) {
+        _preparingSend = false;
+        return;
+      }
+      if (!await saveCoachPhotoNoticeAccepted()) {
+        _preparingSend = false;
+        return;
+      }
       _noticeAccepted = true;
     }
-    if (selectedPhoto != null && !_consent) {
-      setState(() {
-        _messages.add(const ChatMessage(
-          bot: true,
-          text: '',
-          error: CoachException('image_consent_required'),
-        ));
-        _lastRequestHadPhoto = true;
-      });
-      _scrollToEnd();
-      return;
-    }
+    _preparingSend = false;
     final generation = _chatGeneration;
     final account = _client.accountId;
     final shareRequested = _consent;
@@ -445,6 +444,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       final reply = await _client.send({
         'message': text,
         'consent': share,
+        if (selectedPhoto != null) 'photo_consent': true,
         if (selectedPhoto != null)
           'image': {
             'mime': selectedPhoto.mime,
@@ -472,6 +472,10 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           account != _client.accountId) {
         return;
       }
+      if (error.code == 'photo_consent_required') {
+        _noticeAccepted = false;
+        await saveCoachPhotoNoticeAccepted(false);
+      }
       final retryable = selectedPhoto == null &&
           !{
             'authentication_required',
@@ -479,6 +483,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             'birth_date_required',
             'underage',
             'quota_exceeded',
+            'photo_consent_required',
             'image_consent_required',
             'image_too_large',
             'invalid_image',
@@ -488,6 +493,32 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
           }.contains(error.code);
       setState(() => _messages.add(ChatMessage(
           bot: true, text: '', retry: retryable ? text : null, error: error)));
+      if (error.code == 'photo_consent_required') {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+          final accepted = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(strings(context).coachPhotoNoticeTitle),
+                  content: Text(strings(context).coachPhotoNoticeBody),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(strings(context).cancel),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: Text(strings(context).coachContinue),
+                    ),
+                  ],
+                ),
+              ) ?? false;
+          if (accepted) {
+            await saveCoachPhotoNoticeAccepted();
+            if (mounted) setState(() => _noticeAccepted = true);
+          }
+        });
+      }
     } catch (_) {
       if (!mounted ||
           generation != _chatGeneration ||

@@ -2129,7 +2129,7 @@ abstract class AppLocalizations {
   /// No description provided for @coachPhotoConsentRequired.
   ///
   /// In en, this message translates to:
-  /// **'Turn on the coach consent switch before sending a photo.'**
+  /// **'Please accept the photo notice first.'**
   String get coachPhotoConsentRequired;
 
   /// No description provided for @coachPhotoQuotaError.

@@ -96,9 +96,26 @@ void main() {
     expect(find.byTooltip(l.coachRemovePhoto), findsNothing);
   });
 
+  testWidgets('one failed send creates one error and clears typing',
+      (tester) async {
+    final client = FakeCoach()..error = const CoachException('unavailable');
+    await start(tester, client);
+    final l = AppLocalizations.of(tester.element(find.byType(ChatScreen)))!;
+    await tester.enterText(find.byType(TextField), 'Hello');
+    await tester.pump();
+    await tester.tap(find.byTooltip(l.coachSend));
+    await tester.tap(find.byTooltip(l.coachSend));
+    await tester.pumpAndSettle();
+    expect(client.requests, hasLength(1));
+    expect(
+        find.text(l.coachUnavailableHelp(l.coachUnavailable, l.coachLocalHelp)),
+        findsOneWidget);
+    expect(find.bySemanticsLabel(l.coachResponding), findsNothing);
+  });
+
   testWidgets('photo-only send uses image body and notice is one time',
       (tester) async {
-    SharedPreferences.setMockInitialValues({coachConsentPreferenceKey: true});
+    SharedPreferences.setMockInitialValues({});
     final picker = FakeCoachImagePicker()
       ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/png');
     final client = FakeCoach();
@@ -120,7 +137,8 @@ void main() {
     await tester.pumpAndSettle();
     final body = client.requests.single;
     expect(body['message'], '');
-    expect(body['consent'], isTrue);
+    expect(body['consent'], isFalse);
+    expect(body['photo_consent'], isTrue);
     expect(body['image'], {
       'mime': 'image/png',
       'data':
@@ -144,6 +162,7 @@ void main() {
     'invalid_image_mime': (l) => l.coachPhotoNotAllowed,
     'invalid_image_data': (l) => l.coachPhotoNotAllowed,
     'multiple_images': (l) => l.coachPhotoNotAllowed,
+    'photo_consent_required': (l) => l.coachPhotoConsentRequired,
     'image_consent_required': (l) => l.coachPhotoConsentRequired,
     'quota_exceeded': (l) => l.coachPhotoQuotaError,
   }.entries) {
@@ -151,7 +170,6 @@ void main() {
       final picker = FakeCoachImagePicker()
         ..photo = CoachPhoto(bytes: _photoBytes, mime: 'image/jpeg');
       SharedPreferences.setMockInitialValues({
-        coachConsentPreferenceKey: true,
         coachPhotoNoticePreferenceKey: true,
       });
       final client = FakeCoach()..error = CoachException(entry.key);

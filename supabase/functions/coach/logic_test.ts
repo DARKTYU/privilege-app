@@ -356,7 +356,7 @@ test('emergency bypasses quota only after adult age validation', async () => {
   }
 });
 
-test('photo checks run after age, emergency and consent, and quota costs photos', async () => {
+test('photo checks run after age, emergency and photo consent, and quota costs photos', async () => {
   const originalFetch = globalThis.fetch;
   const originalDeno = Object.getOwnPropertyDescriptor(globalThis, 'Deno');
   const calls: { url: string; init?: RequestInit }[] = [];
@@ -392,21 +392,21 @@ test('photo checks run after age, emergency and consent, and quota costs photos'
   });
   const badImage = { mime: 'image/gif', data: btoa('bad') };
   try {
-    let response = await handler(request({ message: 'hello', consent: true, image: badImage }));
+    let response = await handler(request({ message: 'hello', consent: false, photo_consent: true, image: badImage }));
     assert.equal(response.status, 403);
     assert.equal((await response.json()).error, 'underage');
 
     birthDate = '1990-01-01';
-    response = await handler(request({ message: 'I want to die', consent: false, image: badImage }));
+    response = await handler(request({ message: 'I want to die', consent: false, photo_consent: false, image: badImage }));
     assert.equal(response.status, 200);
 
-    response = await handler(request({ message: 'hello', consent: false, image: badImage }));
-    assert.equal((await response.json()).error, 'image_consent_required');
+    response = await handler(request({ message: 'hello', consent: false, photo_consent: false, image: badImage }));
+    assert.equal((await response.json()).error, 'photo_consent_required');
 
-    response = await handler(request({ message: 'hello', consent: true, image: badImage }));
+    response = await handler(request({ message: 'hello', consent: false, photo_consent: true, image: badImage }));
     assert.equal((await response.json()).error, 'invalid_image_mime');
 
-    response = await handler(request({ message: 'hello', consent: true, images: [badImage, badImage] }));
+    response = await handler(request({ message: 'hello', consent: false, photo_consent: true, images: [badImage, badImage] }));
     assert.equal((await response.json()).error, 'multiple_images');
 
     calls.length = 0;
@@ -418,7 +418,7 @@ test('photo checks run after age, emergency and consent, and quota costs photos'
 
     calls.length = 0;
     const validImage = { mime: 'image/jpeg', data: btoa('photo') };
-    response = await handler(request({ message: '', consent: true, image: validImage }));
+    response = await handler(request({ message: '', consent: false, photo_consent: true, image: validImage }));
     assert.equal(response.status, 200);
     const photoQuota = JSON.parse(String(calls.find((call) =>
       call.url.endsWith('/rest/v1/rpc/coach_consume_quota'))?.init?.body));

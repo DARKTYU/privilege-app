@@ -1306,7 +1306,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get coachPhotoConsentRequired =>
-      'Turn on the coach consent switch before sending a photo.';
+      'Please accept the photo notice first.';
 
   @override
   String get coachPhotoQuotaError =>

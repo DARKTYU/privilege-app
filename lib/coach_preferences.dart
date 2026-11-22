@@ -18,7 +18,7 @@ Future<bool> loadCoachPhotoNoticeAccepted() async {
   return preferences.getBool(coachPhotoNoticePreferenceKey) ?? false;
 }
 
-Future<bool> saveCoachPhotoNoticeAccepted() async {
+Future<bool> saveCoachPhotoNoticeAccepted([bool accepted = true]) async {
   final preferences = await SharedPreferences.getInstance();
-  return preferences.setBool(coachPhotoNoticePreferenceKey, true);
+  return preferences.setBool(coachPhotoNoticePreferenceKey, accepted);
 }

@@ -1378,7 +1378,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر فتح الصورة المختارة. حاول مرة أخرى.';
 
   @override
-  String get coachPhotoConsentRequired => 'فعّل موافقة المدرب قبل إرسال صورة.';
+  String get coachPhotoConsentRequired => 'يرجى قبول إشعار الصور أولاً.';
 
   @override
   String get coachPhotoQuotaError =>

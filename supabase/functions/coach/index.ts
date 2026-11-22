@@ -252,20 +252,11 @@ export async function handler(request: Request): Promise<Response> {
       return json(200, { reply: safetyReply, remaining: null, reset_at: null });
     }
 
-    if ((hasImageField || hasImagesField) && input.consent !== true) {
-      return json(403, { error: 'image_consent_required' });
+    if ((hasImageField || hasImagesField) && input.photo_consent !== true) {
+      return json(403, { error: 'photo_consent_required' });
     }
 
-    let image: CoachImage | undefined;
-    if (hasImagesField) return json(400, { error: 'multiple_images' });
-    if (hasImageField) {
-      if (Array.isArray(input.image)) {
-        return json(400, { error: input.image.length > 1 ? 'multiple_images' : 'invalid_image' });
-      }
-      const validated = validateImage(input.image);
-      if (validated && 'error' in validated) return json(400, validated);
-      image = validated ?? undefined;
-    }
+    const hasPhoto = hasImageField || hasImagesField;
 
     const key = Deno.env.get('GEMINI_API_KEY')?.trim();
     const model = Deno.env.get('COACH_MODEL')?.trim();
@@ -293,7 +284,7 @@ export async function handler(request: Request): Promise<Response> {
       body: JSON.stringify({
         p_user: user.id,
         p_limit: Number(rawLimit),
-        ...(image ? { p_cost: 3 } : {}),
+        ...(hasPhoto ? { p_cost: 3 } : {}),
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -304,6 +295,17 @@ export async function handler(request: Request): Promise<Response> {
     if (!quota) return json(503, { error: 'quota_unavailable' });
     const denial = quotaDenial(quota);
     if (denial) return json(429, denial);
+
+    let image: CoachImage | undefined;
+    if (hasImagesField) return json(400, { error: 'multiple_images' });
+    if (hasImageField) {
+      if (Array.isArray(input.image)) {
+        return json(400, { error: input.image.length > 1 ? 'multiple_images' : 'invalid_image' });
+      }
+      const validated = validateImage(input.image);
+      if (validated && 'error' in validated) return json(400, validated);
+      image = validated ?? undefined;
+    }
 
     let provider: Response | undefined;
     let result: { candidates?: { content?: { parts?: JsonObject[] } }[] } | undefined;

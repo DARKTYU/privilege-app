@@ -24,20 +24,22 @@ When ready to deploy manually:
    The mobile client must send `Authorization: Bearer <user access token>`.
 
 Request body: `{"message":"Hello","consent":false}` or, for one optional photo,
-`{"message":"What is this?","consent":true,"image":{"mime":"image/jpeg","data":"<base64>"}}`.
+`{"message":"What is this?","consent":false,"photo_consent":true,"image":{"mime":"image/jpeg","data":"<base64>"}}`.
 The message may be empty only when a photo is present; that is treated as asking
-"what is this and what should I know about it?". A photo requires explicit
-`consent: true`. If consent is `true`, an optional `context` object can contain
+"what is this and what should I know about it?". A photo requires explicit `photo_consent: true`. This is independent from the
+existing `consent` flag, which only controls calorie context. If `consent` is
+`true`, an optional `context` object can contain
 numeric `calorie_target`, `calories_consumed`, and `calories_burned`. Other
 context fields are ignored. Allowed image MIME types are `image/jpeg`,
 `image/png`, and `image/webp`; the decoded image must not exceed 600 KB. Only
 one image is accepted. The function forwards the inline base64 image to Gemini,
 does not persist it, and never logs image data or request text.
 
-Image-specific errors are `image_consent_required`, `invalid_image`,
+Image-specific errors are `photo_consent_required`, `invalid_image`,
 `invalid_image_mime`, `invalid_image_data`, `image_too_large`, and
-`multiple_images`. Invalid image processing occurs only after authentication,
-registered-user, age, emergency-keyword and consent checks. Emergency replies
+`multiple_images`. Invalid image processing occurs only after authentication, registered-user,
+age, emergency-keyword, consent and quota checks. Photo requests cost quota
+before decoding, so malformed photos still consume their request cost. Emergency replies
 therefore never decode or send an image. The function allows browser
 cross-origin requests from any origin; callers must still authenticate. Usage is counted in UTC, including provider failures.
 Missing or malformed provider settings are rejected before quota is consumed;

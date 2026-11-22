@@ -383,7 +383,7 @@
   "coachPhotoTooLarge": "The photo is too large. Choose one under 600 KB.",
   "coachPhotoNotAllowed": "This photo type is not allowed. Choose a JPEG, PNG, or WebP image.",
   "coachPhotoUnavailable": "Could not open the selected photo. Please try again.",
-  "coachPhotoConsentRequired": "Turn on the coach consent switch before sending a photo.",
+  "coachPhotoConsentRequired": "Please accept the photo notice first.",
   "coachPhotoQuotaError": "The daily photo limit has been reached. Photo requests use more of your daily allowance.",
   "coachPhotoNoticeTitle": "Before sending a photo",
   "coachPhotoNoticeBody": "The photo is sent to the AI provider to answer you. The provider's free tier may use data to improve its services. Do not include faces, ID cards, or private documents. Privilege does not store the photo.",
