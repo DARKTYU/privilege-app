@@ -36,6 +36,7 @@ class _HomeShellState extends State<HomeShell>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    caloriesLogEvents.addListener(_showCaloriesResult);
   }
 
   @override
@@ -50,8 +51,17 @@ class _HomeShellState extends State<HomeShell>
     });
   }
 
+  void _showCaloriesResult() {
+    if (!mounted || caloriesLogEvents.value == null) return;
+    setState(() => _i = 2);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
   @override
   void dispose() {
+    caloriesLogEvents.removeListener(_showCaloriesResult);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

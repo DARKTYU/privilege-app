@@ -140,6 +140,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String caloriesAddedConfirmation(String calories) {
+    return '+$calories سعرة أُضيفت';
+  }
+
+  @override
+  String caloriesBurnedConfirmation(String calories) {
+    return '+$calories سعرة حُرقت';
+  }
+
+  @override
   String feedbackUncheckedMeal(String name, int calories) {
     String _temp0 = intl.Intl.pluralLogic(
       calories,

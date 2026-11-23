@@ -29,6 +29,8 @@
   "errorReduceWorkout": "لا يوجد تمرين مسجل يمكن تقليله.",
   "activityTimeDuration": "{time} • {minutes, plural, zero{0 دقيقة} one{دقيقة واحدة} two{دقيقتان} few{{minutes} دقائق} many{{minutes} دقيقة} other{{minutes} دقيقة}}",
   "feedbackLoggedMeal": "تم تسجيل {name} ({calories, plural, zero{+0 سعرة} one{+سعرة واحدة} two{+سعرتان} few{+{calories} سعرات} many{+{calories} سعرة} other{+{calories} سعرة}})!",
+  "caloriesAddedConfirmation": "+{calories} سعرة أُضيفت",
+  "caloriesBurnedConfirmation": "+{calories} سعرة حُرقت",
   "feedbackUncheckedMeal": "تم إلغاء تسجيل {name} ({calories, plural, zero{-0 سعرة} one{-سعرة واحدة} two{-سعرتان} few{-{calories} سعرات} many{-{calories} سعرة} other{-{calories} سعرة}})!",
   "feedbackAddedMeal": "تمت إضافة وجبة {name} ({calories, plural, zero{+0 سعرة} one{+سعرة واحدة} two{+سعرتان} few{+{calories} سعرات} many{+{calories} سعرة} other{+{calories} سعرة}})!",
   "feedbackUpdated": "تم تحديث {name}.",

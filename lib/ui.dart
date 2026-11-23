@@ -20,6 +20,20 @@ Color get kOrange => themeSettings.selected.warmAccent;
 Color get kCyan => themeSettings.selected.coolAccent;
 Color get kPurple => themeSettings.selected.violetAccent;
 
+enum CaloriesResultKind { food, workout }
+
+class CaloriesLogResult {
+  const CaloriesLogResult(this.kind, this.calories);
+  final CaloriesResultKind kind;
+  final int calories;
+}
+
+final caloriesLogEvents = ValueNotifier<CaloriesLogResult?>(null);
+
+void notifyCaloriesLog(CaloriesResultKind kind, int calories) {
+  caloriesLogEvents.value = CaloriesLogResult(kind, calories);
+}
+
 ThemeData buildTheme([AppThemePreset preset = AppThemePreset.privilege]) {
   const brightness = Brightness.dark;
   final textColor = preset.text;
@@ -249,7 +263,7 @@ class PrivilegePageTransitionsBuilder extends PageTransitionsBuilder {
   }
 }
 
-class AnimatedNumberText extends StatelessWidget {
+class AnimatedNumberText extends StatefulWidget {
   const AnimatedNumberText(this.value,
       {super.key,
       this.formatter,
@@ -263,17 +277,32 @@ class AnimatedNumberText extends StatelessWidget {
   final TextAlign? textAlign;
 
   @override
+  State<AnimatedNumberText> createState() => _AnimatedNumberTextState();
+}
+
+class _AnimatedNumberTextState extends State<AnimatedNumberText> {
+  double _from = 0;
+
+  @override
+  void didUpdateWidget(AnimatedNumberText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) _from = oldWidget.value.toDouble();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final disabled = MediaQuery.disableAnimationsOf(context);
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: value.toDouble()),
+      key: ValueKey(widget.value),
+      tween: Tween(begin: disabled ? widget.value.toDouble() : _from,
+          end: widget.value.toDouble()),
       duration: disabled ? Duration.zero : const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
       builder: (context, current, _) {
-        final text = labelBuilder?.call(current.round()) ??
-            formatter?.call(current) ??
+        final text = widget.labelBuilder?.call(current.round()) ??
+            widget.formatter?.call(current) ??
             fmt(current);
-        return Text(text, style: style, textAlign: textAlign);
+        return Text(text, style: widget.style, textAlign: widget.textAlign);
       },
     );
   }
@@ -582,29 +611,47 @@ class TabbedPage extends StatelessWidget {
     required this.subtitle,
     required this.labels,
     required this.children,
+    this.controller,
+    this.confirmation,
   });
   final String title, subtitle;
   final List<String> labels;
   final List<Widget> children;
+  final TabController? controller;
+  final Widget? confirmation;
 
   @override
-  Widget build(BuildContext context) => DefaultTabController(
-        length: labels.length,
-        child: Column(children: [
+  Widget build(BuildContext context) {
+    final page = Column(children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ScreenHeader(title, subtitle),
           ),
+          if (confirmation != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: AnimatedSwitcher(
+                duration: MediaQuery.disableAnimationsOf(context)
+                    ? Duration.zero
+                    : const Duration(milliseconds: 200),
+                child: confirmation,
+              ),
+            ),
           TabBar(
+            controller: controller,
             tabs: [for (final l in labels) Tab(text: l)],
             indicatorColor: kGold,
             labelColor: kGold,
             unselectedLabelColor: kMuted,
             dividerColor: Colors.transparent,
           ),
-          Expanded(child: TabBarView(children: children)),
-        ]),
-      );
+          Expanded(
+              child: TabBarView(controller: controller, children: children)),
+        ]);
+    return controller == null
+        ? DefaultTabController(length: labels.length, child: page)
+        : page;
+  }
 }
 
 /// Shows an upgrade message and returns false when the current tier cannot use [feature].

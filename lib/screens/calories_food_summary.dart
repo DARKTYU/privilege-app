@@ -8,7 +8,8 @@ import '../logic/calorie_target.dart';
 import '../models/food_item.dart';
 import '../services/food_database.dart';
 import '../state.dart';
-import '../ui.dart' show AnimatedNumberText, fmt;
+import '../ui.dart'
+    show AnimatedNumberText, CaloriesResultKind, fmt, notifyCaloriesLog;
 import 'calories_display_format.dart';
 
 class CaloriesPalette {
@@ -135,8 +136,10 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
               ),
               meal.category,
               servingLabel: meal.servingLabel);
+          notifyCaloriesLog(CaloriesResultKind.food, meal.calories);
         } else {
           await widget.state.addMeal(meal.copyWith(id: ''));
+          notifyCaloriesLog(CaloriesResultKind.food, meal.calories);
         }
       } else {
         await widget.state.removeMeal(meal.id);

@@ -188,6 +188,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
         category: recipe.category,
         servingLabel: 'Recipe',
       ));
+      notifyCaloriesLog(CaloriesResultKind.food, p.kcal);
       if (feedbackContext.mounted) {
         toast(
             feedbackContext,

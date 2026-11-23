@@ -272,6 +272,18 @@ abstract class AppLocalizations {
   /// **'Logged {name} (+{calories, plural, one{{calories} kcal} other{{calories} kcal}})!'**
   String feedbackLoggedMeal(String name, int calories);
 
+  /// No description provided for @caloriesAddedConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'+{calories} kcal added'**
+  String caloriesAddedConfirmation(String calories);
+
+  /// No description provided for @caloriesBurnedConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'+{calories} kcal burned'**
+  String caloriesBurnedConfirmation(String calories);
+
   /// No description provided for @feedbackUncheckedMeal.
   ///
   /// In en, this message translates to:

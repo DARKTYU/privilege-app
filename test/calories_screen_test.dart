@@ -89,6 +89,7 @@ const _snack = MealItem(
 );
 
 void main() {
+  setUp(() => caloriesLogEvents.value = null);
   setUpAll(() async => FoodDatabase().load());
   test('calorie screens contain no hardcoded UI labels', () {
     final pattern = RegExp(
@@ -175,6 +176,60 @@ void main() {
     expect(find.text('No workouts logged today yet.'), findsOneWidget);
     expect(find.text('Test breakfast'), findsNothing);
     expect(find.textContaining('meal'), findsNothing);
+  });
+
+  testWidgets('successful food and workout events select the result tab',
+      (tester) async {
+    final state = _FakeState();
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: Scaffold(body: CaloriesSection(state: state)),
+    ));
+    notifyCaloriesLog(CaloriesResultKind.food, 350);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('+350 kcal added'), findsOneWidget);
+    expect(find.textContaining('Food Log'), findsWidgets);
+
+    notifyCaloriesLog(CaloriesResultKind.workout, 200);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('+200 kcal burned'), findsOneWidget);
+    expect(find.textContaining('Activity'), findsWidgets);
+  });
+
+  testWidgets('failed log event does not redirect and deleting stays put',
+      (tester) async {
+    final state = _FakeState();
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      theme: buildTheme(),
+      home: Scaffold(body: CaloriesSection(state: state)),
+    ));
+    final tabs = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabs.controller?.index, 0);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(tabs.controller?.index, 0);
+    expect(
+        find.byKey(const ValueKey('calories-log-confirmation')), findsNothing);
+  });
+
+  testWidgets('Arabic log confirmations are localized and Western digits',
+      (tester) async {
+    final state = _FakeState();
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('ar'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: buildTheme(),
+      home: Scaffold(body: CaloriesSection(state: state)),
+    ));
+    notifyCaloriesLog(CaloriesResultKind.food, 1250);
+    await tester.pump();
+    expect(find.text('+1,250 سعرة أُضيفت'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('food log opens first and Add food is above the quick links',

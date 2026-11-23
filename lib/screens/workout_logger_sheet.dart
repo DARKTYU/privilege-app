@@ -142,6 +142,7 @@ class _WorkoutLoggerSheetState extends State<WorkoutLoggerSheet> {
         icon: activity.icon,
       ));
       if (!mounted) return;
+      notifyCaloriesLog(CaloriesResultKind.workout, amount);
       final message = widget.state.activityError == null
           ? strings(context).workoutSaved
           : strings(context).workoutRefreshError;

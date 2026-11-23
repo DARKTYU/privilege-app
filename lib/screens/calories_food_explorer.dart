@@ -387,6 +387,9 @@ class _PortionSheetState extends State<_PortionSheet> {
                   .explorerUpdated(_foodName(context, widget.food))
               : strings(context).explorerLogged(
                   _foodName(context, widget.food), portion.kcal);
+      if (widget.log == null) {
+        notifyCaloriesLog(CaloriesResultKind.food, portion.kcal);
+      }
       Navigator.pop(context, message);
     } catch (e) {
       if (mounted) {

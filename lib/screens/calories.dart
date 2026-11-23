@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,19 +15,72 @@ import 'calories_food_summary.dart';
 import 'calorie_profile_sheet.dart';
 import 'workout_logger_sheet.dart';
 
-class CaloriesSection extends StatelessWidget {
+class CaloriesSection extends StatefulWidget {
   const CaloriesSection({super.key, this.state, this.database});
   final AppState? state;
   final FoodDatabase? database;
 
   @override
+  State<CaloriesSection> createState() => _CaloriesSectionState();
+}
+
+class _CaloriesSectionState extends State<CaloriesSection>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabs = TabController(length: 2, vsync: this);
+  Timer? _confirmationTimer;
+  CaloriesLogResult? _confirmation;
+
+  @override
+  void initState() {
+    super.initState();
+    caloriesLogEvents.addListener(_showResult);
+  }
+
+  void _showResult() {
+    final result = caloriesLogEvents.value;
+    if (result == null || !mounted) return;
+    _tabs.animateTo(result.kind == CaloriesResultKind.food ? 0 : 1,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 250));
+    _confirmationTimer?.cancel();
+    setState(() => _confirmation = result);
+    _confirmationTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _confirmation = null);
+    });
+  }
+
+  @override
+  void dispose() {
+    _confirmationTimer?.cancel();
+    caloriesLogEvents.removeListener(_showResult);
+    _tabs.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => TabbedPage(
+        controller: _tabs,
         title: strings(context).calories,
         subtitle: strings(context).caloriesSubtitle,
         labels: [strings(context).foodLog, strings(context).activity],
+        confirmation: _confirmation == null
+            ? null
+            : Text(
+                _confirmation!.kind == CaloriesResultKind.food
+                    ? strings(context)
+                        .caloriesAddedConfirmation(fmt(_confirmation!.calories))
+                    : strings(context).caloriesBurnedConfirmation(
+                        fmt(_confirmation!.calories)),
+                key: const ValueKey('calories-log-confirmation'),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.secondary,
+                    fontWeight: FontWeight.w700),
+              ),
         children: [
-          FoodLogTab(state: state ?? appState, database: database),
-          ActivityTab(state: state ?? appState),
+          FoodLogTab(
+              state: widget.state ?? appState, database: widget.database),
+          ActivityTab(state: widget.state ?? appState),
         ],
       );
 }
@@ -89,7 +143,8 @@ class FoodLogTab extends StatelessWidget {
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(strings(context).foodOpenError(friendlyError(error, localizations: strings(context))))));
+            content: Text(strings(context).foodOpenError(
+                friendlyError(error, localizations: strings(context))))));
       }
     }
   }
@@ -98,6 +153,45 @@ class FoodLogTab extends StatelessWidget {
 // ───────────────────────── painters ─────────────────────────
 
 /// Rings for total, strength, and cardio burn against the daily burn goal.
+class _AnimatedBurnRings extends StatefulWidget {
+  const _AnimatedBurnRings(
+      {required this.outer, required this.middle, required this.inner});
+  final double outer, middle, inner;
+
+  @override
+  State<_AnimatedBurnRings> createState() => _AnimatedBurnRingsState();
+}
+
+class _AnimatedBurnRingsState extends State<_AnimatedBurnRings> {
+  double outerFrom = 0, middleFrom = 0, innerFrom = 0;
+
+  @override
+  void didUpdateWidget(_AnimatedBurnRings oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    outerFrom = oldWidget.outer;
+    middleFrom = oldWidget.middle;
+    innerFrom = oldWidget.inner;
+  }
+
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+        key: ValueKey('${widget.outer}-${widget.middle}-${widget.inner}'),
+        tween: Tween(begin: 0, end: 1),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+        builder: (context, progress, _) => CustomPaint(
+          size: const Size(200, 200),
+          painter: RingsPainter(
+            outerFrom + (widget.outer - outerFrom) * progress,
+            middleFrom + (widget.middle - middleFrom) * progress,
+            innerFrom + (widget.inner - innerFrom) * progress,
+          ),
+        ),
+      );
+}
+
 class RingsPainter extends CustomPainter {
   RingsPainter(this.outer, this.middle, this.inner);
   final double outer, middle, inner; // 0..1
@@ -189,11 +283,13 @@ Widget _burnTile(BuildContext context, CaloriesPalette palette, BurnItem b,
                 },
                 _burnColor(b.type)),
           ]),
-          Text(b.createdAt != null
+          Text(
+              b.createdAt != null
                   ? l.activityTimeDuration(
-                      formatActivityTime(b.createdAt!, l),
-                      b.durationMin)
-                  : b.time == 'Just now' ? l.justNow : b.time,
+                      formatActivityTime(b.createdAt!, l), b.durationMin)
+                  : b.time == 'Just now'
+                      ? l.justNow
+                      : b.time,
               style: TextStyle(fontSize: 11, color: palette.muted)),
           Text(strings(context).burnedAmount(b.calories, fmt(b.calories)),
               style: TextStyle(
@@ -223,7 +319,9 @@ Widget _activityStatus(
     return _activityCard(
       palette,
       Column(children: [
-        Text(friendlyError(state.activityError!, localizations: strings(context)),
+        Text(
+            friendlyError(state.activityError!,
+                localizations: strings(context)),
             textAlign: TextAlign.center),
         const SizedBox(height: 8),
         TextButton.icon(
@@ -256,7 +354,8 @@ Future<void> _runActivityAction(
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-          content: Text(strings(context).activitySaveError(friendlyError(error, localizations: strings(context))))));
+          content: Text(strings(context).activitySaveError(
+              friendlyError(error, localizations: strings(context))))));
   }
 }
 
@@ -313,6 +412,7 @@ class _AddFormState extends State<_AddForm> {
           consumed: true,
           category: _mealCategory(type),
         ));
+        notifyCaloriesLog(CaloriesResultKind.food, cals);
       } else {
         final title = typed.isNotEmpty ? typed : 'Athletic Training';
         final type = _burn;
@@ -327,12 +427,13 @@ class _AddFormState extends State<_AddForm> {
               ? '🏋️'
               : (type == BurnType.cardio ? '⚡' : '🧘'),
         ));
+        notifyCaloriesLog(CaloriesResultKind.workout, cals);
       }
       if (mounted) widget.onClose();
     } catch (error) {
       if (mounted) {
-        setState(() =>
-            _error = strings(context).activitySaveError(friendlyError(error, localizations: strings(context))));
+        setState(() => _error = strings(context).activitySaveError(
+            friendlyError(error, localizations: strings(context))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -371,8 +472,7 @@ class _AddFormState extends State<_AddForm> {
         ]),
         if (_error != null) ...[
           const SizedBox(height: 8),
-          Text(_error!,
-              style: TextStyle(color: kSmallTextAccent)),
+          Text(_error!, style: TextStyle(color: kSmallTextAccent)),
         ],
         const SizedBox(height: 10),
         TextField(
@@ -487,32 +587,10 @@ class ActivityTab extends StatelessWidget {
                   width: 200,
                   height: 200,
                   child: Stack(alignment: Alignment.center, children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: outer),
-                      duration: MediaQuery.disableAnimationsOf(context)
-                          ? Duration.zero
-                          : const Duration(milliseconds: 500),
-                      curve: Curves.easeOutCubic,
-                      builder: (context, outerValue, _) =>
-                          TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0, end: middle),
-                        duration: MediaQuery.disableAnimationsOf(context)
-                            ? Duration.zero
-                            : const Duration(milliseconds: 500),
-                        curve: Curves.easeOutCubic,
-                        builder: (context, middleValue, _) =>
-                            TweenAnimationBuilder<double>(
-                          tween: Tween(begin: 0, end: inner),
-                          duration: MediaQuery.disableAnimationsOf(context)
-                              ? Duration.zero
-                              : const Duration(milliseconds: 500),
-                          curve: Curves.easeOutCubic,
-                          builder: (context, innerValue, _) => CustomPaint(
-                              size: const Size(200, 200),
-                              painter: RingsPainter(
-                                  outerValue, middleValue, innerValue)),
-                        ),
-                      ),
+                    _AnimatedBurnRings(
+                      outer: outer,
+                      middle: middle,
+                      inner: inner,
                     ),
                     Column(mainAxisSize: MainAxisSize.min, children: [
                       Text(l.burned,
@@ -540,14 +618,12 @@ class ActivityTab extends StatelessWidget {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _legend(p, kRed,
-                            l.totalBurn(t.totalBurnedCalories)),
+                        _legend(p, kRed, l.totalBurn(t.totalBurnedCalories)),
                         const SizedBox(height: 4),
-                        _legend(p, kGold,
-                            l.strengthBurn(t.strengthBurnCalories)),
+                        _legend(
+                            p, kGold, l.strengthBurn(t.strengthBurnCalories)),
                         const SizedBox(height: 4),
-                        _legend(p, kCyan,
-                            l.cardioBurn(t.cardioBurnCalories)),
+                        _legend(p, kCyan, l.cardioBurn(t.cardioBurnCalories)),
                       ]),
                 ),
                 const SizedBox(height: 12),
@@ -570,10 +646,18 @@ class ActivityTab extends StatelessWidget {
             _activityCard(
               p,
               Column(children: [
-                _stat(p, l.strengthBurnLabel,
-                    l.mergeCalories(t.strengthBurnCalories, fmt(t.strengthBurnCalories)), kGold),
-                _stat(p, l.cardioBurnLabel,
-                    l.mergeCalories(t.cardioBurnCalories, fmt(t.cardioBurnCalories)), kCyan),
+                _stat(
+                    p,
+                    l.strengthBurnLabel,
+                    l.mergeCalories(
+                        t.strengthBurnCalories, fmt(t.strengthBurnCalories)),
+                    kGold),
+                _stat(
+                    p,
+                    l.cardioBurnLabel,
+                    l.mergeCalories(
+                        t.cardioBurnCalories, fmt(t.cardioBurnCalories)),
+                    kCyan),
               ]),
             ),
             _title(p, l.workoutLogs(s.burns.length)),
