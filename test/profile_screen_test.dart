@@ -10,6 +10,7 @@ import 'package:privilege/screens/subscription.dart';
 import 'package:privilege/ui.dart';
 
 import 'progression_fake.dart';
+import 'subscription_fake.dart';
 
 void main() {
   test('profile, alerts and subscription have no hardcoded UI labels', () {
@@ -60,8 +61,9 @@ void main() {
       await tester.ensureVisible(find.text(l.profileSaveChanges));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      await tester
-          .pumpWidget(app(SubscriptionScreen(progressionRepository: repo)));
+      await tester.pumpWidget(app(SubscriptionScreen(
+          progressionRepository: repo,
+          subscriptionRepository: FakeSubscriptions())));
       await tester.pumpAndSettle();
       expect(find.text(l.membershipCurrent(l.memberGold)), findsOneWidget);
       expect(find.text(l.membershipComingSoon), findsOneWidget);

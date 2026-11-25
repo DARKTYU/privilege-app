@@ -73,6 +73,43 @@ void main() {
     });
   }
 
+  testWidgets('logging from a pushed page closes it once and keeps the shell',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    caloriesLogEvents.value = null;
+    final state = AppState(plannerRepository: FakePlanner());
+    addTearDown(state.dispose);
+    await tester.pumpWidget(MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: buildTheme(),
+      home: HomeShell(
+          alertBell: const SizedBox(height: 32),
+          progressionRepository: FakeProgression(),
+          plannerState: state),
+    ));
+    await tester.pumpAndSettle();
+    Navigator.of(tester.element(find.byType(HomeShell))).push(
+        MaterialPageRoute<void>(
+            builder: (context) => Scaffold(
+                  body: Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        notifyCaloriesLog(CaloriesResultKind.food, 300);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('save-test'),
+                    ),
+                  ),
+                )));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('save-test'));
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeShell), findsOneWidget);
+    expect(find.text('save-test'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('bot button opens sheet and preserves selected tab',
       (tester) async {
     SharedPreferences.setMockInitialValues({});

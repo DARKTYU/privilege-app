@@ -332,6 +332,27 @@ export async function handler(request: Request): Promise<Response> {
     const denial = quotaDenial(quota);
     if (denial) return json(429, denial);
 
+    // A request that fails because the AI provider is busy or unreachable is
+    // not the user's fault, so give back what it cost. Best effort: a failed
+    // refund never changes the answer, and it needs supabase/coach_quota_refund.sql.
+    const refundQuota = async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+      try {
+        const refunded = await fetch(`${url}/rest/v1/rpc/coach_refund_quota`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_user: user.id, p_cost: hasPhoto ? 3 : 1 }),
+          signal: controller.signal,
+        });
+        if (refunded.body) void refunded.body.cancel().catch(() => {});
+      } catch {
+        // Nothing to do: the quota simply stays charged.
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
     let image: CoachImage | undefined;
     if (hasImagesField) return json(400, { error: 'multiple_images' });
     if (hasImageField) {
@@ -379,7 +400,10 @@ export async function handler(request: Request): Promise<Response> {
           hasPhoto || attempt === 1 ? policy.timeoutMs : 12_000, attempt);
         if (provider.ok) result = await provider.json();
       } catch (error) {
-        if (error instanceof SyntaxError) return json(502, { error: 'provider_unavailable' });
+        if (error instanceof SyntaxError) {
+          await refundQuota();
+          return json(502, { error: 'provider_unavailable' });
+        }
         provider = undefined;
         const name = error instanceof Error ? error.name : '';
         failureName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
@@ -407,7 +431,10 @@ export async function handler(request: Request): Promise<Response> {
         provider = await callProvider(fallbackModel, 12_000, attempts);
         if (provider.ok) result = await provider.json();
       } catch (error) {
-        if (error instanceof SyntaxError) return json(502, { error: 'provider_unavailable' });
+        if (error instanceof SyntaxError) {
+          await refundQuota();
+          return json(502, { error: 'provider_unavailable' });
+        }
         provider = undefined;
         const name = error instanceof Error ? error.name : '';
         failureName = ['AbortError', 'TimeoutError', 'TypeError', 'Error', 'NetworkError'].includes(name)
@@ -416,6 +443,7 @@ export async function handler(request: Request): Promise<Response> {
     }
     if (!provider) {
       console.error(`coach_error provider_unavailable error=${failureName} attempts=${attempts}`);
+      await refundQuota();
       if (failureName === 'TimeoutError' || failureName === 'AbortError') {
         return json(504, { error: 'provider_timeout' }, false);
       }
@@ -433,6 +461,7 @@ export async function handler(request: Request): Promise<Response> {
         // A missing or invalid JSON body has no safe reason to report.
       }
       console.error(`coach_error provider_unavailable status=${provider.status}${reason} attempts=${attempts}`);
+      if (provider.status === 429 || provider.status >= 500) await refundQuota();
       return json(502, { error: 'provider_unavailable' }, false);
     }
     try {

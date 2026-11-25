@@ -587,7 +587,7 @@ void main() {
   });
 
   for (final suggestion in [
-    'Training ideas',
+    'Suggest a full-body workout',
     'High-protein recipe',
     'Calories left?',
     'Snack ideas',

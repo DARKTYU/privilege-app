@@ -17,6 +17,7 @@ import 'package:privilege/ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'progression_fake.dart';
+import 'subscription_fake.dart';
 import 'calories_test_database.dart';
 import 'planner_fake.dart';
 import 'cravings_classified_fake.dart';
@@ -102,13 +103,17 @@ void main() {
   });
 
   for (final tier in ['Free', 'Silver', 'Gold']) {
-    testWidgets('membership displays real $tier without payment actions',
+    testWidgets('membership displays real $tier and labels checkout as a demo',
         (tester) async {
+      _tallScreen(tester);
       await tester.pumpWidget(_app(SubscriptionScreen(
-          progressionRepository: FakeProgression()..tier = tier)));
+          progressionRepository: FakeProgression()..tier = tier,
+          subscriptionRepository: FakeSubscriptions())));
       await tester.pumpAndSettle();
       expect(find.text('Current membership: $tier'), findsOneWidget);
-      expect(find.text('Coming soon. Payments are not available yet.'),
+      expect(
+          find.text(
+              'Demo checkout: no real payment is taken. Real payments are not connected yet.'),
           findsOneWidget);
       expect(find.textContaining('Upgrade to'), findsNothing);
       expect(find.textContaining('Gemini'), findsNothing);
@@ -119,8 +124,9 @@ void main() {
 
   testWidgets('membership failure is visible and retryable', (tester) async {
     final repo = FakeProgression()..error = Exception('offline');
-    await tester
-        .pumpWidget(_app(SubscriptionScreen(progressionRepository: repo)));
+    await tester.pumpWidget(_app(SubscriptionScreen(
+        progressionRepository: repo,
+        subscriptionRepository: FakeSubscriptions())));
     await tester.pumpAndSettle();
     expect(find.text('Membership unavailable. Check your connection.'),
         findsOneWidget);
@@ -205,8 +211,9 @@ void main() {
     'pathway': () => ChampionScreen(
         progressionRepository: FakeProgression(),
         state: AppState(classifiedChecksRepository: FakeClassifiedChecks())),
-    'membership': () =>
-        SubscriptionScreen(progressionRepository: FakeProgression()),
+    'membership': () => SubscriptionScreen(
+        progressionRepository: FakeProgression(),
+        subscriptionRepository: FakeSubscriptions()),
     'splits': () =>
         SplitsScreen(state: AppState(plannerRepository: FakePlanner())),
     'cheat meals': () => CheatsScreen(

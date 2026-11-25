@@ -312,6 +312,26 @@ class AppState extends ChangeNotifier {
     if (loggedIn) _clearAccount();
   }
 
+  /// Permanently deletes the signed-in account on the server, then clears
+  /// everything this phone still holds for it. Throws when the password is
+  /// wrong or the server could not finish; nothing is cleared in that case.
+  Future<void> deleteAccount(String password) async {
+    final userId = SupabaseAuthService.client.auth.currentUser?.id;
+    await SupabaseAuthService.deleteAccount(password);
+    if (userId != null) {
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.remove('privilege_profile_photo_$userId');
+      } catch (_) {
+        // The account is already gone; a leftover local photo is harmless.
+      }
+    }
+    final notice = savedLanguageStrings().privacyDeleteDone;
+    _clearAccount();
+    authNotice = notice;
+    notifyListeners();
+  }
+
   void _clearAccount() {
     _activityGeneration++;
     _clearPlanner();

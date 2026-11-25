@@ -1411,7 +1411,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get coachWelcome => 'أهلاً! كيف أقدر أساعدك اليوم؟';
 
   @override
-  String get coachTraining => 'أفكار للتمرين';
+  String get coachTraining => 'اقترح عليّ تمرين لكامل الجسم';
 
   @override
   String get coachProteinRecipe => 'وصفة غنية بالبروتين';
@@ -3186,7 +3186,87 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get membershipComingSoon => 'قريبًا. الدفع غير متاح بعد.';
+  String get membershipComingSoon => 'دفع تجريبي: لا يتم سحب أي مبلغ حقيقي. الدفع الحقيقي غير مفعّل بعد.';
+
+  @override
+  String get membershipPlansTitle =>
+      'الباقات';
+
+  @override
+  String get membershipPlansUnavailable =>
+      'تعذر تحميل الباقات.';
+
+  @override
+  String get membershipFreePrice =>
+      'مجاني';
+
+  @override
+  String membershipPrice(String price) {
+    return '$price / 30 يومًا';
+  }
+
+  @override
+  String get membershipPerkFree =>
+      'ثيمات وإطارات وألقاب أساسية في متجر المكافآت';
+
+  @override
+  String get membershipPerkSilver =>
+      'كل ما في الباقة المجانية، بالإضافة إلى ثيمي Ember وAurora وإطاري Gold وPlatinum ولقبين إضافيين';
+
+  @override
+  String get membershipPerkGold =>
+      'كل ما في باقة Silver، بالإضافة إلى ثيم Galaxy وإطار Diamond ولقب Champion Spirit';
+
+  @override
+  String membershipChoose(String plan) {
+    return 'اختر $plan';
+  }
+
+  @override
+  String get membershipCurrentPlanButton =>
+      'باقتك الحالية';
+
+  @override
+  String get membershipCancel =>
+      'إلغاء العضوية';
+
+  @override
+  String get membershipKeep =>
+      'الاحتفاظ بالعضوية';
+
+  @override
+  String get membershipCheckoutTitle =>
+      'دفع تجريبي';
+
+  @override
+  String membershipCheckoutBody(String summary) {
+    return '$summary\n\nهذا تجريبي: لا يتم سحب أي مبلغ حقيقي.';
+  }
+
+  @override
+  String get membershipConfirm =>
+      'ابدأ العضوية التجريبية';
+
+  @override
+  String get membershipCancelTitle =>
+      'إلغاء عضويتك؟';
+
+  @override
+  String get membershipCancelBody =>
+      'ستعود إلى الباقة المجانية فورًا. المكافآت التي استبدلتها تبقى في حسابك.';
+
+  @override
+  String membershipStarted(String plan) {
+    return 'بدأت العضوية: $plan.';
+  }
+
+  @override
+  String get membershipCancelled =>
+      'تم إلغاء العضوية.';
+
+  @override
+  String get membershipActionFailed =>
+      'تعذر إكمال العملية. تحقق من اتصالك وحاول مرة أخرى.';
 
   @override
   String get profileTitle => 'ملف الرياضي';
@@ -4121,7 +4201,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get primaryGoal => 'الهدف الأساسي';
 
   @override
-  String get goalChampionship => 'الاستعداد لبطولة طبيعية';
+  String get goalChampionship => 'الاستعداد لبطولة طبيعية (بدون منشطات)';
 
   @override
   String get goalMuscle => 'زيادة العضلات';
@@ -4205,7 +4285,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privacyDeletionBody =>
-      'حذف الحساب غير متاح داخل التطبيق حالياً. لطلب حذف بياناتك، تواصل مع الدعم.';
+      'احذف حسابك وكل البيانات المرتبطة به نهائياً. لا يمكن التراجع عن هذا.';
 
   @override
   String get privacySupport => 'التواصل مع الدعم';
@@ -4221,4 +4301,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privacySignOut => 'تسجيل الخروج';
+
+  @override
+  String get privacyDeleteButton => 'حذف حسابي';
+
+  @override
+  String get privacyDeleteDialogTitle => 'حذف حسابك نهائياً؟';
+
+  @override
+  String get privacyDeleteDialogBody =>
+      'سيتم حذف ملفك الشخصي وسجلات الطعام والتمارين ونقاط الخبرة والشارات والمنشورات والتعليقات والصداقات والمجموعات التي تملكها بصورها نهائياً. لا يمكن التراجع عن هذا.';
+
+  @override
+  String get privacyDeletePasswordLabel => 'أدخل كلمة المرور للتأكيد';
+
+  @override
+  String get privacyDeleteConfirm => 'احذف نهائياً';
+
+  @override
+  String get privacyDeleteWrongPassword => 'كلمة المرور غير صحيحة.';
+
+  @override
+  String get privacyDeleteFailed => 'تعذر حذف حسابك. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get privacyDeleteDone => 'تم حذف حسابك.';
 }

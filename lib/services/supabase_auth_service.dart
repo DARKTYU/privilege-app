@@ -241,6 +241,62 @@ class SupabaseAuthService {
     return AuthException('reset_error', savedLanguageStrings().resetError);
   }
 
+  /// Permanently deletes the signed-in account.
+  ///
+  /// The password is checked first by signing in again, so a stolen unlocked
+  /// phone cannot delete an account without it. The server function then
+  /// removes the account's photos and the account itself; all other data is
+  /// removed by database cascades. Nothing is deleted when any step fails.
+  static Future<void> deleteAccount(String password) async {
+    final user = client.auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null || email.isEmpty) {
+      throw AuthException(
+          'invalid_session', savedLanguageStrings().sessionExpired);
+    }
+    try {
+      final signedIn =
+          await client.auth.signInWithPassword(email: email, password: password);
+      final session = signedIn.session;
+      if (signedIn.user?.id != user.id || session == null) {
+        throw AuthException('invalid_credentials',
+            savedLanguageStrings().privacyDeleteWrongPassword);
+      }
+      final response = await client.functions
+          .invoke(
+            'delete-account',
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+            body: {'confirm': 'DELETE'},
+          )
+          .timeout(const Duration(seconds: 60));
+      if (response.status < 200 || response.status >= 300) {
+        throw AuthException(
+            'delete_failed', savedLanguageStrings().privacyDeleteFailed);
+      }
+    } on sb.AuthException catch (error) {
+      if (error.code == 'invalid_credentials') {
+        throw AuthException('invalid_credentials',
+            savedLanguageStrings().privacyDeleteWrongPassword);
+      }
+      throw _authError(error);
+    } on sb.FunctionException {
+      throw AuthException(
+          'delete_failed', savedLanguageStrings().privacyDeleteFailed);
+    } on SocketException {
+      throw _connectionError();
+    } on http.ClientException {
+      throw _connectionError();
+    } on TimeoutException {
+      throw _connectionError();
+    }
+    // The account no longer exists; clear the saved session on this phone.
+    try {
+      await client.auth.signOut(scope: sb.SignOutScope.local);
+    } catch (_) {
+      // Nothing left to sign out of on the server; local state is cleared next.
+    }
+  }
+
   static Future<void> logout() async {
     try {
       await client.auth.signOut();

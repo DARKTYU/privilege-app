@@ -524,6 +524,7 @@ test('provider failures log only status, safe reason or error name', async (t) =
       const logs: unknown[][] = [];
       const info: unknown[][] = [];
       let quotaCalls = 0;
+      let refundCalls = 0;
       let providerCalls = 0;
       let statuses: (number | string)[] = [];
       const timeouts: number[] = [];
@@ -553,6 +554,10 @@ test('provider failures log only status, safe reason or error name', async (t) =
           quotaCalls++;
           return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
         }
+        if (url.endsWith('/rest/v1/rpc/coach_refund_quota')) {
+          refundCalls++;
+          return new Response(null, { status: 204 });
+        }
         models.push(url);
         const status = statuses[providerCalls++];
         if (status === 'network') throw new TypeError('private network detail');
@@ -578,6 +583,7 @@ test('provider failures log only status, safe reason or error name', async (t) =
         ] as [(number | string)[], number, number][]) {
           statuses = sequence;
           quotaCalls = 0;
+          refundCalls = 0;
           providerCalls = 0;
           logs.length = 0;
           timeouts.length = 0;
@@ -586,6 +592,8 @@ test('provider failures log only status, safe reason or error name', async (t) =
           assert.equal(response.status, expectedStatus);
           assert.equal(quotaCalls, 1);
           assert.equal(providerCalls, expectedCalls);
+          // Only a busy or unreachable provider (429, 5xx, timeout) is refunded.
+          assert.equal(refundCalls, sequence.at(-1) === 503 && expectedStatus === 502 ? 1 : 0);
           assert.deepEqual(timeouts.slice(3), [20000, 12000, 12000].slice(0, expectedCalls));
           const body = await response.json();
           if (expectedStatus === 200) {
@@ -656,6 +664,7 @@ test('provider failures log only status, safe reason or error name', async (t) =
         quotaCalls++;
         return Response.json([{ allowed: true, remaining: 29, reset_at: '2099-01-01T00:00:00Z' }]);
       }
+      if (url.endsWith('/rest/v1/rpc/coach_refund_quota')) return new Response(null, { status: 204 });
       providerCalls++;
       if (providerResult instanceof Error) throw providerResult;
       return providerResult.clone();

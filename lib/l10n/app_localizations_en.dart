@@ -1339,7 +1339,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get coachWelcome => 'Hi! How can I help today?';
 
   @override
-  String get coachTraining => 'Training ideas';
+  String get coachTraining => 'Suggest a full-body workout';
 
   @override
   String get coachProteinRecipe => 'High-protein recipe';
@@ -3016,7 +3016,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get membershipComingSoon =>
-      'Coming soon. Payments are not available yet.';
+      'Demo checkout: no real payment is taken. Real payments are not connected yet.';
+
+  @override
+  String get membershipPlansTitle =>
+      'Plans';
+
+  @override
+  String get membershipPlansUnavailable =>
+      'Plans could not be loaded.';
+
+  @override
+  String get membershipFreePrice =>
+      'Free';
+
+  @override
+  String membershipPrice(String price) {
+    return '$price / 30 days';
+  }
+
+  @override
+  String get membershipPerkFree =>
+      'Base themes, frames and titles in the rewards store';
+
+  @override
+  String get membershipPerkSilver =>
+      'Everything in Free, plus Ember and Aurora themes, Gold and Platinum frames, and two extra titles';
+
+  @override
+  String get membershipPerkGold =>
+      'Everything in Silver, plus the Galaxy theme, Diamond frame and Champion Spirit title';
+
+  @override
+  String membershipChoose(String plan) {
+    return 'Choose $plan';
+  }
+
+  @override
+  String get membershipCurrentPlanButton =>
+      'Current plan';
+
+  @override
+  String get membershipCancel =>
+      'Cancel membership';
+
+  @override
+  String get membershipKeep =>
+      'Keep membership';
+
+  @override
+  String get membershipCheckoutTitle =>
+      'Demo checkout';
+
+  @override
+  String membershipCheckoutBody(String summary) {
+    return '$summary\n\nThis is a demo: no real payment is taken.';
+  }
+
+  @override
+  String get membershipConfirm =>
+      'Start demo membership';
+
+  @override
+  String get membershipCancelTitle =>
+      'Cancel your membership?';
+
+  @override
+  String get membershipCancelBody =>
+      'You return to the Free plan right away. Rewards you already redeemed stay in your account.';
+
+  @override
+  String membershipStarted(String plan) {
+    return 'Membership started: $plan.';
+  }
+
+  @override
+  String get membershipCancelled =>
+      'Membership cancelled.';
+
+  @override
+  String get membershipActionFailed =>
+      'Could not complete this. Check your connection and try again.';
 
   @override
   String get profileTitle => 'Athlete Profile';
@@ -3911,7 +3991,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get primaryGoal => 'Primary Target Goal';
 
   @override
-  String get goalChampionship => 'Train for a natural competition';
+  String get goalChampionship =>
+      'Train for a natural (drug-free) competition';
 
   @override
   String get goalMuscle => 'Build muscle';
@@ -3995,7 +4076,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyDeletionBody =>
-      'Account deletion is not available inside the app yet. To request deletion of your data, contact support.';
+      'Permanently delete your account and all data linked to it. This cannot be undone.';
 
   @override
   String get privacySupport => 'Contact support';
@@ -4011,4 +4092,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacySignOut => 'Sign out';
+
+  @override
+  String get privacyDeleteButton => 'Delete my account';
+
+  @override
+  String get privacyDeleteDialogTitle => 'Delete your account permanently?';
+
+  @override
+  String get privacyDeleteDialogBody =>
+      'This permanently deletes your profile, food and workout logs, XP, badges, posts, comments, friendships and the groups you own, including their photos. This cannot be undone.';
+
+  @override
+  String get privacyDeletePasswordLabel => 'Enter your password to confirm';
+
+  @override
+  String get privacyDeleteConfirm => 'Delete forever';
+
+  @override
+  String get privacyDeleteWrongPassword => 'That password is not correct.';
+
+  @override
+  String get privacyDeleteFailed =>
+      'Your account could not be deleted. Please check your connection and try again.';
+
+  @override
+  String get privacyDeleteDone => 'Your account was deleted.';
 }

@@ -54,9 +54,15 @@ class _HomeShellState extends State<HomeShell>
   void _showCaloriesResult() {
     if (!mounted || caloriesLogEvents.value == null) return;
     setState(() => _i = 2);
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
+    // Wait one frame before closing extra pages. The page that logged the
+    // food or workout usually closes itself right after notifying us; popping
+    // here at the same moment would pop twice and remove the shell itself
+    // (black screen).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) navigator.popUntil((route) => route.isFirst);
+    });
   }
 
   @override

@@ -2183,7 +2183,7 @@ abstract class AppLocalizations {
   /// No description provided for @coachTraining.
   ///
   /// In en, this message translates to:
-  /// **'Training ideas'**
+  /// **'Suggest a full-body workout'**
   String get coachTraining;
 
   /// No description provided for @coachProteinRecipe.
@@ -4745,8 +4745,122 @@ abstract class AppLocalizations {
   /// No description provided for @membershipComingSoon.
   ///
   /// In en, this message translates to:
-  /// **'Coming soon. Payments are not available yet.'**
+  /// **'Demo checkout: no real payment is taken. Real payments are not connected yet.'**
   String get membershipComingSoon;
+
+  /// No description provided for @membershipPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans'**
+  String get membershipPlansTitle;
+
+  /// No description provided for @membershipPlansUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans could not be loaded.'**
+  String get membershipPlansUnavailable;
+
+  /// No description provided for @membershipFreePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get membershipFreePrice;
+
+  /// No description provided for @membershipPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} / 30 days'**
+  String membershipPrice(String price);
+
+  /// No description provided for @membershipPerkFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Base themes, frames and titles in the rewards store'**
+  String get membershipPerkFree;
+
+  /// No description provided for @membershipPerkSilver.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Free, plus Ember and Aurora themes, Gold and Platinum frames, and two extra titles'**
+  String get membershipPerkSilver;
+
+  /// No description provided for @membershipPerkGold.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything in Silver, plus the Galaxy theme, Diamond frame and Champion Spirit title'**
+  String get membershipPerkGold;
+
+  /// No description provided for @membershipChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose {plan}'**
+  String membershipChoose(String plan);
+
+  /// No description provided for @membershipCurrentPlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get membershipCurrentPlanButton;
+
+  /// No description provided for @membershipCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel membership'**
+  String get membershipCancel;
+
+  /// No description provided for @membershipKeep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep membership'**
+  String get membershipKeep;
+
+  /// No description provided for @membershipCheckoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo checkout'**
+  String get membershipCheckoutTitle;
+
+  /// No description provided for @membershipCheckoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{summary}\n\nThis is a demo: no real payment is taken.'**
+  String membershipCheckoutBody(String summary);
+
+  /// No description provided for @membershipConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start demo membership'**
+  String get membershipConfirm;
+
+  /// No description provided for @membershipCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel your membership?'**
+  String get membershipCancelTitle;
+
+  /// No description provided for @membershipCancelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You return to the Free plan right away. Rewards you already redeemed stay in your account.'**
+  String get membershipCancelBody;
+
+  /// No description provided for @membershipStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership started: {plan}.'**
+  String membershipStarted(String plan);
+
+  /// No description provided for @membershipCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership cancelled.'**
+  String get membershipCancelled;
+
+  /// No description provided for @membershipActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete this. Check your connection and try again.'**
+  String get membershipActionFailed;
 
   /// No description provided for @profileTitle.
   ///
@@ -6185,7 +6299,7 @@ abstract class AppLocalizations {
   /// No description provided for @goalChampionship.
   ///
   /// In en, this message translates to:
-  /// **'Train for a natural competition'**
+  /// **'Train for a natural (drug-free) competition'**
   String get goalChampionship;
 
   /// No description provided for @goalMuscle.
@@ -6341,7 +6455,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyDeletionBody.
   ///
   /// In en, this message translates to:
-  /// **'Account deletion is not available inside the app yet. To request deletion of your data, contact support.'**
+  /// **'Permanently delete your account and all data linked to it. This cannot be undone.'**
   String get privacyDeletionBody;
 
   /// No description provided for @privacySupport.
@@ -6373,6 +6487,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign out'**
   String get privacySignOut;
+
+  /// No description provided for @privacyDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete my account'**
+  String get privacyDeleteButton;
+
+  /// No description provided for @privacyDeleteDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your account permanently?'**
+  String get privacyDeleteDialogTitle;
+
+  /// No description provided for @privacyDeleteDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently deletes your profile, food and workout logs, XP, badges, posts, comments, friendships and the groups you own, including their photos. This cannot be undone.'**
+  String get privacyDeleteDialogBody;
+
+  /// No description provided for @privacyDeletePasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to confirm'**
+  String get privacyDeletePasswordLabel;
+
+  /// No description provided for @privacyDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete forever'**
+  String get privacyDeleteConfirm;
+
+  /// No description provided for @privacyDeleteWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'That password is not correct.'**
+  String get privacyDeleteWrongPassword;
+
+  /// No description provided for @privacyDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account could not be deleted. Please check your connection and try again.'**
+  String get privacyDeleteFailed;
+
+  /// No description provided for @privacyDeleteDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was deleted.'**
+  String get privacyDeleteDone;
 }
 
 class _AppLocalizationsDelegate
