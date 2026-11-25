@@ -30,7 +30,7 @@ void main() {
       homeBuilder: (_) => const SizedBox(key: ValueKey('fake-home')),
     ));
     expect(find.byKey(const ValueKey('intro')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 1599));
+    await tester.pump(const Duration(milliseconds: 1799));
     expect(find.byKey(const ValueKey('fake-login')), findsNothing);
     await tester.pump(const Duration(milliseconds: 301));
     expect(find.byKey(const ValueKey('fake-login')), findsOneWidget);
@@ -46,9 +46,37 @@ void main() {
       homeBuilder: (_) => const SizedBox(key: ValueKey('fake-home')),
     ));
     expect(find.byKey(const ValueKey('intro')), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 1800));
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const ValueKey('fake-home')), findsOneWidget);
+  });
+
+  testWidgets('intro tagline appears word by word and stays visible',
+      (widgetTester) async {
+    tester = widgetTester;
+    await tester.pumpWidget(PrivilegeApp(
+      loginBuilder: (_) => const SizedBox(key: ValueKey('fake-login')),
+      homeBuilder: (_) => const SizedBox(key: ValueKey('fake-home')),
+    ));
+    await tester.pump(const Duration(milliseconds: 1700));
+    expect(find.text('Eat'), findsOneWidget);
+    expect(find.text('Stay'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a slow session restore keeps the finished intro on screen',
+      (widgetTester) async {
+    tester = widgetTester;
+    appState.restoring = true;
+    await tester.pumpWidget(PrivilegeApp(
+      loginBuilder: (_) => const SizedBox(key: ValueKey('fake-login')),
+      homeBuilder: (_) => const SizedBox(key: ValueKey('fake-home')),
+    ));
+    await tester.pump(const Duration(milliseconds: 2500));
+    expect(find.byKey(const ValueKey('intro')), findsOneWidget);
+    expect(find.byKey(const ValueKey('fake-login')), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('disabled animations use a 500 ms intro', (widgetTester) async {
@@ -72,7 +100,7 @@ void main() {
       loginBuilder: (_) => const SizedBox(key: ValueKey('fake-login')),
       homeBuilder: (_) => const SizedBox(key: ValueKey('fake-home')),
     ));
-    await tester.pump(const Duration(milliseconds: 1600));
+    await tester.pump(const Duration(milliseconds: 1800));
     await tester.pump(const Duration(milliseconds: 301));
     expect(find.byKey(const ValueKey('fake-login')), findsOneWidget);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);

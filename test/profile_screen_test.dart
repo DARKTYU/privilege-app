@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:privilege/l10n/app_localizations.dart';
+import 'package:privilege/l10n/app_localizations_ar.dart';
+import 'package:privilege/l10n/app_localizations_en.dart';
 import 'package:privilege/screens/profile.dart';
 import 'package:privilege/screens/subscription.dart';
 import 'package:privilege/ui.dart';
@@ -22,6 +24,13 @@ void main() {
       expect(pattern.allMatches(source), isEmpty, reason: path);
       expect(source, isNot(contains(RegExp(r'[\u0600-\u06ff]'))), reason: path);
     }
+  });
+
+  test('Arabic bio is shown without Latin quote marks, English keeps them', () {
+    expect(AppLocalizationsAr().profileQuotedBio('road to champion'),
+        'road to champion');
+    expect(AppLocalizationsEn().profileQuotedBio('road to champion'),
+        '\u201croad to champion\u201d');
   });
 
   for (final language in ['en', 'ar']) {

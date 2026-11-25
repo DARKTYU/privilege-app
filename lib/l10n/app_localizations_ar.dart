@@ -3230,7 +3230,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String profileQuotedBio(String bio) {
-    return '“$bio”';
+    return '$bio';
   }
 
   @override

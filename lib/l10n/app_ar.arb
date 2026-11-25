@@ -787,7 +787,7 @@
   "memberHandle": "عضو {id}",
   "profileSaveChanges": "حفظ التغييرات",
   "profileAddBio": "أضف نبذة عنك",
-  "profileQuotedBio": "“{bio}”",
+  "profileQuotedBio": "{bio}",
   "profileCurrentWeight": "الوزن الحالي",
   "profileHeightLabel": "الطول",
   "profileCalorieGoal": "هدف السعرات",
