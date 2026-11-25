@@ -566,7 +566,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupsChatSwitch => 'Group chat';
 
   @override
-  String get groupsChatSwitchHint => 'Members can chat together inside the group.';
+  String get groupsChatSwitchHint =>
+      'Members can chat together inside the group.';
 
   @override
   String get groupChatOpen => 'Open group chat';
@@ -590,7 +591,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupChatOffError => 'This group chat is turned off.';
 
   @override
-  String get groupChatRateLimitError => 'You are sending messages too fast. Please wait a moment.';
+  String get groupChatRateLimitError =>
+      'You are sending messages too fast. Please wait a moment.';
 
   @override
   String get groupsRules => 'Rules';
@@ -3042,16 +3044,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Demo checkout: no real payment is taken. Real payments are not connected yet.';
 
   @override
-  String get membershipPlansTitle =>
-      'Plans';
+  String get membershipPlansTitle => 'Plans';
 
   @override
-  String get membershipPlansUnavailable =>
-      'Plans could not be loaded.';
+  String get membershipPlansUnavailable => 'Plans could not be loaded.';
 
   @override
-  String get membershipFreePrice =>
-      'Free';
+  String get membershipFreePrice => 'Free';
 
   @override
   String membershipPrice(String price) {
@@ -3076,20 +3075,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get membershipCurrentPlanButton =>
-      'Current plan';
+  String get membershipCurrentPlanButton => 'Current plan';
 
   @override
-  String get membershipCancel =>
-      'Cancel membership';
+  String get membershipCancel => 'Cancel membership';
 
   @override
-  String get membershipKeep =>
-      'Keep membership';
+  String get membershipKeep => 'Keep membership';
 
   @override
-  String get membershipCheckoutTitle =>
-      'Demo checkout';
+  String get membershipCheckoutTitle => 'Demo checkout';
 
   @override
   String membershipCheckoutBody(String summary) {
@@ -3097,12 +3092,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get membershipConfirm =>
-      'Start demo membership';
+  String get membershipConfirm => 'Start demo membership';
 
   @override
-  String get membershipCancelTitle =>
-      'Cancel your membership?';
+  String get membershipCancelTitle => 'Cancel your membership?';
 
   @override
   String get membershipCancelBody =>
@@ -3114,8 +3107,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get membershipCancelled =>
-      'Membership cancelled.';
+  String get membershipCancelled => 'Membership cancelled.';
 
   @override
   String get membershipActionFailed =>
@@ -4014,8 +4006,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get primaryGoal => 'Primary Target Goal';
 
   @override
-  String get goalChampionship =>
-      'Train for a natural (drug-free) competition';
+  String get goalChampionship => 'Train for a natural (drug-free) competition';
 
   @override
   String get goalMuscle => 'Build muscle';

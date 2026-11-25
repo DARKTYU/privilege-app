@@ -628,7 +628,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get groupChatOffError => 'محادثة هذه المجموعة متوقفة.';
 
   @override
-  String get groupChatRateLimitError => 'ترسل الرسائل بسرعة كبيرة. يرجى الانتظار قليلًا.';
+  String get groupChatRateLimitError =>
+      'ترسل الرسائل بسرعة كبيرة. يرجى الانتظار قليلًا.';
 
   @override
   String get groupsRules => 'القواعد';
@@ -3209,19 +3210,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get membershipComingSoon => 'دفع تجريبي: لا يتم سحب أي مبلغ حقيقي. الدفع الحقيقي غير مفعّل بعد.';
+  String get membershipComingSoon =>
+      'دفع تجريبي: لا يتم سحب أي مبلغ حقيقي. الدفع الحقيقي غير مفعّل بعد.';
 
   @override
-  String get membershipPlansTitle =>
-      'الباقات';
+  String get membershipPlansTitle => 'الباقات';
 
   @override
-  String get membershipPlansUnavailable =>
-      'تعذر تحميل الباقات.';
+  String get membershipPlansUnavailable => 'تعذر تحميل الباقات.';
 
   @override
-  String get membershipFreePrice =>
-      'مجاني';
+  String get membershipFreePrice => 'مجاني';
 
   @override
   String membershipPrice(String price) {
@@ -3246,20 +3245,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get membershipCurrentPlanButton =>
-      'باقتك الحالية';
+  String get membershipCurrentPlanButton => 'باقتك الحالية';
 
   @override
-  String get membershipCancel =>
-      'إلغاء العضوية';
+  String get membershipCancel => 'إلغاء العضوية';
 
   @override
-  String get membershipKeep =>
-      'الاحتفاظ بالعضوية';
+  String get membershipKeep => 'الاحتفاظ بالعضوية';
 
   @override
-  String get membershipCheckoutTitle =>
-      'دفع تجريبي';
+  String get membershipCheckoutTitle => 'دفع تجريبي';
 
   @override
   String membershipCheckoutBody(String summary) {
@@ -3267,12 +3262,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get membershipConfirm =>
-      'ابدأ العضوية التجريبية';
+  String get membershipConfirm => 'ابدأ العضوية التجريبية';
 
   @override
-  String get membershipCancelTitle =>
-      'إلغاء عضويتك؟';
+  String get membershipCancelTitle => 'إلغاء عضويتك؟';
 
   @override
   String get membershipCancelBody =>
@@ -3284,8 +3277,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get membershipCancelled =>
-      'تم إلغاء العضوية.';
+  String get membershipCancelled => 'تم إلغاء العضوية.';
 
   @override
   String get membershipActionFailed =>
@@ -4345,7 +4337,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get privacyDeleteWrongPassword => 'كلمة المرور غير صحيحة.';
 
   @override
-  String get privacyDeleteFailed => 'تعذر حذف حسابك. تحقق من الاتصال وحاول مرة أخرى.';
+  String get privacyDeleteFailed =>
+      'تعذر حذف حسابك. تحقق من الاتصال وحاول مرة أخرى.';
 
   @override
   String get privacyDeleteDone => 'تم حذف حسابك.';
