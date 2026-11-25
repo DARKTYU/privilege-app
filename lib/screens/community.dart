@@ -444,7 +444,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   Widget _buildFeed() {
-    if (_feedLoading) return const Center(child: CircularProgressIndicator());
+    if (_feedLoading) return const SkeletonList(count: 5);
     if (_feedError != null && _posts.isEmpty) {
       return _errorState(_communityError(context, _feedError!), _loadFeed);
     }
@@ -452,10 +452,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
       return RefreshIndicator(
         onRefresh: _loadFeed,
         child: ListView(children: [
-          const SizedBox(height: 110),
-          const Icon(Icons.forum_outlined, size: 42),
-          const SizedBox(height: 14),
-          Center(child: Text(strings(context).communityFeedEmpty)),
+          const SizedBox(height: 80),
+          EmptyState(
+              icon: Icons.forum_outlined,
+              title: strings(context).communityFeedEmpty),
         ]),
       );
     }

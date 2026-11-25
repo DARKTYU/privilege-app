@@ -74,7 +74,7 @@ class _FoodExplorerPageState extends State<FoodExplorerPage> {
               ]));
             }
             if (snapshot.connectionState != ConnectionState.done) {
-              return const Center(child: CircularProgressIndicator());
+              return const SkeletonList(count: 4, itemHeight: 72);
             }
             final results = database.search(query.text,
                 categoryGroup: category, tags: tags);

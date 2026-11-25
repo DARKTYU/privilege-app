@@ -218,7 +218,7 @@ class _AlertsPageState extends State<AlertsPage> {
           )
         ]),
         body: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const SkeletonList(count: 5, itemHeight: 72)
             : _error != null && _items.isEmpty
                 ? Center(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -256,9 +256,10 @@ class _AlertsPageState extends State<AlertsPage> {
                         if (_error != null) Text(_error!),
                         if (_items.isEmpty)
                           Padding(
-                              padding: const EdgeInsets.only(top: 80),
-                              child: Center(
-                                  child: Text(strings(context).alertsEmpty)))
+                              padding: const EdgeInsets.only(top: 48),
+                              child: EmptyState(
+                                  icon: Icons.notifications_none_rounded,
+                                  title: strings(context).alertsEmpty))
                         else
                           for (final item in _items)
                             Card(

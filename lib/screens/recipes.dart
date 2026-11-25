@@ -232,7 +232,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                 );
               }
               if (snapshot.connectionState != ConnectionState.done) {
-                return const Center(child: CircularProgressIndicator());
+                return const SkeletonList(count: 5);
               }
               final target = appState.targetCalories;
               final l = strings(context);

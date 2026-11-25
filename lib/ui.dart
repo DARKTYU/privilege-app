@@ -668,3 +668,172 @@ Widget initialsAvatar(String name, double size) {
             style: TextStyle(color: kCream, fontSize: size * 0.32)),
   );
 }
+
+/// A grey rounded placeholder with a soft shimmer, shown while data loads.
+/// The shimmer is static when the system asks for reduced animations.
+class SkeletonBox extends StatefulWidget {
+  const SkeletonBox({super.key, this.width, this.height = 16, this.radius = 12});
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  State<SkeletonBox> createState() => _SkeletonBoxState();
+}
+
+class _SkeletonBoxState extends State<SkeletonBox>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1300),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final base = kCard2;
+    final highlight = Color.alphaBlend(kCream.withAlpha(22), kCard2);
+    return ExcludeSemantics(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final center = -1.3 + 2.6 * _controller.value;
+          return Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(widget.radius),
+              gradient: LinearGradient(
+                begin: AlignmentDirectional(center - 0.6, 0),
+                end: AlignmentDirectional(center + 0.6, 0),
+                colors: [base, highlight, base],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// A short list of card-shaped placeholders. It never overflows its parent,
+/// so it is safe inside small sheets and inside scrolling lists.
+class SkeletonList extends StatelessWidget {
+  const SkeletonList({super.key, this.count = 4, this.itemHeight = 84});
+  final int count;
+  final double itemHeight;
+
+  @override
+  Widget build(BuildContext context) => ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        itemCount: count,
+        itemBuilder: (context, _) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            height: itemHeight,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: kCard,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: kLine),
+            ),
+            child: Row(children: [
+              SkeletonBox(
+                  width: itemHeight - 24, height: itemHeight - 24, radius: 14),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SkeletonBox(height: 14),
+                      SizedBox(height: 10),
+                      SkeletonBox(width: 120, height: 12),
+                    ]),
+              ),
+            ]),
+          ),
+        ),
+      );
+}
+
+/// A friendly "nothing here yet" message with an icon and an optional button.
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.message,
+    this.actionLabel,
+    this.onAction,
+  });
+  final IconData icon;
+  final String title;
+  final String? message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = MediaQuery.disableAnimationsOf(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: disabled ? 1 : 0, end: 1),
+          duration: disabled ? Duration.zero : const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) => Opacity(
+            opacity: value,
+            child: Transform.translate(
+                offset: Offset(0, 10 * (1 - value)), child: child),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: kCard2,
+                border: Border.all(color: kLine),
+              ),
+              child: Icon(icon, size: 32, color: kGold),
+            ),
+            const SizedBox(height: 16),
+            Text(title,
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            if (message != null) ...[
+              const SizedBox(height: 6),
+              Text(message!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 13, color: kMuted)),
+            ],
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 16),
+              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+            ],
+          ]),
+        ),
+      ),
+    );
+  }
+}

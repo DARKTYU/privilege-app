@@ -463,6 +463,9 @@ class _CaloriesFoodSummaryState extends State<CaloriesFoodSummary> {
                                   child: Padding(
                                       padding: const EdgeInsets.all(24),
                                       child: Column(children: [
+                                        Icon(Icons.restaurant_menu_rounded,
+                                            size: 34, color: palette.muted),
+                                        const SizedBox(height: 8),
                                         Text(l.foodEmpty,
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
