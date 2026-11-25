@@ -956,17 +956,65 @@ abstract class AppLocalizations {
   /// **'Images allowed'**
   String get groupsImagesAllowed;
 
-  /// No description provided for @groupsChatPhase2.
+  /// No description provided for @groupsChatSwitch.
   ///
   /// In en, this message translates to:
-  /// **'Chat (coming in phase 2)'**
-  String get groupsChatPhase2;
+  /// **'Group chat'**
+  String get groupsChatSwitch;
 
-  /// No description provided for @groupsChatUnavailable.
+  /// No description provided for @groupsChatSwitchHint.
   ///
   /// In en, this message translates to:
-  /// **'This setting is saved, but chat is not available yet.'**
-  String get groupsChatUnavailable;
+  /// **'Members can chat together inside the group.'**
+  String get groupsChatSwitchHint;
+
+  /// No description provided for @groupChatOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open group chat'**
+  String get groupChatOpen;
+
+  /// No description provided for @groupChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Group chat'**
+  String get groupChatTitle;
+
+  /// No description provided for @groupChatHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message the group'**
+  String get groupChatHint;
+
+  /// No description provided for @groupChatSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get groupChatSend;
+
+  /// No description provided for @groupChatEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet. Say hello!'**
+  String get groupChatEmpty;
+
+  /// No description provided for @groupChatDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get groupChatDeleteMessage;
+
+  /// No description provided for @groupChatOffError.
+  ///
+  /// In en, this message translates to:
+  /// **'This group chat is turned off.'**
+  String get groupChatOffError;
+
+  /// No description provided for @groupChatRateLimitError.
+  ///
+  /// In en, this message translates to:
+  /// **'You are sending messages too fast. Please wait a moment.'**
+  String get groupChatRateLimitError;
 
   /// No description provided for @groupsRules.
   ///

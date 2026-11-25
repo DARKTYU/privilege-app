@@ -408,7 +408,7 @@ void main() {
     expect(repo.memberReads, greaterThan(readsAfterJoin));
   });
 
-  testWidgets('owner can save settings including chat placeholder',
+  testWidgets('owner can save settings including the chat switch',
       (tester) async {
     final repo = _GroupsRepo(client)
       ..avatarUrl = 'https://example.com/group-avatar.png';
@@ -419,9 +419,9 @@ void main() {
         scrollable: find.byType(Scrollable).first);
     await tester.enterText(
         find.widgetWithText(TextField, 'Member limit'), '15');
-    await tester.scrollUntilVisible(find.text('Chat (coming in phase 2)'), 200,
+    await tester.scrollUntilVisible(find.text('Group chat'), 200,
         scrollable: find.byType(Scrollable).first);
-    await tester.tap(find.text('Chat (coming in phase 2)'));
+    await tester.tap(find.text('Group chat'));
     await tester.scrollUntilVisible(find.text('Save'), 200,
         scrollable: find.byType(Scrollable).first);
     expect(find.text('Avatar image URL'), findsNothing);
@@ -431,6 +431,25 @@ void main() {
     expect(repo.lastParams?['p_member_limit'], 15);
     expect(repo.lastParams?['p_chat_enabled'], true);
     expect(repo.lastParams?['p_avatar_url'], repo.avatarUrl);
+  });
+
+  testWidgets('chat button shows only for active members of chat groups',
+      (tester) async {
+    Future<void> open(_GroupsRepo repo) async {
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+          MaterialApp(home: GroupPage(repository: repo, groupId: 'group')));
+      await tester.pumpAndSettle();
+    }
+
+    await open(_GroupsRepo(client)
+      ..status = 'active'
+      ..chatEnabled = true);
+    expect(find.text('Open group chat'), findsOneWidget);
+    await open(_GroupsRepo(client)..status = 'active');
+    expect(find.text('Open group chat'), findsNothing);
+    await open(_GroupsRepo(client)..chatEnabled = true);
+    expect(find.text('Open group chat'), findsNothing);
   });
 
   testWidgets('external group avatar URL is not loaded', (tester) async {
@@ -865,6 +884,7 @@ class _GroupsRepo extends GroupsRepository {
   bool hiddenUntilJoin = false;
   bool showPost = false;
   bool postHasImage = true;
+  bool chatEnabled = false;
   final List<Map<String, dynamic>> testComments = [];
   bool emptyGroups = false;
   bool showInvitation = false;
@@ -890,7 +910,7 @@ class _GroupsRepo extends GroupsRepository {
         'avatar_url': avatarUrl,
         'who_can_post': 'everyone',
         'images_allowed': false,
-        'chat_enabled': false,
+        'chat_enabled': chatEnabled,
       });
   @override
   Future<Group?> group(String id) async =>

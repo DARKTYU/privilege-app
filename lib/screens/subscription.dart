@@ -240,18 +240,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen>
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Panel(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l.membershipCurrent(_tierName(tier, l)),
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w800)),
-                        if (subscriptionTierRank(tier) > 0)
-                          TextButton(
-                              onPressed: _busy ? null : _cancel,
-                              child: Text(l.membershipCancel)),
-                      ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: Panel(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(l.membershipCurrent(_tierName(tier, l)),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800)),
+                          if (subscriptionTierRank(tier) > 0) ...[
+                            const SizedBox(height: 8),
+                            OutlinedButton(
+                                onPressed: _busy ? null : _cancel,
+                                child: Text(l.membershipCancel)),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),

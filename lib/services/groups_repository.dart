@@ -35,6 +35,12 @@ String groupError(Object error) {
   if (lower.contains('group is unavailable')) {
     return savedLanguageStrings().groupsUnavailableError;
   }
+  if (lower.contains('chat is not enabled')) {
+    return savedLanguageStrings().groupChatOffError;
+  }
+  if (lower.contains('chat rate limit')) {
+    return savedLanguageStrings().groupChatRateLimitError;
+  }
   return text;
 }
 
@@ -138,6 +144,53 @@ class GroupsRepository {
           .select()
           .eq('group_id', id)
           .order('created_at', ascending: false));
+
+  /// The newest chat messages first; the chat screen shows them bottom-up.
+  /// Only active members can read them, and only while chat is enabled.
+  Future<List<Map<String, dynamic>>> chatMessages(String groupId,
+          {int limit = 60}) async =>
+      await request(() => client
+          .from('group_messages')
+          .select()
+          .eq('group_id', groupId)
+          .order('created_at', ascending: false)
+          .order('id', ascending: false)
+          .limit(limit));
+
+  Future<void> sendChatMessage(String groupId, String body) async {
+    await rpc('group_send_message', {'p_group': groupId, 'p_body': body});
+  }
+
+  Future<void> deleteChatMessage(String messageId) async {
+    await rpc('group_delete_message', {'p_message': messageId});
+  }
+
+  /// Calls [onChange] whenever a message is added to this group or any message
+  /// is deleted. Returns a function that stops listening.
+  void Function() watchChat(String groupId, void Function() onChange) {
+    final channel = client
+        .channel('group-chat-$groupId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'group_messages',
+          filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'group_id',
+              value: groupId),
+          callback: (_) => onChange(),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.delete,
+          schema: 'public',
+          table: 'group_messages',
+          callback: (_) => onChange(),
+        )
+      ..subscribe((status, error) {
+        if (error != null) debugPrint('Group chat realtime error: $error');
+      });
+    return () => unawaited(client.removeChannel(channel));
+  }
 
   Future<List<Map<String, dynamic>>> comments(String id) async =>
       await request(() => client

@@ -563,11 +563,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupsImagesAllowed => 'Images allowed';
 
   @override
-  String get groupsChatPhase2 => 'Chat (coming in phase 2)';
+  String get groupsChatSwitch => 'Group chat';
 
   @override
-  String get groupsChatUnavailable =>
-      'This setting is saved, but chat is not available yet.';
+  String get groupsChatSwitchHint => 'Members can chat together inside the group.';
+
+  @override
+  String get groupChatOpen => 'Open group chat';
+
+  @override
+  String get groupChatTitle => 'Group chat';
+
+  @override
+  String get groupChatHint => 'Message the group';
+
+  @override
+  String get groupChatSend => 'Send';
+
+  @override
+  String get groupChatEmpty => 'No messages yet. Say hello!';
+
+  @override
+  String get groupChatDeleteMessage => 'Delete message';
+
+  @override
+  String get groupChatOffError => 'This group chat is turned off.';
+
+  @override
+  String get groupChatRateLimitError => 'You are sending messages too fast. Please wait a moment.';
 
   @override
   String get groupsRules => 'Rules';

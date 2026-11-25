@@ -601,11 +601,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get groupsImagesAllowed => 'السماح بالصور';
 
   @override
-  String get groupsChatPhase2 => 'المحادثة (قادمة في المرحلة الثانية)';
+  String get groupsChatSwitch => 'محادثة المجموعة';
 
   @override
-  String get groupsChatUnavailable =>
-      'يتم حفظ هذا الإعداد، لكن المحادثة غير متاحة بعد.';
+  String get groupsChatSwitchHint => 'يمكن للأعضاء التحدث معًا داخل المجموعة.';
+
+  @override
+  String get groupChatOpen => 'فتح محادثة المجموعة';
+
+  @override
+  String get groupChatTitle => 'محادثة المجموعة';
+
+  @override
+  String get groupChatHint => 'اكتب رسالة للمجموعة';
+
+  @override
+  String get groupChatSend => 'إرسال';
+
+  @override
+  String get groupChatEmpty => 'لا توجد رسائل بعد. ابدأ بالترحيب!';
+
+  @override
+  String get groupChatDeleteMessage => 'حذف الرسالة';
+
+  @override
+  String get groupChatOffError => 'محادثة هذه المجموعة متوقفة.';
+
+  @override
+  String get groupChatRateLimitError => 'ترسل الرسائل بسرعة كبيرة. يرجى الانتظار قليلًا.';
 
   @override
   String get groupsRules => 'القواعد';
@@ -3211,11 +3234,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get membershipPerkSilver =>
-      'كل ما في الباقة المجانية، بالإضافة إلى ثيمي Ember وAurora وإطاري Gold وPlatinum ولقبين إضافيين';
+      'كل ما في الباقة المجانية، بالإضافة إلى مظهري الجمر والشفق، وإطاري الذهبي والبلاتيني، ولقبين إضافيين';
 
   @override
   String get membershipPerkGold =>
-      'كل ما في باقة Silver، بالإضافة إلى ثيم Galaxy وإطار Diamond ولقب Champion Spirit';
+      'كل ما في الباقة الفضية، بالإضافة إلى مظهر المجرة وإطار الماسي ولقب روح البطل';
 
   @override
   String membershipChoose(String plan) {

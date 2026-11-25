@@ -179,6 +179,9 @@ String _localizedGroupError(BuildContext context, Object error) {
     'Could not upload the image. Please try again.' => l.groupImageUploadError,
     'You are banned from this group. Only the group owner or a moderator can unban you.' =>
       l.groupsBannedError,
+    'This group chat is turned off.' => l.groupChatOffError,
+    'You are sending messages too fast. Please wait a moment.' =>
+      l.groupChatRateLimitError,
     'This group is full.' => l.groupsFullError,
     'Only moderators can post in this group.' => l.groupsModeratorsOnlyError,
     'Posting limit reached. Please try again later.' =>
@@ -700,8 +703,8 @@ class _GroupSettingsPageState extends State<GroupSettingsPage> {
               value: images,
               onChanged: busy ? null : (v) => setState(() => images = v)),
           SwitchListTile(
-              title: Text(strings(context).groupsChatPhase2),
-              subtitle: Text(strings(context).groupsChatUnavailable),
+              title: Text(strings(context).groupsChatSwitch),
+              subtitle: Text(strings(context).groupsChatSwitchHint),
               value: chat,
               onChanged: busy ? null : (v) => setState(() => chat = v)),
           TextField(
@@ -1048,6 +1051,21 @@ class _GroupPageState extends State<GroupPage> with WidgetsBindingObserver {
                               ? strings(context).communityRequestPending
                               : strings(context).groupJoinToSee))
                     else ...[
+                      if (group.chat)
+                        Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: FilledButton.icon(
+                                onPressed: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                        builder: (_) => GroupChatPage(
+                                            repository: widget.repository,
+                                            group: group,
+                                            moderator: moderator,
+                                            onReport: (user) =>
+                                                report(user: user)))),
+                                icon: const Icon(Icons.chat_bubble_outline),
+                                label: Text(strings(context).groupChatOpen))),
                       const Divider(),
                       Row(children: [
                         Expanded(
@@ -1804,4 +1822,307 @@ class _CommentsPageState extends State<_CommentsPage> {
               ])),
         ]),
       );
+}
+
+
+/// Chat inside a group. Members read and send messages; the database decides
+/// who may (active members only, while the owner keeps chat switched on).
+class GroupChatPage extends StatefulWidget {
+  const GroupChatPage(
+      {super.key,
+      required this.repository,
+      required this.group,
+      required this.moderator,
+      required this.onReport});
+  final GroupsRepository repository;
+  final Group group;
+  final bool moderator;
+  final void Function(String userId) onReport;
+  @override
+  State<GroupChatPage> createState() => _GroupChatPageState();
+}
+
+class _GroupChatPageState extends State<GroupChatPage>
+    with WidgetsBindingObserver {
+  final controller = TextEditingController();
+  final profiles = <String, Future<Map<String, dynamic>?>>{};
+  List<Map<String, dynamic>> messages = [];
+  Object? loadError;
+  bool loading = true, sending = false, hasText = false;
+  void Function()? stopWatching;
+  Timer? debounce;
+  int loadToken = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    controller.addListener(() {
+      final next = controller.text.trim().isNotEmpty;
+      if (next != hasText) setState(() => hasText = next);
+    });
+    stopWatching = widget.repository.watchChat(widget.group.id, _scheduleReload);
+    load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    debounce?.cancel();
+    stopWatching?.call();
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) load(quiet: true);
+  }
+
+  void _scheduleReload() {
+    debounce?.cancel();
+    debounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) load(quiet: true);
+    });
+  }
+
+  Future<void> load({bool quiet = false}) async {
+    final token = ++loadToken;
+    if (!quiet) {
+      setState(() {
+        loading = true;
+        loadError = null;
+      });
+    }
+    try {
+      final rows = await widget.repository.chatMessages(widget.group.id);
+      if (!mounted || token != loadToken) return;
+      setState(() {
+        messages = rows;
+        loading = false;
+        loadError = null;
+      });
+    } catch (error) {
+      if (!mounted || token != loadToken) return;
+      setState(() {
+        loading = false;
+        if (!quiet) loadError = error;
+      });
+    }
+  }
+
+  Future<void> send() async {
+    final text = controller.text.trim();
+    if (text.isEmpty || sending) return;
+    setState(() => sending = true);
+    try {
+      await widget.repository.sendChatMessage(widget.group.id, text);
+      if (!mounted) return;
+      controller.clear();
+      await load(quiet: true);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizedGroupError(context, error))));
+      }
+    } finally {
+      if (mounted) setState(() => sending = false);
+    }
+  }
+
+  Future<void> delete(Map<String, dynamic> message) async {
+    try {
+      await widget.repository.deleteChatMessage(message['id'] as String);
+      if (mounted) await load(quiet: true);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_localizedGroupError(context, error))));
+      }
+    }
+  }
+
+  Future<void> options(Map<String, dynamic> message) async {
+    final mine = message['author_id'] == widget.repository.userId;
+    final choice = await showModalBottomSheet<String>(
+        context: context,
+        builder: (context) => SafeArea(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (mine || widget.moderator)
+                ListTile(
+                    leading: const Icon(Icons.delete_outline),
+                    title: Text(strings(context).groupChatDeleteMessage),
+                    onTap: () => Navigator.pop(context, 'delete')),
+              if (!mine)
+                ListTile(
+                    leading: const Icon(Icons.flag_outlined),
+                    title: Text(strings(context).groupReportMember),
+                    onTap: () => Navigator.pop(context, 'report')),
+            ])));
+    if (!mounted || choice == null) return;
+    if (choice == 'delete') {
+      await delete(message);
+    } else {
+      widget.onReport(message['author_id'] as String);
+    }
+  }
+
+  Future<Map<String, dynamic>?> _profile(String id) =>
+      profiles.putIfAbsent(id, () => widget.repository.profile(id));
+
+  Widget _body(BuildContext context) {
+    if (loading && messages.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (loadError != null && messages.isEmpty) {
+      return _error(loadError!, () => load());
+    }
+    if (messages.isEmpty) {
+      return Center(
+          child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(strings(context).groupChatEmpty,
+                  textAlign: TextAlign.center)));
+    }
+    return ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final message = messages[index];
+        return _ChatBubble(
+            key: ValueKey(message['id']),
+            message: message,
+            mine: message['author_id'] == widget.repository.userId,
+            profile: _profile(message['author_id'] as String),
+            onLongPress: () => options(message));
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+            title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              Text(strings(context).groupChatTitle),
+              Text(widget.group.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ])),
+        body: SafeArea(
+            child: Column(children: [
+          Expanded(child: _body(context)),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Expanded(
+                    child: TextField(
+                        controller: controller,
+                        minLines: 1,
+                        maxLines: 4,
+                        maxLength: 1000,
+                        textInputAction: TextInputAction.newline,
+                        buildCounter: (context,
+                                {required currentLength,
+                                required isFocused,
+                                maxLength}) =>
+                            null,
+                        decoration: InputDecoration(
+                            hintText: strings(context).groupChatHint,
+                            isDense: true))),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                    tooltip: strings(context).groupChatSend,
+                    onPressed: sending || !hasText ? null : send,
+                    icon: sending
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.send)),
+              ])),
+        ])),
+      );
+}
+
+String _chatTime(String? iso) {
+  final time = DateTime.tryParse(iso ?? '')?.toLocal();
+  if (time == null) return '';
+  String two(int n) => n.toString().padLeft(2, '0');
+  final clock = '${two(time.hour)}:${two(time.minute)}';
+  final now = DateTime.now();
+  final today = time.year == now.year &&
+      time.month == now.month &&
+      time.day == now.day;
+  return today ? clock : '${time.day}/${time.month} $clock';
+}
+
+class _ChatBubble extends StatelessWidget {
+  const _ChatBubble(
+      {super.key,
+      required this.message,
+      required this.mine,
+      required this.profile,
+      required this.onLongPress});
+  final Map<String, dynamic> message;
+  final bool mine;
+  final Future<Map<String, dynamic>?> profile;
+  final VoidCallback onLongPress;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Align(
+      alignment:
+          mine ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width * 0.78),
+        child: GestureDetector(
+          onLongPress: onLongPress,
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: mine ? colors.primary : colors.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!mine)
+                    FutureBuilder<Map<String, dynamic>?>(
+                        future: profile,
+                        builder: (context, snapshot) => Text(
+                            snapshot.hasError
+                                ? strings(context).groupProfileUnavailable
+                                : _profileName(context, snapshot.data),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w700))),
+                  Text(message['body'] as String? ?? '',
+                      style: TextStyle(
+                          color: mine ? colors.onPrimary : colors.onSurface)),
+                  const SizedBox(height: 2),
+                  Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Text(_chatTime(message['created_at'] as String?),
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: (mine ? colors.onPrimary : colors.onSurface)
+                                  .withValues(alpha: 0.7)))),
+                ]),
+          ),
+        ),
+      ),
+    );
+  }
 }
