@@ -20,10 +20,13 @@ A fitness and nutrition app in one place: plan your workouts, log calories, chat
 
 ## Screenshots
 
-<!-- Replace the paths below with real screenshots saved in docs/screenshots/ -->
 | Home | Calories | AI coach | Community |
 | :---: | :---: | :---: | :---: |
 | ![Home](docs/screenshots/home.png) | ![Calories](docs/screenshots/calories.png) | ![AI coach](docs/screenshots/coach.png) | ![Community](docs/screenshots/community.png) |
+
+| Activity | Group chat | VIP plans (demo) | Privacy & data |
+| :---: | :---: | :---: | :---: |
+| ![Activity](docs/screenshots/activity.png) | ![Group chat](docs/screenshots/group-chat.png) | ![VIP plans](docs/screenshots/vip-plans.png) | ![Privacy and data](docs/screenshots/privacy.png) |
 
 ## Features
 
