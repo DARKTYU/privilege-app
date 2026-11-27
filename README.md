@@ -145,4 +145,4 @@ Claude and GitHub Copilot were used to plan, write and review code and documents
 
 ## Author
 
-Built by **DARKTYU** as a course project. Support: supportprivilegefitness@gmail.com
+Built by **Hossam Mohamed** as a course project. Support: supportprivilegefitness@gmail.com
