@@ -18,20 +18,22 @@ A fitness and nutrition app in one place: plan your workouts, log calories, chat
 
 > University course project. A working prototype: accounts, data, community and the AI coach run on real online services. See [Status](#status) for exactly what is and is not finished.
 
+## Download
+
+**Android:** get the ready-to-install app from the [latest release (v1.0.0)](https://github.com/DARKTYU/privilege-app/releases/latest). Download `app-release.apk`, open it on your phone and allow "install unknown apps" when asked. No setup is needed; the app connects to its online backend by itself.
+
 ## Screenshots
 
+<!-- Replace the paths below with real screenshots saved in docs/screenshots/ -->
 | Home | Calories | AI coach | Community |
 | :---: | :---: | :---: | :---: |
 | ![Home](docs/screenshots/home.png) | ![Calories](docs/screenshots/calories.png) | ![AI coach](docs/screenshots/coach.png) | ![Community](docs/screenshots/community.png) |
-
-| Activity | Group chat | VIP plans (demo) | Privacy & data |
-| :---: | :---: | :---: | :---: |
-| ![Activity](docs/screenshots/activity.png) | ![Group chat](docs/screenshots/group-chat.png) | ![VIP plans](docs/screenshots/vip-plans.png) | ![Privacy and data](docs/screenshots/privacy.png) |
 
 ## Features
 
 | Area | What you can do |
 | --- | --- |
+| **Sign-in** | Email and password, or Continue with Google or Facebook |
 | **Plan organiser** | Weekly calendar, workout splits, plan each day, mark rest or done days |
 | **Calories** | Food log with portions, daily calorie and macro rings, activity and burned calories, animated result after every log |
 | **Recipes** | Recipes with calories and macros, logged to the food log in one tap |
@@ -39,7 +41,7 @@ A fitness and nutrition app in one place: plan your workouts, log calories, chat
 | **Streak Arena** | Streaks, public and friend challenges, weekly leaderboards |
 | **Progression** | Daily XP, levels, badges, store points, a digital rewards store and Free, Silver and Gold membership plans (demo checkout) |
 | **Community** | Posts with photos, likes, comments, friends, groups with an optional group chat, notifications, blocking and reporting |
-| **Privacy & data** | Coach data-sharing switch, language, sign out, permanent account deletion |
+| **Privacy & data** | Coach data-sharing switch, language, sign out, permanent account deletion (Google and Facebook accounts confirm by typing DELETE) |
 | **Arabic and English** | Complete translation, right-to-left layout, Western digits |
 
 ## How it works
@@ -129,11 +131,16 @@ The AI coach is not a medical service. Messages containing emergency wording are
 - Calories and workouts are self-reported, so leaderboards cannot be verified.
 - Photo calorie estimates are rough and can differ between runs.
 - The AI coach uses a free-tier provider that is sometimes slow or busy; the app retries and falls back to a second model, but failures can still happen.
+- Google and Facebook sign-in work, but both developer apps are still in testing mode (publishing needs a website, a privacy-policy page and, for Facebook, business verification). So Google lets in only accounts added as test users, and Facebook only the app's admin and testers. Email and password sign-in works for everyone. Because the Google app is not verified, Google's account chooser shows the Supabase project address instead of the app name; native Google sign-in would remove that.
 - Android only; iOS was not tested.
 
 ## AI-tool declaration
 
 Claude and GitHub Copilot were used to plan, write and review code and documents. The author set the requirements, ran the analyzer and every test, tested each build on a real phone, and decided what to accept.
+
+## Credits
+
+- **Logo and colors:** the logo idea came from Ibrahim; the colors were chosen together by Ibrahim, Abdalla and Hossam.
 
 ## Author
 

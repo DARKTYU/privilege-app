@@ -8,8 +8,49 @@ import '../l10n_strings.dart';
 import 'account_types.dart';
 import 'session_recovery.dart';
 
+/// Third-party accounts a person can sign in with.
+enum SocialProvider { google, facebook }
+
 class SupabaseAuthService {
   static sb.SupabaseClient get client => sb.Supabase.instance.client;
+
+  /// Address the browser returns to after a social sign-in. It must match the
+  /// Android intent filter and the Redirect URLs list in Supabase.
+  static const socialRedirect = 'privilegeapp://login-callback';
+
+  /// False for accounts made only with Google or Facebook; they have no
+  /// password to type when deleting the account.
+  static bool get currentUserHasPassword {
+    final identities = client.auth.currentUser?.identities;
+    if (identities == null || identities.isEmpty) return true;
+    return identities.any((identity) => identity.provider == 'email');
+  }
+
+  /// Opens the provider's sign-in page in the browser. The result comes back
+  /// through the deep link; the app state completes the sign-in from the
+  /// session event.
+  static Future<void> startSocialSignIn(SocialProvider provider) async {
+    try {
+      final started = await client.auth.signInWithOAuth(
+        provider == SocialProvider.google
+            ? sb.OAuthProvider.google
+            : sb.OAuthProvider.facebook,
+        redirectTo: socialRedirect,
+      );
+      if (!started) {
+        throw AuthException(
+            'social_failed', savedLanguageStrings().socialSignInFailed);
+      }
+    } on sb.AuthException catch (error) {
+      throw _authError(error);
+    } on SocketException {
+      throw _connectionError();
+    } on http.ClientException {
+      throw _connectionError();
+    } on TimeoutException {
+      throw _connectionError();
+    }
+  }
 
   static AuthException _authError(sb.AuthException error) {
     final code = error.code ?? 'auth_error';
@@ -250,22 +291,35 @@ class SupabaseAuthService {
   static Future<void> deleteAccount(String password) async {
     final user = client.auth.currentUser;
     final email = user?.email;
-    if (user == null || email == null || email.isEmpty) {
+    final usesPassword = currentUserHasPassword;
+    if (user == null || (usesPassword && (email == null || email.isEmpty))) {
       throw AuthException(
           'invalid_session', savedLanguageStrings().sessionExpired);
     }
     try {
-      final signedIn =
-          await client.auth.signInWithPassword(email: email, password: password);
-      final session = signedIn.session;
-      if (signedIn.user?.id != user.id || session == null) {
-        throw AuthException('invalid_credentials',
-            savedLanguageStrings().privacyDeleteWrongPassword);
+      String? accessToken;
+      if (usesPassword) {
+        final signedIn = await client.auth
+            .signInWithPassword(email: email!, password: password);
+        final session = signedIn.session;
+        if (signedIn.user?.id != user.id || session == null) {
+          throw AuthException('invalid_credentials',
+              savedLanguageStrings().privacyDeleteWrongPassword);
+        }
+        accessToken = session.accessToken;
+      } else {
+        // Google and Facebook accounts have no password; the person confirms
+        // by typing DELETE and the current session proves who they are.
+        accessToken = client.auth.currentSession?.accessToken;
+        if (accessToken == null) {
+          throw AuthException(
+              'invalid_session', savedLanguageStrings().sessionExpired);
+        }
       }
       final response = await client.functions
           .invoke(
             'delete-account',
-            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+            headers: {'Authorization': 'Bearer $accessToken'},
             body: {'confirm': 'DELETE'},
           )
           .timeout(const Duration(seconds: 60));

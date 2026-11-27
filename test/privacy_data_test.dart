@@ -108,13 +108,14 @@ void main() {
   });
 
   // Opens the privacy screen on top of a home page so closing it can be checked.
-  Future<void> openPrivacy(
-      WidgetTester tester, DeleteAccountAction action) async {
+  Future<void> openPrivacy(WidgetTester tester, DeleteAccountAction action,
+      {bool? requiresPassword}) async {
     await tester.pumpWidget(app(Builder(
       builder: (context) => Scaffold(
         body: TextButton(
           onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => PrivacyDataScreen(deleteAccount: action))),
+              builder: (_) => PrivacyDataScreen(
+                  deleteAccount: action, requiresPassword: requiresPassword))),
           child: const Text('open privacy'),
         ),
       ),
@@ -150,6 +151,28 @@ void main() {
     expect(find.text('Delete your account permanently?'), findsNothing);
     expect(find.byType(PrivacyDataScreen), findsOneWidget);
     expect(calls, 0);
+  });
+
+  testWidgets('accounts without a password confirm by typing DELETE',
+      (tester) async {
+    String? sent;
+    await openPrivacy(tester, (password) async => sent = password,
+        requiresPassword: false);
+    await openDeleteDialog(tester);
+    expect(find.text('Type DELETE to confirm'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'delete me');
+    await tester.tap(find.text('Delete forever'));
+    await tester.pumpAndSettle();
+    expect(find.text('Type the word DELETE exactly.'), findsOneWidget);
+    expect(sent, isNull);
+
+    await tester.enterText(find.byType(TextField), 'DELETE');
+    await tester.tap(find.text('Delete forever'));
+    await tester.pumpAndSettle();
+    expect(sent, '');
+    expect(find.byType(PrivacyDataScreen), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('a wrong password keeps the dialog open with a message',

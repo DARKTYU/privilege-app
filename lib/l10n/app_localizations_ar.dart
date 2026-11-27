@@ -4093,6 +4093,25 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتوفر تسجيل الدخول الاجتماعي لاحقاً.';
 
   @override
+  String get loginOrDivider => 'أو';
+
+  @override
+  String get continueWithGoogle => 'المتابعة باستخدام Google';
+
+  @override
+  String get continueWithFacebook => 'المتابعة باستخدام Facebook';
+
+  @override
+  String get socialSignInFailed =>
+      'تعذر تسجيل الدخول بهذا الحساب. حاول مرة أخرى.';
+
+  @override
+  String get privacyDeleteTypeLabel => 'اكتب DELETE للتأكيد';
+
+  @override
+  String get privacyDeleteTypeMismatch => 'اكتب كلمة DELETE كما هي تماماً.';
+
+  @override
   String get forgotPassword => 'نسيت كلمة المرور؟';
 
   @override

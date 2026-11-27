@@ -11,6 +11,14 @@ void main() {
     expect(find.text('Enter your password.'), findsOneWidget);
   });
 
+  testWidgets('login offers Google and Facebook sign-in', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.ensureVisible(find.text('Continue with Facebook'));
+    expect(find.text('Continue with Google'), findsOneWidget);
+    expect(find.text('Continue with Facebook'), findsOneWidget);
+    expect(find.text('Social sign-in will be available later.'), findsNothing);
+  });
+
   testWidgets('signup rejects invalid email and mismatched passwords',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginScreen()));

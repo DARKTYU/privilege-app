@@ -217,6 +217,11 @@ class AppState extends ChangeNotifier {
   String?
       authNotice; // message shown on the login screen (e.g. "session expired")
   StreamSubscription<supabase.AuthState>? _authSubscription;
+  // Set while a Google or Facebook sign-in is open in the browser, so that
+  // only that sign-in (not registering or a password login) is completed
+  // from the session event.
+  DateTime? _socialSignInStarted;
+  bool _socialSignInRunning = false;
   String email = '';
   String? profilePhotoBase64;
   UserProfile profile = defaultUserProfile;
@@ -228,6 +233,10 @@ class AppState extends ChangeNotifier {
         if (event.event == supabase.AuthChangeEvent.signedOut &&
             SupabaseAuthService.client.auth.currentSession == null) {
           _clearAccount();
+        } else if (event.event == supabase.AuthChangeEvent.signedIn &&
+            event.session != null &&
+            _socialSignInIsOpen) {
+          unawaited(_completeSocialSignIn());
         }
       },
       onError: (Object error, StackTrace stack) {
@@ -261,6 +270,53 @@ class AppState extends ChangeNotifier {
 
   Future<void> login(String identifier, String password) async =>
       signInWithAccount(await SupabaseAuthService.login(identifier, password));
+
+  bool get _socialSignInIsOpen {
+    final started = _socialSignInStarted;
+    return started != null &&
+        !loggedIn &&
+        DateTime.now().difference(started) < const Duration(minutes: 5);
+  }
+
+  /// Opens the Google or Facebook sign-in page. The sign-in finishes when the
+  /// browser returns to the app (see [_completeSocialSignIn]).
+  Future<void> signInWithSocial(SocialProvider provider) async {
+    _socialSignInStarted = DateTime.now();
+    try {
+      await SupabaseAuthService.startSocialSignIn(provider);
+    } catch (_) {
+      _socialSignInStarted = null;
+      rethrow;
+    }
+  }
+
+  /// Forgets an open social sign-in, e.g. when the person starts a password
+  /// login or registration instead.
+  void cancelSocialSignIn() => _socialSignInStarted = null;
+
+  Future<void> _completeSocialSignIn() async {
+    if (_socialSignInRunning) return;
+    _socialSignInRunning = true;
+    try {
+      final acc = await SupabaseAuthService.restore();
+      if (acc != null && !loggedIn) {
+        _socialSignInStarted = null;
+        await signInWithAccount(acc);
+      }
+    } catch (error, stack) {
+      debugPrint('Could not finish the social sign-in: $error\n$stack');
+      final userId = SupabaseAuthService.client.auth.currentUser?.id;
+      if (userId != null) {
+        await SessionRecovery.forClient(SupabaseAuthService.client)
+            .signOutIfCurrent(userId);
+      }
+      _socialSignInStarted = null;
+      authNotice = savedLanguageStrings().socialSignInFailed;
+      notifyListeners();
+    } finally {
+      _socialSignInRunning = false;
+    }
+  }
 
   Future<void> signInWithAccount(AccountData acc) async {
     final preferences = await SharedPreferences.getInstance();

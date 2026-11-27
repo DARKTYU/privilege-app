@@ -6122,6 +6122,42 @@ abstract class AppLocalizations {
   /// **'Social sign-in will be available later.'**
   String get loginUnavailableFeatures;
 
+  /// No description provided for @loginOrDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get loginOrDivider;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @continueWithFacebook.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Facebook'**
+  String get continueWithFacebook;
+
+  /// No description provided for @socialSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not sign in with that account. Please try again.'**
+  String get socialSignInFailed;
+
+  /// No description provided for @privacyDeleteTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type DELETE to confirm'**
+  String get privacyDeleteTypeLabel;
+
+  /// No description provided for @privacyDeleteTypeMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the word DELETE exactly.'**
+  String get privacyDeleteTypeMismatch;
+
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:

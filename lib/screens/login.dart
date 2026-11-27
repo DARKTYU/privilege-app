@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../logic/validators.dart';
 import '../l10n_strings.dart';
@@ -106,7 +107,35 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_showErrors) setState(() => _errors = _validate());
   }
 
+  Future<void> _social(SocialProvider provider) async {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      await appState.signInWithSocial(provider);
+    } on AuthException catch (error) {
+      if (mounted) {
+        setState(() {
+          _success = false;
+          _message = error.message;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _success = false;
+          _message = strings(context).socialSignInFailed;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _submit() async {
+    appState.cancelSocialSignIn();
     FocusScope.of(context).unfocus();
     final errors = _validate();
     setState(() {
@@ -319,12 +348,34 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? strings(context).alreadyAccount
                             : strings(context).newAccount),
                       ),
-                      if (!_register)
-                        Text(
-                          strings(context).loginUnavailableFeatures,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 11, color: kMuted),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            strings(context).loginOrDivider,
+                            style: TextStyle(fontSize: 12, color: kMuted),
+                          ),
                         ),
+                        const Expanded(child: Divider()),
+                      ]),
+                      const SizedBox(height: 12),
+                      _SocialButton(
+                        label: strings(context).continueWithGoogle,
+                        icon: const _GoogleGlyph(),
+                        onPressed:
+                            _busy ? null : () => _social(SocialProvider.google),
+                      ),
+                      const SizedBox(height: 10),
+                      _SocialButton(
+                        label: strings(context).continueWithFacebook,
+                        icon: const FaIcon(FontAwesomeIcons.facebook,
+                            size: 24, color: Color(0xFF1877F2)),
+                        onPressed: _busy
+                            ? null
+                            : () => _social(SocialProvider.facebook),
+                      ),
                     ],
                   ),
                 ),
@@ -332,5 +383,93 @@ class _LoginScreenState extends State<LoginScreen> {
             )),
           ]),
         ),
+      );
+}
+
+/// Full-width social sign-in button: brand logo at the start edge, label
+/// centered, colors taken from the app theme so it fits every palette.
+class _SocialButton extends StatelessWidget {
+  const _SocialButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final Widget icon;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(14);
+    return Opacity(
+      opacity: onPressed == null ? 0.5 : 1,
+      child: Material(
+        color: kCard2,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(color: kLine),
+        ),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: radius,
+          child: SizedBox(
+            height: 52,
+            child: Stack(
+              children: [
+                PositionedDirectional(
+                  start: 16,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(child: icon),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 52),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: kCream,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Google "G" painted in Google's four brand colors.
+class _GoogleGlyph extends StatelessWidget {
+  const _GoogleGlyph();
+
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+        blendMode: BlendMode.srcIn,
+        shaderCallback: (bounds) => const SweepGradient(
+          colors: [
+            Color(0xFF4285F4),
+            Color(0xFF4285F4),
+            Color(0xFF34A853),
+            Color(0xFF34A853),
+            Color(0xFFFBBC05),
+            Color(0xFFFBBC05),
+            Color(0xFFEA4335),
+            Color(0xFFEA4335),
+            Color(0xFF4285F4),
+          ],
+          stops: [0.0, 0.14, 0.14, 0.40, 0.40, 0.58, 0.58, 0.88, 0.88],
+        ).createShader(bounds),
+        child: const FaIcon(FontAwesomeIcons.google,
+            size: 22, color: Colors.white),
       );
 }

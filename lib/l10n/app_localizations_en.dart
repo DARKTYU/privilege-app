@@ -3882,6 +3882,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Social sign-in will be available later.';
 
   @override
+  String get loginOrDivider => 'or';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get continueWithFacebook => 'Continue with Facebook';
+
+  @override
+  String get socialSignInFailed =>
+      'Could not sign in with that account. Please try again.';
+
+  @override
+  String get privacyDeleteTypeLabel => 'Type DELETE to confirm';
+
+  @override
+  String get privacyDeleteTypeMismatch => 'Type the word DELETE exactly.';
+
+  @override
   String get forgotPassword => 'Forgot password?';
 
   @override

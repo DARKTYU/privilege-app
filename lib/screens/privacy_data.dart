@@ -5,6 +5,7 @@ import '../coach_preferences.dart';
 import '../language_settings.dart';
 import '../l10n_strings.dart';
 import '../services/account_types.dart';
+import '../services/supabase_auth_service.dart';
 import '../state.dart';
 import '../ui.dart';
 
@@ -14,10 +15,15 @@ const privacySupportEmail = 'supportprivilegefitness@gmail.com';
 typedef DeleteAccountAction = Future<void> Function(String password);
 
 class PrivacyDataScreen extends StatefulWidget {
-  const PrivacyDataScreen({super.key, this.deleteAccount});
+  const PrivacyDataScreen(
+      {super.key, this.deleteAccount, this.requiresPassword});
 
   /// Replaceable so tests can run without a server.
   final DeleteAccountAction? deleteAccount;
+
+  /// False for accounts made with Google or Facebook, which have no password;
+  /// they confirm by typing DELETE. Null means "ask the signed-in account".
+  final bool? requiresPassword;
 
   @override
   State<PrivacyDataScreen> createState() => _PrivacyDataScreenState();
@@ -64,7 +70,11 @@ class _PrivacyDataScreenState extends State<PrivacyDataScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => _DeleteAccountDialog(
-          onDelete: widget.deleteAccount ?? appState.deleteAccount),
+        onDelete: widget.deleteAccount ?? appState.deleteAccount,
+        requiresPassword: widget.requiresPassword ??
+            (widget.deleteAccount != null ||
+                SupabaseAuthService.currentUserHasPassword),
+      ),
     );
     if (deleted == true && mounted) {
       // The login screen takes over once the account state is cleared.
@@ -237,8 +247,10 @@ class _PrivacyDataScreenState extends State<PrivacyDataScreen> {
 }
 
 class _DeleteAccountDialog extends StatefulWidget {
-  const _DeleteAccountDialog({required this.onDelete});
+  const _DeleteAccountDialog(
+      {required this.onDelete, required this.requiresPassword});
   final DeleteAccountAction onDelete;
+  final bool requiresPassword;
 
   @override
   State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
@@ -260,8 +272,13 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
     if (_busy) return;
     final l = strings(context);
     final password = _password.text;
-    if (password.isEmpty) {
-      setState(() => _error = l.enterPassword);
+    if (widget.requiresPassword) {
+      if (password.isEmpty) {
+        setState(() => _error = l.enterPassword);
+        return;
+      }
+    } else if (password.trim() != 'DELETE') {
+      setState(() => _error = l.privacyDeleteTypeMismatch);
       return;
     }
     setState(() {
@@ -269,7 +286,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
       _error = null;
     });
     try {
-      await widget.onDelete(password);
+      await widget.onDelete(widget.requiresPassword ? password : '');
       if (mounted) Navigator.of(context).pop(true);
     } on AuthException catch (error) {
       if (mounted) {
@@ -306,18 +323,24 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
               TextField(
                 controller: _password,
                 enabled: !_busy,
-                obscureText: _hide,
-                autofillHints: const [AutofillHints.password],
+                obscureText: widget.requiresPassword && _hide,
+                autofillHints: widget.requiresPassword
+                    ? const [AutofillHints.password]
+                    : null,
                 onSubmitted: (_) => _submit(),
                 decoration: InputDecoration(
-                  labelText: l.privacyDeletePasswordLabel,
+                  labelText: widget.requiresPassword
+                      ? l.privacyDeletePasswordLabel
+                      : l.privacyDeleteTypeLabel,
                   errorText: _error,
                   errorMaxLines: 3,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                        _hide ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _hide = !_hide),
-                  ),
+                  suffixIcon: widget.requiresPassword
+                      ? IconButton(
+                          icon: Icon(
+                              _hide ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => _hide = !_hide),
+                        )
+                      : null,
                 ),
               ),
             ],
