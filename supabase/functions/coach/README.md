@@ -47,9 +47,10 @@ therefore never decode or send an image. The function allows browser
 cross-origin requests from any origin; callers must still authenticate. Usage is counted in UTC, including provider failures.
 Missing or malformed provider settings are rejected before quota is consumed;
 valid-looking but rejected credentials still consume quota. Quota is charged
-before any Gemini attempt in `index.ts` by `coach_consume_quota`; provider
-failures currently still consume it because there is no automatic refund. The
-proposed un-applied refund function is in `docs/coach_quota_refund.sql`.
+before any Gemini attempt in `index.ts` by `coach_consume_quota`. When the
+provider fails (429, 5xx or timeout) the function gives the request back with
+`coach_refund_quota`, defined in `supabase/coach_quota_refund.sql`, which must
+be run once in the SQL Editor.
 After authentication and message validation, the profile age check runs before
 emergency keyword checks. An adult emergency match receives a fixed reply
 without quota consumption or an AI call. For that reply `remaining` and
