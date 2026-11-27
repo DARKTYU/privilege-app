@@ -141,6 +141,7 @@ Claude and GitHub Copilot were used to plan, write and review code and documents
 ## Credits
 
 - **Logo and colors:** the logo idea came from Ibrahim; the colors were chosen together by Ibrahim, Abdalla and Hossam.
+- **Food data:** the food list with calories and macros (`foods.json`) was prepared by teammate Ibrahim Haggag.
 
 ## Author
 
